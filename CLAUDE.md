@@ -251,7 +251,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 
 ## Build order checklist
 - [x] 1. Setup: skeleton, CLAUDE.md, CI + Pages deploy, vendored VexFlow, test runner, app shell
-- [ ] 2. Music brain + exhaustive tests + tonal cross-check
+- [x] 2. Music brain + exhaustive tests + tonal cross-check
 - [ ] 3. Notation wrapper, position test, dev gallery
 - [ ] 4. Question engine (all interaction types)
 - [ ] 5. Generators + checked bank (sections 1→7) with reviews
@@ -272,3 +272,9 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Node's built-in test runner (`node --test`) for unit tests; Playwright 1.56.1 (matches the preinstalled Chromium) for e2e.
 - Strict Content-Security-Policy meta tag (script-src 'self', connect-src 'self') to guarantee no runtime network calls.
 - Save is versioned (v3 now) with a migration chain from v1; all storage access in try/catch.
+- 19:35 Syllabus research saved to docs/syllabus.md (subagent read the ABRSM spec PDFs). Irregular times limited to 5/4, 7/4, 5/8, 7/8; tuplets = triplet, duplet, quintuplet, sextuplet (septuplets not named, so not tested); intervals up to a 15th.
+- Compound intervals named "compound major 3rd" by default (lesson also teaches "major 10th"); MCQ options never offer both names of one interval.
+- Minor-key chords use the harmonic minor (V major, II diminished); Roman numerals are upper case throughout, as ABRSM prints them.
+- Chromatic scale: validity = 13 notes, semitone steps, same-or-next letter, no letter 3 times running; canonical form = "harmonic chromatic" (1 b2 2 b3 3 4 #4 5 b6 6 b7 7 1).
+- Cadence chord questions accept every chord pair that contains the melody notes and forms a valid cadence of the stated kind; final cadences (V-I / IV-I) are always unique (tested).
+- Tonal cross-check: 52 scales, 26 signatures, 5000+ intervals, 8000+ transpositions, 104 triads, all MIDI numbers agree. Only difference: tonal allows triple accidentals, we refuse to spell those (asserted).
