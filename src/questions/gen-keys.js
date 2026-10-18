@@ -39,7 +39,7 @@ export function genKeySigChoose(r, diff) {
   const mode = r.pick(['major', 'minor']);
   const k = r.pick(keyPool(diff, mode).filter((x) => x.fifths !== 0));
   const clef = clefFor(r, diff);
-  const wrongFifths = [k.fifths - 1, k.fifths + 1, -k.fifths, k.fifths + (k.mode === 'minor' ? 3 : -3)].filter((f) => f >= -7 && f <= 7 && f !== k.fifths && f !== 0);
+  const wrongFifths = [k.fifths - 1, k.fifths + 1, -k.fifths, k.fifths + (k.mode === 'minor' ? 3 : -3)].filter((f) => f >= -6 && f <= 6 && f !== k.fifths && f !== 0);
   const ds = wrongFifths.map((f) => {
     const wk = keyFromFifths(f, mode);
     return { label: '', music: sigMusic(wk, clef), key: String(f), aria: 'key signature', why: `This is the key signature of ${keyName(wk)} (${sigWords(wk)}).` };
@@ -167,7 +167,8 @@ export function genChromatic(r, diff) {
     const dir = r.pick(['up', 'down']);
     const start = dir === 'up' ? t : pitch(t.letter, t.acc, 5);
     const good = chromaticScale(start, dir);
-    if (good.some((p) => Math.abs(p.acc) > 1)) continue;
+    // Keep to spellings students will recognise (no E♯, B♯, C♭, F♭ or doubles in the correct answer).
+    if (good.some((p) => Math.abs(p.acc) > 1 || ['E#', 'B#', 'Cb', 'Fb'].includes(p.letter + (p.acc > 0 ? '#' : p.acc < 0 ? 'b' : '')))) continue;
     // Wrong versions: respell one or two notes so the letter-name rule breaks.
     const wrongs = [];
     for (let attempt = 0; attempt < 60 && wrongs.length < 6; attempt++) {

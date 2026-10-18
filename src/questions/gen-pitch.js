@@ -209,7 +209,7 @@ export function genInstrument(r, diff) {
   const otherInst = r.pick(['Bb', 'A', 'F'].filter((x) => x !== inst));
   const wrongInt = srcMel.map((p) => (toConcertDir ? toConcert(p, otherInst) : toWritten(p, otherInst)));
   const wrongIntKey = fit(toConcertDir ? srcKey.fifths - writtenKeyFifths(0, otherInst) : writtenKeyFifths(srcKey.fifths, otherInst));
-  const okKey = (k) => Math.abs(k.fifths) <= 7;
+  const okKey = (k) => Math.abs(k.fifths) <= 6;
   const opts = [];
   if (okKey(wrongDirKey)) opts.push({ label: '', music: m(wrongDir, wrongDirKey), key: 'dir', why: `This moves the melody the wrong way: ${toConcertDir ? 'to get concert pitch from a written part, go down' : 'to write a part for this instrument, go up'} ${iv.words.replace(' lower', '')}.`, aria: 'melody' });
   if (okKey(wrongIntKey)) opts.push({ label: '', music: m(wrongInt, wrongIntKey), key: 'int', why: `This uses the wrong interval (that would be for an instrument ${INSTRUMENT_KEYS[otherInst].label}).`, aria: 'melody' });

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const SCREENS = ['#/home', '#/learn', '#/practice', '#/mock', '#/memorise', '#/rewards', '#/settings'];
+const SCREENS = ['#/home', '#/learn', '#/learn/pitch-tenor', '#/learn/terms-signs-ornaments', '#/practice', '#/practice/k-signatures', '#/practice/map', '#/practice/listening', '#/mock', '#/mock/paper-3', '#/memorise', '#/memorise/circle', '#/memorise/cards:keys', '#/memorise/match', '#/memorise/clock', '#/rewards', '#/settings'];
 
 async function withProfile(page) {
   await page.addInitScript(() => {
@@ -27,7 +27,9 @@ test('no console errors and no external requests on every screen', async ({ page
   for (const s of SCREENS) {
     await page.goto('/index.html' + s);
     await expect(page.locator('main .view')).toBeVisible();
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(400);
+    const text = await page.locator('main').innerText();
+    expect(text, s).not.toMatch(/\b(null|undefined|NaN)\b|\[object/);
   }
   expect(errors).toEqual([]);
   expect(external).toEqual([]);

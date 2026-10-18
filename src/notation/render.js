@@ -194,7 +194,9 @@ export async function renderMusic(container, spec) {
 
   // Measure widths (content only), then pack into lines.
   const contentWidths = built.map(({ m, vexNotes }) => {
-    let w = Math.max(s.free ? 60 : 90, vexNotes.length * s.minNoteWidth + 24);
+    // Each note needs room for itself and for any label written under or over it.
+    const perNote = vexNotes.map((vn) => Math.max(s.minNoteWidth, ((vn.__spec.label || '').length * 7.2) + 14, ((vn.__spec.text || '').length * 6) + 10));
+    let w = Math.max(s.free ? 60 : 90, perNote.reduce((a, b) => a + b, 0) + 24);
     w += vexNotes.reduce((acc, n) => acc + (n.getModifiers().filter((md) => md.getCategory?.() === 'Accidental').length ? 12 : 0) + (n.__spec.grace ? 26 : 0), 0);
     return m.width || w;
   });

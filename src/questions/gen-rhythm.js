@@ -107,9 +107,10 @@ function describe(fr) {
   // In crotchet beats, the most intuitive unit.
   const beats = R.mul(fr, R.frac(4));
   if (beats.d === 1) return `${beats.n} crotchet beat${beats.n === 1 ? '' : 's'}`;
-  if (beats.d === 2) return `${beats.n / 2} crotchet beats`.replace('.5', '½');
+  if (beats.d === 2) { const whole = Math.floor(beats.n / 2); return `${whole ? whole : ''}½ crotchet beat${whole ? 's' : ''}`; }
   const q = R.mul(fr, R.frac(32));
-  return `${q.n / q.d} demisemiquavers`;
+  const v = q.n / q.d;
+  return `${v} demisemiquaver${v === 1 ? '' : 's'}`;
 }
 
 export function genTimeDescribe(r, diff) {
@@ -214,7 +215,7 @@ export function genRests(r, diff) {
     return mcq(r, {
       section: SEC, topic: 'r-rests', difficulty: diff,
       prompt: `Which bar of ${ts} is completed with the correct rest${rests.length > 1 ? 's' : ''}?`,
-      explanation: `After the notes there is ${describe(R.sub(bar, start))} left. ${restRuleText(ts)} So the rests are: ${rests.map((x) => R.valueName(x.id, x.dots, true)).join(', ')}.`,
+      explanation: `After the notes, ${describe(R.sub(bar, start))} ${/^(1 |½)/.test(describe(R.sub(bar, start))) ? 'is' : 'are'} left. ${restRuleText(ts)} So the rests are: ${rests.map((x) => R.valueName(x.id, x.dots, true)).join(', ')}.`,
     }, { label: '', music: music(correctBar), key: JSON.stringify(rests), aria: 'bar with rests' },
     wrongs.map((w) => ({ label: '', music: music([...lead, ...toNotes(w.rests)]), key: JSON.stringify(w.rests), why: w.why, aria: 'bar with rests' })), 3);
   }
@@ -264,9 +265,11 @@ export function genTuplet(r, diff) {
   const tupletTotal = R.mul(R.valueById(unitName).value, R.frac(t.inTimeOf));
   const ts = type === 'duplet' ? (unit === '8' ? '6/8' : '6/4') : (R.eq(tupletTotal, R.frac(1, 4)) ? '2/4' : R.eq(tupletTotal, R.frac(1, 2)) ? '4/4' : R.eq(tupletTotal, R.frac(1, 8)) ? '2/8' : '2/4');
   const bar = R.barLength(ts);
-  const tup = Array.from({ length: t.count }, (_, i) => ({ keys: MELODY[i % MELODY.length], dur: unit, tuplet: { id: 1, num: t.count, occupied: t.inTimeOf }, beam: ['8', '16', '32'].includes(unit) ? 99 : undefined }));
+  const off = r.int(0, MELODY.length - 1);
+  const tup = Array.from({ length: t.count }, (_, i) => ({ keys: MELODY[(i + off) % MELODY.length], dur: unit, tuplet: { id: 1, num: t.count, occupied: t.inTimeOf }, beam: ['8', '16', '32'].includes(unit) ? 99 : undefined }));
   const rest = splitIntoNotes(R.sub(bar, tupletTotal), ts) || [];
-  const notes = [...tup, ...rest.map((n, i) => ({ ...n, keys: MELODY[(i + 4) % MELODY.length] }))];
+  const restNotes = rest.map((n, i) => ({ ...n, keys: MELODY[(i + off + 5) % MELODY.length] }));
+  const notes = r.chance(0.5) ? [...tup, ...restNotes] : [...restNotes, ...tup];
   if (r.chance(0.5)) {
     return {
       section: SEC, topic: 'r-tuplets', difficulty: diff,

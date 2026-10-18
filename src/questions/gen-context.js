@@ -13,6 +13,8 @@ import { qualitiesFor } from './gen-intervals.js';
 
 const SEC = 7;
 const TEMPO_TERMS = TERMS.filter((t) => ['allegro', 'andante', 'moderato', 'adagio', 'allegretto', 'lento', 'largo', 'presto', 'vivace, vivo', 'andantino', 'larghetto', 'grave', 'lent', 'modéré', 'vite', 'langsam', 'lebhaft', 'mässig', 'schnell', 'ruhig', 'traurig', 'animé', 'maestoso', 'grazioso', 'con moto', 'con spirito', 'cantabile', 'dolce', 'tranquillo', 'giocoso', 'mesto', 'misterioso', 'leggiero', 'sostenuto (sost.)', 'cantando', 'sonoro', 'doloroso', 'pesante', 'semplice'].includes(t.term));
+/** The term as printed on a score: first form only, no abbreviations in brackets. */
+const shownTerm = (t) => t.replace(/ \(.*\)$/, '').split(',')[0].trim();
 const INSTRUMENT_FOR = { treble: ['violin', 'flute', 'oboe'], bass: ['cello', 'bassoon'], alto: ['viola'], tenor: ['cello', 'bassoon'] };
 
 /** Build a short original extract. Returns music spec plus facts about it. */
@@ -26,7 +28,8 @@ export function buildExtract(r, diff) {
   const nBars = 6;
   const measures = [];
   let idx = r.pick([0, 2, 4]);
-  const arpBar = r.int(2, 4);
+  // The arpeggio bar never takes the leading-note bar (bar 5), so minor extracts always show their raised 7th.
+  const arpBar = r.int(1, 3);
   const chordDeg = r.pick([1, 4, 5]);
   const tempo = r.pick(TEMPO_TERMS);
   const dyn = r.pick(['p', 'mf', 'f', 'mp']);
@@ -41,7 +44,9 @@ export function buildExtract(r, diff) {
       notes = nd ? [{ keys: toString(sc[7]), dur: durCode[nd.id], dots: nd.dots }] : buildBar(r, ts).notes;
       if (!nd) notes.forEach((n) => { n.keys = toString(sc[7]); });
     } else if (b === arpBar) {
-      notes = buildBar(r, ts).notes;
+      // Needs at least three notes so the whole chord is outlined.
+      for (let t = 0; t < 30; t++) { notes = buildBar(r, ts).notes; if (notes.filter((x) => !x.rest).length >= 3) break; }
+      if (notes.filter((x) => !x.rest).length < 3) throw new Error('arpeggio bar too short');
       const tri = triad(k, chordDeg).map((p) => sc.find((s) => s.letter === p.letter && s.acc === p.acc) || sc[0]);
       let j = 0;
       notes.forEach((n) => { if (!n.rest) n.keys = toString(tri[j++ % 3]); });
@@ -61,7 +66,12 @@ export function buildExtract(r, diff) {
     measures.push({ notes });
   }
   // Tempo marking, dynamic and an ornament.
-  measures[0].notes[0].text = tempo.term.replace(/ \(.*\)$/, '');
+  measures[0].notes[0].text = shownTerm(tempo.term);
+  if (k.mode === 'minor') {
+    const lead = sc[6];
+    const has = measures.some((m) => m.notes.some((x) => !x.rest && parse(x.keys).letter === lead.letter && parse(x.keys).acc === lead.acc));
+    if (!has) throw new Error('minor extract without leading note');
+  }
   const orn = r.pick(['trill', 'turn', 'upper mordent', 'lower mordent']);
   const ornNote = measures[ornBar].notes.find((n) => !n.rest && !n.text);
   if (ornNote) ornNote.orn = orn; else ornBar = -1;
@@ -104,7 +114,7 @@ export function genContext(r, diff, { all = false } = {}) {
   const notes = allNotes(ex);
 
   // 1. Tempo term
-  qs.push(() => mcq(r, { ...base, check: { kind: 'term' }, prompt: `${intro}\nWhat does "${ex.tempo.term.replace(/ \(.*\)$/, '')}" (at the start) mean?`, explanation: `${ex.tempo.term} means "${ex.tempo.meaning}".` },
+  qs.push(() => mcq(r, { ...base, check: { kind: 'term' }, prompt: `${intro}\nWhat does "${shownTerm(ex.tempo.term)}" (at the start) mean?`, explanation: `${ex.tempo.term} means "${ex.tempo.meaning}".` },
     { label: ex.tempo.meaning }, TERMS.filter((t) => !meaningsClash(t.meaning, ex.tempo.meaning)).map((t) => ({ label: t.meaning }))));
 
   // 2. Key
@@ -133,6 +143,9 @@ export function genContext(r, diff, { all = false } = {}) {
   // 5. Chord outlined in the arpeggio bar
   qs.push(() => {
     const d = ex.chordDeg;
+    const barNotes = ex.measures[ex.arpBar].notes.filter((x) => !x.rest).map((x) => parse(x.keys));
+    const tri = triad(ex.k, d);
+    if (!tri.every((t) => barNotes.some((p) => p.letter === t.letter && p.acc === t.acc))) return null;
     const ds = [1, 2, 4, 5].filter((x) => x !== d).map((x) => ({ label: chordLabel(x, 'a').replace(/a$/, '') }));
     return mcq(r, { ...base, prompt: `${intro}\nThe notes of bar ${ex.arpBar + 1} make up one chord. Which chord is it?`, explanation: `Bar ${ex.arpBar + 1} uses only ${triad(ex.k, d).map((p) => name(p)).join(', ')}: chord ${chordLabel(d, 'a')} in ${keyName(ex.k)}.` },
       { label: chordLabel(d, 'a') }, ds);
@@ -163,15 +176,16 @@ export function genContext(r, diff, { all = false } = {}) {
     const hasLeading = notes.some((n) => n.p.letter === leading.letter && n.p.acc === leading.acc);
     const artWord = { staccato: 'staccato (detached)', accent: 'accented', tenuto: 'held (tenuto)' }[ex.art];
     const st = [
-      { text: `The highest note is in bar ${highBars[0]}.`, answer: true },
-      { text: `The highest note is in bar ${wrongBar}.`, answer: false },
+      { text: `The highest note appears in bar ${highBars[0]}.`, answer: true },
+      { text: `The highest note appears in bar ${wrongBar}.`, answer: false },
       { text: `The lowest note is ${name(lowest.p)}.`, answer: true },
       { text: 'The extract contains a dotted note.', answer: hasDotted },
       { text: `The leading note (${name(leading)}) appears in the extract.`, answer: hasLeading },
       { text: `Some notes in bar ${ex.artBar + 1} are to be played ${artWord}.`, answer: true },
       { text: `The extract ends on the dominant.`, answer: false },
       { text: `The extract ends on the tonic.`, answer: true },
-      { text: `The extract could be played by a ${r.pick(INSTRUMENT_FOR[ex.clef])}.`, answer: true },
+      { text: `The extract is written in the ${ex.clef} clef.`, answer: true },
+      { text: `The extract is written in the ${r.pick(['treble', 'bass', 'alto', 'tenor'].filter((c) => c !== ex.clef))} clef.`, answer: false },
     ];
     return trueFalse(r, { ...base, prompt: `${intro}\nAre these statements true or false?`, explanation: `Highest note ${name(highest.p, true)} (bar ${highBars[0]}); lowest ${name(lowest.p, true)}. The extract is in ${keyName(ex.k)} and ends on the tonic.` }, st, 4);
   });

@@ -109,7 +109,8 @@ export function genCadenceName(r, diff) {
   const k = r.pick(CAD_KEYS);
   const type = r.pick(['perfect', 'plagal', 'imperfect']);
   const pair = type === 'perfect' ? [5, 1] : type === 'plagal' ? [4, 1] : r.pick([[1, 5], [2, 5], [4, 5]]);
-  const inv1 = type === 'imperfect' && pair[0] === 1 && diff >= 2 && r.chance(0.3) ? 'c' : r.pick(['a', 'a', 'b']);
+  // Perfect and plagal cadences use root-position chords; the first chord of an imperfect cadence may be inverted.
+  const inv1 = type !== 'imperfect' ? 'a' : pair[0] === 1 && diff >= 2 && r.chance(0.3) ? 'c' : r.pick(['a', 'a', 'b']);
   const v1 = fitChord(k, pair[0], inv1, 'bass');
   const v2 = fitChord(k, pair[1], 'a', 'bass');
   const music = { clef: 'bass', key: k.fifths, free: true, notes: [{ keys: v1.map((p) => toString(p)), dur: 'h' }, { keys: v2.map((p) => toString(p)), dur: 'h' }], scale: 1.2 };

@@ -35,13 +35,13 @@ export function genTermMeaning(r, diff) {
 }
 
 export function genTermsTrueFalse(r, diff) {
-  const pool = r.sample(termPool(diff), 6);
+  const pool = r.sample(termPool(diff), 4);
   const st = pool.map((t, i) => {
     if (i % 2 === 0) return { text: `${t.term} means "${t.meaning}".`, answer: true };
     const wrong = r.pick(TERMS.filter((o) => !meaningsClash(o.meaning, t.meaning)));
     return { text: `${t.term} means "${wrong.meaning}".`, answer: false, why: `${t.term} means "${t.meaning}".` };
   });
-  return trueFalse(r, { section: SEC, topic: 't-terms', difficulty: diff, prompt: 'Are these statements about musical terms true or false?', explanation: pool.slice(0, 4).map((t) => `${t.term} = ${t.meaning}`).join('; ') + '.' }, st, 4);
+  return trueFalse(r, { section: SEC, topic: 't-terms', difficulty: diff, prompt: 'Are these statements about musical terms true or false?', explanation: pool.map((t) => `${t.term} = ${t.meaning}`).join('; ') + '.' }, st, 4);
 }
 
 export function genSign(r, diff) {
@@ -66,10 +66,16 @@ export function genDirection(r, diff) {
 
 // ---- Ornaments: written-out → sign ----------------------------------------
 
-function writtenOut(orn, main, k) {
-  const sc = [...keyScale(k, main.octave - 1), ...keyScale(k, main.octave), ...keyScale(k, main.octave + 1)];
-  const i = sc.findIndex((p) => p.letter === main.letter && p.octave === main.octave);
-  const up = sc[i + 1], down = sc[i - 1];
+/** The scale notes either side of `main` in key k (7-note scales, no repeated tonic). */
+export function neighbours(main, k) {
+  const sc = [main.octave - 2, main.octave - 1, main.octave, main.octave + 1].flatMap((o) => keyScale(k, o).slice(0, 7));
+  const i = sc.findIndex((p) => p.letter === main.letter && p.octave === main.octave && p.acc === main.acc);
+  if (i < 1) throw new Error('main note not in key');
+  return { up: sc[i + 1], down: sc[i - 1] };
+}
+
+export function writtenOut(orn, main, k) {
+  const { up, down } = neighbours(main, k);
   const n = (p, dur, dots = 0, extra = {}) => ({ keys: toString(p), dur, dots, ...extra });
   switch (orn) {
     case 'upper mordent': return [n(main, '32', 0, { beam: 1 }), n(up, '32', 0, { beam: 1 }), n(main, '8', 1, { beam: 1 })];
@@ -77,14 +83,14 @@ function writtenOut(orn, main, k) {
     case 'turn': return [n(up, '16', 0, { beam: 1 }), n(main, '16', 0, { beam: 1 }), n(down, '16', 0, { beam: 1 }), n(main, '16', 0, { beam: 1 })];
     case 'trill': return [up, main, up, main, up, main, up, main].map((p) => n(p, '32', 0, { beam: 1 }));
     case 'appoggiatura': return [n(up, '8', 0, { beam: 1 }), n(main, '8', 0, { beam: 1 })];
-    case 'acciaccatura': return [n(up, '32', 0, { beam: 1 }), n(main, '8', 1, { beam: 1 })];
+    // demisemiquaver + double-dotted quaver = one crotchet beat
+    case 'acciaccatura': return [n(up, '32', 0, { beam: 1 }), n(main, '8', 2, { beam: 1 })];
     default: return [];
   }
 }
 
-function signVersion(orn, main, k) {
-  const sc = [...keyScale(k, main.octave), ...keyScale(k, main.octave + 1)];
-  const up = sc[sc.findIndex((p) => p.letter === main.letter && p.octave === main.octave) + 1];
+export function signVersion(orn, main, k) {
+  const { up } = neighbours(main, k);
   if (orn === 'appoggiatura') return [{ keys: toString(main), dur: 'q', grace: [{ keys: toString(up), dur: '8', slash: false }] }];
   if (orn === 'acciaccatura') return [{ keys: toString(main), dur: 'q', grace: [{ keys: toString(up), dur: '8', slash: true }] }];
   return [{ keys: toString(main), dur: 'q', orn }];
@@ -97,12 +103,12 @@ export function genOrnament(r, diff) {
   const orn = r.pick(ORNAMENTS).id;
   const written = writtenOut(orn, main, k);
   const music = { clef: 'treble', key: k.fifths, time: '2/4', measures: [{ notes: [...written, { keys: toString(sc[0]), dur: 'q' }] }], scale: 1.2 };
-  const opt = (o) => ({ label: o === 'appoggiatura' || o === 'acciaccatura' ? `${o} (small note ${o === 'acciaccatura' ? 'with' : 'without'} a slash)` : '', music: { clef: 'treble', key: k.fifths, free: true, notes: signVersion(o, main, k), scale: 1.15 }, key: o, aria: o, why: `That sign is a${o === 'upper mordent' ? 'n' : ''} ${o}: ${ORNAMENTS.find((x) => x.id === o).describe}.` });
+  const opt = (o) => ({ label: o === 'appoggiatura' || o === 'acciaccatura' ? `${o} (small note ${o === 'acciaccatura' ? 'with' : 'without'} a slash)` : '', music: { clef: 'treble', key: k.fifths, free: true, notes: signVersion(o, main, k), scale: 1.15 }, key: o, aria: o, why: `That sign is ${/^[aeiou]/.test(o) ? 'an' : 'a'} ${o}: ${ORNAMENTS.find((x) => x.id === o).describe}.` });
   const q = mcq(r, {
     section: SEC, topic: 't-ornaments', difficulty: diff,
     prompt: 'The first beat of this bar shows an ornament written out in full. Which sign could replace it?',
     music,
-    explanation: `The written-out notes are a${orn === 'upper mordent' || orn === 'appoggiatura' || orn === 'acciaccatura' ? 'n' : ''} ${orn}: ${ORNAMENTS.find((x) => x.id === orn).describe}.`,
+    explanation: `The written-out notes are ${/^[aeiou]/.test(orn) ? 'an' : 'a'} ${orn}: ${ORNAMENTS.find((x) => x.id === orn).describe}.`,
   }, { ...opt(orn), why: undefined }, ORNAMENTS.filter((o) => o.id !== orn).map((o) => opt(o.id)));
   // Name each option for screen readers and review.
   return q;

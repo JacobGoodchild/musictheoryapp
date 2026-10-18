@@ -49,7 +49,7 @@ export function genIntervalName(r, diff) {
   for (const n of [number - 1, number + 1, number > 8 ? number - 7 : number + 7]) {
     if (n < 2 || n > 15) continue;
     const qs = qualitiesFor(n);
-    ds.push({ label: intervalName({ number: n, quality: qs.includes(quality) ? quality : qs[0] }, { style }), why: n === number - 7 || n === number + 7 ? (n > number ? 'That would be an octave wider.' : 'This interval is more than an octave: it is compound.') : `Count the letter names from ${low.letter} to ${high.letter}, including both: that gives ${number}${number > 8 ? ` (a compound ${simpleNumber(number) === 1 ? 'octave' : ordinalNum(simpleNumber(number))})` : ''}.` });
+    ds.push({ label: intervalName({ number: n, quality: qs.includes(quality) ? quality : qs[0] }, { style }), why: n === number - 7 || n === number + 7 ? (n > number ? 'That would be an octave wider.' : 'This interval is more than an octave: it is compound.') : `Count the letter names from ${low.letter} to ${high.letter}, including both: that gives ${art(ordinalNum(number))} ${ordinalNum(number)}${number > 8 ? ` (a compound ${simpleNumber(number) === 1 ? 'octave' : ordinalNum(simpleNumber(number))})` : ''}.` });
   }
   const harmonic = r.chance(0.5);
   const music = harmonic
@@ -67,19 +67,42 @@ export function genIntervalName(r, diff) {
 
 const ordinalNum = (n) => n + (['th', 'st', 'nd', 'rd'][(n % 100 - 20) % 10] || ['th', 'st', 'nd', 'rd'][n % 100] || 'th');
 
+/** "a" or "an" before a word or interval name (an augmented, an 8th, an 11th). */
+export const art = (w) => (/^(a|e|i|o|u|8|11|18)/i.test(String(w)) ? 'an' : 'a');
+const semis = (n) => `${n} semitone${n === 1 ? '' : 's'}`;
+
 function whyQuality(low, high, number, q) {
   const want = semitonesFor(number, q);
   const got = midi(high) - midi(low);
-  return `A ${intervalName({ number, quality: q })} spans ${want} semitones; this one spans ${got}.`;
+  const nm = intervalName({ number, quality: q });
+  return `${art(nm)[0].toUpperCase() + art(nm).slice(1)} ${nm} spans ${semis(want)}; this one spans ${semis(got)}.`;
 }
+
+const GRADE5_MAJOR_TONICS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'];
 
 export function explainInterval(low, high, number, quality, style = 'compound') {
   const s = number > 8 ? (simpleNumber(number) === 1 ? 8 : simpleNumber(number)) : number;
-  const semis = midi(high) - midi(low);
-  const parts = [`From ${name(low)} up to ${name(high)}: counting letter names gives a ${number > 8 ? `${ordinalNum(number)} (a compound ${s === 8 ? 'octave' : ordinalNum(s)})` : ordinalNum(number)}.`];
-  if (isPerfectType(number)) parts.push(`${ordinalNum(s)}s are perfect when the top note is in the major scale of the bottom note; one semitone bigger is augmented, one smaller is diminished.`);
-  else parts.push(`In the major scale of ${name(low)}, the ${s === 8 ? 'octave' : ordinalNum(s)} is major. One semitone smaller is minor, smaller again is diminished; one semitone bigger than major is augmented.`);
-  parts.push(`This one spans ${semis} semitones, so it is a ${intervalName({ number, quality }, { style })}${number > 8 ? ` (also called a ${intervalName({ number, quality }, { style: style === 'full' ? 'compound' : 'full' })})` : ''}.`);
+  const nSemis = midi(high) - midi(low);
+  const numWord = number > 8 ? `${ordinalNum(number)} (a compound ${s === 8 ? 'octave' : ordinalNum(s)})` : ordinalNum(number);
+  const parts = [`From ${name(low)} up to ${name(high)}: counting letter names gives ${art(numWord)} ${numWord}.`];
+  const tonic = low.letter + ['bb', 'b', '', '#', 'x'][low.acc + 2];
+  if (GRADE5_MAJOR_TONICS.includes(tonic)) {
+    if (isPerfectType(number)) parts.push(`In the major scale of ${name(low)}, the ${s === 8 ? 'octave' : ordinalNum(s)} is perfect; one semitone bigger is augmented, one smaller is diminished.`);
+    else parts.push(`In the major scale of ${name(low)}, the ${ordinalNum(s)} is major. One semitone smaller is minor, smaller again is diminished; one semitone bigger than major is augmented.`);
+  } else {
+    // Unfamiliar key: work it out from the plain letter names first.
+    const lo = { letter: low.letter, acc: 0, octave: low.octave };
+    const natHigh = { letter: high.letter, acc: 0, octave: high.octave };
+    const base = between(lo, natHigh);
+    if (base.valid) {
+      const baseName = intervalName(base, { style });
+      const lowWord = low.acc === 0 ? '' : `${low.acc > 0 ? 'Raising' : 'Lowering'} the bottom note (${name(low)}) makes the interval ${low.acc > 0 ? 'smaller' : 'bigger'}${high.acc ? '; ' : '.'}`;
+      const highWord = high.acc === 0 ? '' : `${high.acc > 0 ? 'raising' : 'lowering'} the top note (${name(high)}) makes it ${high.acc > 0 ? 'bigger' : 'smaller'}.`;
+      parts.push(`Start from the plain letters: ${low.letter} up to ${high.letter} is ${art(baseName)} ${baseName}. ${lowWord}${highWord}`.trim());
+    }
+  }
+  const nm = intervalName({ number, quality }, { style });
+  parts.push(`This one spans ${semis(nSemis)}, so it is ${art(nm)} ${nm}${number > 8 ? ` (also called ${art(intervalName({ number, quality }, { style: style === 'full' ? 'compound' : 'full' }))} ${intervalName({ number, quality }, { style: style === 'full' ? 'compound' : 'full' })})` : ''}.`);
   return parts.join(' ');
 }
 

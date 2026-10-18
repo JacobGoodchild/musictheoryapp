@@ -254,11 +254,11 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - [x] 2. Music brain + exhaustive tests + tonal cross-check
 - [x] 3. Notation wrapper, position test, dev gallery
 - [x] 4. Question engine (all interaction types)
-- [x] 5. Generators + checked bank (sections 1→7) — review pass pending
+- [x] 5. Generators + checked bank (sections 1→7) — review pass 1 done (docs/review-1.md)
 - [x] 6. Practice: by topic, random, mistakes, tricky set, daily challenge, mastery map, listening
 - [x] 7. Mock exams (10 fixed + generate new), timer, navigator, flags, resume after reload, results, review, history
-- [ ] 8. Learn: lessons + review pass
-- [ ] 9. Memorise
+- [x] 8. Learn: 33 lessons (all 7 sections, refresh lessons for G1–4) with engraved examples, worked examples, checks
+- [x] 9. Memorise: circle of fifths, 7 flashcard decks with spaced repetition, beat the clock, matching pairs
 - [ ] 10. Audio
 - [ ] 11. Rewards
 - [ ] 12. Settings, export/import, migration, PWA
@@ -292,3 +292,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Mocks: questions can be revisited and changed until "Finish"; unfinished mock is stored in the save (mockRun) and resumes after reload; timer auto-marks at 0. Distinction triggers confetti. Coins: base 40 + band bonus + personal best.
 - Fixed a CSS bug the screenshots exposed: wide staves inside option cards were clipped (rests looked missing). All staves now scale down to fit (max-width:100%, height:auto). Engraving checker now also verifies rest glyphs, and ignores grace-note heads (smaller font size) when counting noteheads.
 - Engraving check covers 10 groups (demo, 7 bank sections, mocks, lessons) — ~4,000 staves, all clean; ~3.5 min locally.
+- 20:45 Review pass 1 (fresh subagent, 194 questions by hand + scripts over whole bank): 6 errors (acciaccatura bar length, wrong grace note, one-note "chord" bar, minor extract missing its leading note, "highest note in bar N" ambiguity, inverted perfect/plagal cadences), 14 warnings, 6 nits. All errors and warnings fixed except rests in irregular time (left out on purpose). See docs/review-1.md.
+- Lessons: every stave computed from the brain via helpers (scales, key signatures, intervals, chords, transposed melodies). End-of-lesson checks are generated from the same validated generators with fixed seeds. I caught and fixed two of my own lesson errors while re-reading (tenor vs alto is a 3rd apart, not a 2nd; chord II in F major does not contain F).
+- Renderer now sizes each note's slot to fit its label text, so labelled examples never spill past the stave.
+- Flashcards: Leitner boxes (0,1,2,4,8,16 days); 1 coin per known due card (none for extra practice).

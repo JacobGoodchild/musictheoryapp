@@ -16,7 +16,8 @@ fs.mkdirSync(outDir, { recursive: true });
 const BASE = 85;
 const bySection = {};
 const seen = new Set();
-const fingerprint = (q) => JSON.stringify({ p: q.prompt, m: q.music, o: q.options, s: q.statements, pl: q.place, n: q.numbers, d: q.dropdowns });
+// Same question with options in a different order counts as a duplicate.
+const fingerprint = (q) => JSON.stringify({ p: q.prompt, m: q.music, o: (q.options || []).map((o) => JSON.stringify(o)).sort(), s: (q.statements || []).map((x) => x.text).sort(), pl: q.place, n: q.numbers, d: q.dropdowns });
 let dupes = 0;
 
 function add(q) {
@@ -33,7 +34,7 @@ for (const t of TOPICS) {
   if (t.id === 'x-context') continue;
   const target = Math.round(BASE * (t.weight || 1));
   let made = 0;
-  for (let seed = 0; made < target && seed < target * 4; seed++) {
+  for (let seed = 0; made < target && seed < target * 12; seed++) {
     // Spread difficulty evenly: 1, 2, 3, 2 ...
     const diff = [1, 2, 3, 2][seed % 4];
     const q = generate(t.id, `bank-${seed}`, diff);
