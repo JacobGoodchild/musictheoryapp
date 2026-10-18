@@ -6,6 +6,7 @@ import { keyFromFifths } from '../theory/keys.js';
 import { inkBounds } from './render.js';
 
 const NOTEHEADS = new Set([0xE0A0, 0xE0A1, 0xE0A2, 0xE0A3, 0xE0A4]);
+const REST_GLYPH = { '1/2': 0xE4E2, w: 0xE4E3, h: 0xE4E4, q: 0xE4E5, 8: 0xE4E6, 16: 0xE4E7, 32: 0xE4E8 };
 const ACC = { 0xE260: -1, 0xE261: 0, 0xE262: 1, 0xE263: 2, 0xE264: -2 };
 const CLEF_GLYPH = { treble: 0xE050, bass: 0xE062, alto: 0xE05C, tenor: 0xE05C };
 // Staff position the clef glyph's origin sits on: G line, F line, C line.
@@ -70,14 +71,24 @@ export function checkEngraving(container) {
   info.notes.forEach((n, i) => {
     const el = svg.querySelector(`[id="vf-n${n.m}-${n.n}"]`);
     if (!el) { problems.push(`note ${i + 1} missing`); return; }
-    if (n.spec.rest) return;
+    if (n.spec.rest) {
+      if (n.spec.color === 'transparent') return;
+      const glyphs = [...el.querySelectorAll('text')].map(cp);
+      const want = REST_GLYPH[n.spec.dur || 'w'];
+      if (!glyphs.includes(want)) problems.push(`rest ${i + 1}: wrong or missing rest symbol for ${n.spec.dur}`);
+      return;
+    }
     if (n.spec.orn) {
       const glyphs = [...el.querySelectorAll('text')].map(cp);
       if (!glyphs.includes(ORN_GLYPH[n.spec.orn])) problems.push(`note ${i + 1}: ${n.spec.orn} sign missing or wrong`);
     }
     const texts = [...el.querySelectorAll('text')].filter((t) => !t.closest('.vf-gracenote, .vf-gracenotegroup, .vf-annotation, .vf-ornament, .vf-articulation'));
-    const heads = texts.filter((t) => NOTEHEADS.has(cp(t)));
-    const accs = texts.filter((t) => cp(t) in ACC);
+    // Grace notes are drawn smaller: ignore noteheads below the main size.
+    const sizeOf = (t) => parseFloat(t.getAttribute('font-size') || t.closest('[font-size]')?.getAttribute('font-size') || '30');
+    const allHeads = texts.filter((t) => NOTEHEADS.has(cp(t)));
+    const mainSize = Math.max(...allHeads.map(sizeOf), 0);
+    const heads = allHeads.filter((t) => sizeOf(t) >= mainSize * 0.9);
+    const accs = texts.filter((t) => cp(t) in ACC && sizeOf(t) >= mainSize * 0.9);
     const drawnPos = heads.map((t) => posOnLine(num(t, 'y'), n.line || 0)).sort((a, b) => a - b);
     const want = [...n.positions].sort((a, b) => a - b);
     if (drawnPos.length !== want.length) problems.push(`note ${i + 1}: ${drawnPos.length} noteheads, expected ${want.length}`);

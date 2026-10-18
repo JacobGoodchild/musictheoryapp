@@ -25,6 +25,7 @@ export function freshSave() {
     daily: { day: null, done: false, best: 0 },
     badges: {},
     coinLog: {},
+    mockRun: null,
   };
 }
 

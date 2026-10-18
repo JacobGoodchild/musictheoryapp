@@ -200,7 +200,7 @@ label { font-weight: 600; }
 
 /* Stave container */
 .stave { background: var(--stave-paper); border-radius: 12px; padding: 6px; display: inline-block; max-width: 100%; overflow-x: auto; border: 1px solid var(--border); }
-.stave svg { display: block; }
+.stave svg { display: block; max-width: 100%; height: auto !important; }
 .stave-caption { font-size: .85rem; color: var(--text-3); margin-top: 4px; }
 
 /* ---------- Questions ---------- */
@@ -209,7 +209,9 @@ label { font-weight: 600; }
 .q-prompt p { font-size: 1.12rem; font-weight: 560; margin: 0 0 4px; }
 .q-music { align-self: flex-start; }
 .q-options { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-.q-options.with-music { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.q-options.with-music { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.q-option .q-option-body { flex: 1; }
+.q-option .stave { display: block; }
 .q-option {
   display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; color: var(--text);
   background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 12px 14px; cursor: pointer;
@@ -291,3 +293,36 @@ label { font-weight: 600; }
 .m-high { background: var(--good-soft); }
 .legend { gap: 16px; margin-bottom: 8px; }
 .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); vertical-align: -2px; }
+
+/* ---------- Mock exams ---------- */
+.paper-card h3 { margin: 10px 0 6px; }
+.paper-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); }
+.resume-card { margin-bottom: 8px; border-color: var(--accent); }
+.table-card { padding: 0; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.table th { color: var(--text-3); font-weight: 650; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table tr:last-child td { border-bottom: 0; }
+.intro-list { padding-left: 20px; line-height: 1.8; }
+.mock-bar { position: sticky; top: 8px; z-index: 10; padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.timer { font-variant-numeric: tabular-nums; font-weight: 750; }
+.timer-chip.low { background: var(--bad-soft); color: var(--bad); animation: pulse 1.6s infinite; }
+@keyframes pulse { 50% { opacity: .65; } }
+.q-nav { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.nav-sec { font-size: .72rem; font-weight: 800; color: var(--text-3); margin: 0 2px 0 8px; }
+.nav-sec:first-child { margin-left: 0; }
+.q-dot { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-2); font: inherit; font-size: .8rem; font-weight: 650; cursor: pointer; position: relative; }
+.q-dot.answered { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
+.q-dot.current { outline: 2.5px solid var(--accent); outline-offset: 1px; }
+.q-dot.flagged::after { content: '⚑'; position: absolute; top: -8px; right: -5px; font-size: .7rem; color: var(--warn); }
+.mock-host { padding: 26px; }
+.mock-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.flag-on { color: var(--warn); }
+.result-hero { text-align: center; padding: 34px; margin: 6px 0 18px; }
+.result-score { display: flex; align-items: baseline; justify-content: center; gap: 4px; margin: 8px 0 12px; }
+.result-score .big { font-size: 4.2rem; font-weight: 850; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.result-score .of { font-size: 1.6rem; color: var(--text-3); font-weight: 700; }
+.section-bars { display: flex; flex-direction: column; gap: 12px; }
+.section-bar .progress { height: 10px; margin-top: 4px; }
+.review-card { padding: 22px; }

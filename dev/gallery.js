@@ -9,6 +9,7 @@ const to = Number(q.get('to') || 1e9);
 
 (async () => {
   const items = (await allStaves()).filter((it) => !group || it.group === group).slice(from, to);
+  // The gallery is long: skip drawing cards off screen in automated runs is not needed; draw all.
   const gal = document.getElementById('gal');
   const results = [];
   for (const it of items) {

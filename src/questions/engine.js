@@ -31,7 +31,7 @@ export function questionView(q, opts = {}) {
   let response = opts.response !== undefined ? structuredClone(opts.response) : initialResponse(q);
   let locked = mode === 'review';
   const root = h('div', { class: `question q-${q.type}`, 'data-qid': q.id, 'data-type': q.type });
-  const answerBtn = h('button', { class: 'btn primary big', 'data-action': 'answer', disabled: true, onclick: () => submit() }, mode === 'mock' ? 'Save answer' : 'Answer');
+  const answerBtn = h('button', { class: 'btn primary big', 'data-action': 'answer', disabled: true, onclick: () => submit() }, 'Answer');
   const feedback = h('div', { class: 'q-feedback', 'aria-live': 'polite' });
   const refreshers = [];
 
@@ -265,8 +265,8 @@ export function questionView(q, opts = {}) {
     const result = mark(q, response);
     if (mode === 'mock') {
       opts.onAnswer?.(result, structuredClone(response));
-      answerBtn.textContent = 'Saved ✓';
-      setTimeout(() => { answerBtn.textContent = 'Save answer'; }, 900);
+      answerBtn.textContent = 'Answered ✓';
+      setTimeout(() => { answerBtn.textContent = 'Answer'; }, 1200);
       return;
     }
     locked = true;

@@ -256,7 +256,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - [x] 4. Question engine (all interaction types)
 - [x] 5. Generators + checked bank (sections 1→7) — review pass pending
 - [x] 6. Practice: by topic, random, mistakes, tricky set, daily challenge, mastery map, listening
-- [ ] 7. Mock exams (+8 fixed)
+- [x] 7. Mock exams (10 fixed + generate new), timer, navigator, flags, resume after reload, results, review, history
 - [ ] 8. Learn: lessons + review pass
 - [ ] 9. Memorise
 - [ ] 10. Audio
@@ -289,3 +289,6 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Bank: 2,340 questions (85 per topic, x1.3-1.5 for emphasised topics: key signatures, scales, clef transposition, transposing instruments, terms; 261 music-in-context questions from ~37 extracts). Duplicates removed by fingerprint.
 - Music-in-context extracts are generated originals (6 bars, any Grade 5 key, tempo term, ornament, articulation, X/Y interval marks, an arpeggiated chord bar) so there is no copyright issue.
 - Fixed mocks: 10 papers (data/mocks.json), built by mock-builder: each section exactly 10/10/15/10/10/10/10 marks, topic coverage before repeats, difficulty mix 1:2:1.
+- Mocks: questions can be revisited and changed until "Finish"; unfinished mock is stored in the save (mockRun) and resumes after reload; timer auto-marks at 0. Distinction triggers confetti. Coins: base 40 + band bonus + personal best.
+- Fixed a CSS bug the screenshots exposed: wide staves inside option cards were clipped (rests looked missing). All staves now scale down to fit (max-width:100%, height:auto). Engraving checker now also verifies rest glyphs, and ignores grace-note heads (smaller font size) when counting noteheads.
+- Engraving check covers 10 groups (demo, 7 bank sections, mocks, lessons) — ~4,000 staves, all clean; ~3.5 min locally.
