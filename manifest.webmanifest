@@ -1,0 +1,18 @@
+{
+  "name": "Grade 5 Theory",
+  "short_name": "Grade 5 Theory",
+  "description": "Lessons, practice and mock exams for Grade 5 music theory.",
+  "start_url": "./index.html#/home",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f6fb",
+  "theme_color": "#5b5bd6",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
