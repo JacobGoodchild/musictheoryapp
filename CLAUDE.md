@@ -252,7 +252,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 ## Build order checklist
 - [x] 1. Setup: skeleton, CLAUDE.md, CI + Pages deploy, vendored VexFlow, test runner, app shell
 - [x] 2. Music brain + exhaustive tests + tonal cross-check
-- [ ] 3. Notation wrapper, position test, dev gallery
+- [x] 3. Notation wrapper, position test, dev gallery
 - [ ] 4. Question engine (all interaction types)
 - [ ] 5. Generators + checked bank (sections 1→7) with reviews
 - [ ] 6. Practice: by topic, random, mistakes
@@ -278,3 +278,6 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Chromatic scale: validity = 13 notes, semitone steps, same-or-next letter, no letter 3 times running; canonical form = "harmonic chromatic" (1 b2 2 b3 3 4 #4 5 b6 6 b7 7 1).
 - Cadence chord questions accept every chord pair that contains the melody notes and forms a valid cadence of the stated kind; final cadences (V-I / IV-I) are always unique (tested).
 - Tonal cross-check: 52 scales, 26 signatures, 5000+ intervals, 8000+ transpositions, 104 triads, all MIDI numbers agree. Only difference: tonal allows triple accidentals, we refuse to spell those (asserted).
+- Notation: every stave goes through src/notation/render.js (renderMusic). Accidentals are decided automatically from key signature + earlier accidentals in the bar. Drawings are auto-fitted to their real ink bounds (canvas text metrics on the Bravura glyphs), so nothing is clipped.
+- Engraving check (src/notation/check.js) reads back SMuFL glyph code points + positions from the SVG: clef glyph and line, each key-signature symbol's line/space, every notehead's staff position, every accidental's kind and height, no clipping, no overlapping noteheads. Runs in Playwright over dev/gallery.html (dev/catalog.js gathers all staves).
+- VexFlow's tenor-clef sharp key signature matches the standard printed pattern (F# on 2nd line, then C#, G#, D#, A#, E#) — verified by the check.

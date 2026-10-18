@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>Dev: stave gallery</title>
+  <link rel="stylesheet" href="../styles/app.css">
+  <style>
+    body { padding: 20px; }
+    .gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(620px, 1fr)); gap: 14px; }
+    .gal .stave { max-width: none; overflow: visible; }
+    .gal .card { overflow-x: auto; }
+    .gal .card { padding: 12px; }
+    .gal .bad { outline: 3px solid var(--bad); }
+    .gal pre { white-space: pre-wrap; font-size: 12px; margin: 6px 0 0; color: var(--text-2); }
+    .gal .probs { color: var(--bad); font-size: 12px; }
+  </style>
+  <script src="../vendor/vexflow/vexflow-bravura.js" defer></script>
+  <script type="module" src="gallery.js"></script>
+</head>
+<body>
+  <h1>Stave gallery <small class="muted" id="summary"></small></h1>
+  <p class="muted">Dev only. Every stave with its intended content. Query: ?group=name&amp;from=0&amp;to=60</p>
+  <div class="gal" id="gal"></div>
+</body>
+</html>
