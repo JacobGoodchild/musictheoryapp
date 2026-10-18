@@ -253,9 +253,9 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - [x] 1. Setup: skeleton, CLAUDE.md, CI + Pages deploy, vendored VexFlow, test runner, app shell
 - [x] 2. Music brain + exhaustive tests + tonal cross-check
 - [x] 3. Notation wrapper, position test, dev gallery
-- [ ] 4. Question engine (all interaction types)
-- [ ] 5. Generators + checked bank (sections 1→7) with reviews
-- [ ] 6. Practice: by topic, random, mistakes
+- [x] 4. Question engine (all interaction types)
+- [x] 5. Generators + checked bank (sections 1→7) — review pass pending
+- [x] 6. Practice: by topic, random, mistakes, tricky set, daily challenge, mastery map, listening
 - [ ] 7. Mock exams (+8 fixed)
 - [ ] 8. Learn: lessons + review pass
 - [ ] 9. Memorise
@@ -281,3 +281,11 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Notation: every stave goes through src/notation/render.js (renderMusic). Accidentals are decided automatically from key signature + earlier accidentals in the bar. Drawings are auto-fitted to their real ink bounds (canvas text metrics on the Bravura glyphs), so nothing is clipped.
 - Engraving check (src/notation/check.js) reads back SMuFL glyph code points + positions from the SVG: clef glyph and line, each key-signature symbol's line/space, every notehead's staff position, every accidental's kind and height, no clipping, no overlapping noteheads. Runs in Playwright over dev/gallery.html (dev/catalog.js gathers all staves).
 - VexFlow's tenor-clef sharp key signature matches the standard printed pattern (F# on 2nd line, then C#, G#, D#, A#, E#) — verified by the check.
+- Question model: {section, topic, difficulty, type: mcq|truefalse|place|number|dropdown, prompt, music, options/statements/place/numbers/dropdowns, answer, explanation, whyWrong, check}. Marking is pure (src/questions/mark.js) and unit-tested.
+- Marks: mcq/place/single number = 1; true/false = 1 per statement; drop-downs = 1 per box. Partial credit per part.
+- Placed notes: the student picks the accidental to SHOW; "none" means the key signature (or an earlier accidental in the bar) applies — exactly how written music works.
+- validateQuestion re-derives answers from the brain using `check` data (interval, note name, key, chord, term clash, cadence combos — all valid combos must be accepted, place-interval, same-pitch). It found a real bug on first run: `.map(toString)` passed the index as the "withOctave" flag, dropping the bass note's octave. Fixed, and the renderer now throws on any pitch without an octave.
+- Rests questions in compound time only leave whole dotted beats to fill (part-beat conventions differ between textbooks), and "single rest across beats" distractors are only used in simple time.
+- Bank: 2,340 questions (85 per topic, x1.3-1.5 for emphasised topics: key signatures, scales, clef transposition, transposing instruments, terms; 261 music-in-context questions from ~37 extracts). Duplicates removed by fingerprint.
+- Music-in-context extracts are generated originals (6 bars, any Grade 5 key, tempo term, ornament, articulation, X/Y interval marks, an arpeggiated chord bar) so there is no copyright issue.
+- Fixed mocks: 10 papers (data/mocks.json), built by mock-builder: each section exactly 10/10/15/10/10/10/10 marks, topic coverage before repeats, difficulty mix 1:2:1.

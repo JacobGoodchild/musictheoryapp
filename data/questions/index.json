@@ -1,0 +1,39 @@
+{
+ "generated": "2026-10-18",
+ "sections": {
+  "1": 386,
+  "2": 400,
+  "3": 579,
+  "4": 170,
+  "5": 170,
+  "6": 374,
+  "7": 261
+ },
+ "topics": {
+  "r-values": 46,
+  "r-time": 85,
+  "r-rests": 85,
+  "r-tuplets": 85,
+  "r-convert": 85,
+  "p-clefs": 85,
+  "p-enharmonic": 85,
+  "p-transpose-clef": 111,
+  "p-instruments": 119,
+  "k-signatures": 128,
+  "k-relative": 85,
+  "k-degrees": 85,
+  "k-scales": 111,
+  "k-chromatic": 85,
+  "k-key-of-melody": 85,
+  "i-name": 85,
+  "i-write": 85,
+  "c-chords": 85,
+  "c-cadences": 85,
+  "t-terms": 119,
+  "t-signs": 85,
+  "t-ornaments": 85,
+  "t-instruments": 85,
+  "x-context": 261
+ },
+ "total": 2340
+}

@@ -11,6 +11,9 @@ const CLEF_GLYPH = { treble: 0xE050, bass: 0xE062, alto: 0xE05C, tenor: 0xE05C }
 // Staff position the clef glyph's origin sits on: G line, F line, C line.
 const CLEF_POS = { treble: 2, bass: 6, alto: 4, tenor: 6 };
 
+// SMuFL ornament glyphs: trill, turn, upper mordent (short trill), lower mordent (with line).
+const ORN_GLYPH = { trill: 0xE566, turn: 0xE567, 'upper mordent': 0xE56C, 'lower mordent': 0xE56D };
+
 const cp = (t) => (t.textContent || '').codePointAt(0);
 const num = (el, a) => parseFloat(el.getAttribute(a));
 
@@ -21,36 +24,44 @@ export function checkEngraving(container) {
   const svg = container.querySelector('svg');
   const g = info.geometry;
   const half = g.spacing / 2;
-  const posOf = (y) => (g.bottomLineY - y) / half;
 
   // Stave lines are where we think they are.
-  const lines = [...svg.querySelectorAll('g.vf-stave')][0]?.querySelectorAll('path');
-  if (!lines || lines.length !== 5) problems.push(`expected 5 stave lines, found ${lines ? lines.length : 0}`);
-  else {
-    const ys = [...lines].map((p) => parseFloat(/M[\d.]+ ([\d.]+)/.exec(p.getAttribute('d'))[1])).sort((a, b) => a - b);
-    if (Math.abs(ys[4] - g.bottomLineY) > 1 || Math.abs(ys[0] - g.topLineY) > 1) problems.push('stave line geometry mismatch');
+  const lineGeo = g.lines || [{ topLineY: g.topLineY, bottomLineY: g.bottomLineY }];
+  const staveGroups = [...svg.querySelectorAll('g.vf-stave')];
+  for (const sg of staveGroups) {
+    const paths = sg.querySelectorAll('path');
+    if (paths.length !== 5) { problems.push(`expected 5 stave lines, found ${paths.length}`); break; }
+    const ys = [...paths].map((p) => parseFloat(/M[\d.]+ ([\d.]+)/.exec(p.getAttribute('d'))[1])).sort((a, b) => a - b);
+    if (!lineGeo.some((lg) => Math.abs(ys[4] - lg.bottomLineY) <= 1 && Math.abs(ys[0] - lg.topLineY) <= 1)) problems.push('stave line geometry mismatch');
   }
+  const posOnLine = (y, li) => (lineGeo[li].bottomLineY - y) / half;
+  const lineOfY = (y) => { let best = 0; lineGeo.forEach((lg, i) => { if (Math.abs((lg.topLineY + lg.bottomLineY) / 2 - y) < Math.abs((lineGeo[best].topLineY + lineGeo[best].bottomLineY) / 2 - y)) best = i; }); return best; };
 
   // Clef.
-  const clefText = svg.querySelector('g.vf-clef text');
-  if (clefText) {
+  for (const clefText of svg.querySelectorAll('g.vf-clef text')) {
     if (cp(clefText) !== CLEF_GLYPH[info.clef]) problems.push(`wrong clef glyph for ${info.clef}`);
-    const p = posOf(num(clefText, 'y'));
+    const y = num(clefText, 'y');
+    const p = posOnLine(y, lineOfY(y));
     if (Math.abs(p - CLEF_POS[info.clef]) > 0.1) problems.push(`${info.clef} clef sits on position ${p}, expected ${CLEF_POS[info.clef]}`);
   }
 
   // Key signature.
   if (info.fifths) {
-    const texts = [...svg.querySelectorAll('g.vf-keysignature text')];
     const k = keyFromFifths(info.fifths, 'major');
     const expected = signaturePositions(k, info.clef);
-    if (texts.length !== expected.length) problems.push(`key signature has ${texts.length} symbols, expected ${expected.length}`);
     const want = info.fifths > 0 ? 1 : -1;
-    texts.forEach((t, i) => {
-      if (ACC[cp(t)] !== want) problems.push(`key signature symbol ${i + 1} is the wrong accidental`);
-      const p = posOf(num(t, 'y'));
-      if (Math.abs(p - expected[i]) > 0.1) problems.push(`key signature symbol ${i + 1} on position ${p.toFixed(1)}, expected ${expected[i]}`);
-    });
+    const groupsK = [...svg.querySelectorAll('g.vf-keysignature')];
+    if (groupsK.length !== lineGeo.length) problems.push(`expected a key signature on each of ${lineGeo.length} lines, found ${groupsK.length}`);
+    for (const gk of groupsK) {
+      const texts = [...gk.querySelectorAll('text')];
+      if (texts.length !== expected.length) problems.push(`key signature has ${texts.length} symbols, expected ${expected.length}`);
+      const li = texts.length ? lineOfY(num(texts[0], 'y')) : 0;
+      texts.forEach((t, i) => {
+        if (ACC[cp(t)] !== want) problems.push(`key signature symbol ${i + 1} is the wrong accidental`);
+        const p = posOnLine(num(t, 'y'), li);
+        if (Math.abs(p - expected[i]) > 0.1) problems.push(`key signature symbol ${i + 1} on position ${p.toFixed(1)}, expected ${expected[i]}`);
+      });
+    }
   } else if (svg.querySelector('g.vf-keysignature text')) problems.push('unexpected key signature');
 
   // Notes.
@@ -60,10 +71,14 @@ export function checkEngraving(container) {
     const el = svg.querySelector(`[id="vf-n${n.m}-${n.n}"]`);
     if (!el) { problems.push(`note ${i + 1} missing`); return; }
     if (n.spec.rest) return;
+    if (n.spec.orn) {
+      const glyphs = [...el.querySelectorAll('text')].map(cp);
+      if (!glyphs.includes(ORN_GLYPH[n.spec.orn])) problems.push(`note ${i + 1}: ${n.spec.orn} sign missing or wrong`);
+    }
     const texts = [...el.querySelectorAll('text')].filter((t) => !t.closest('.vf-gracenote, .vf-gracenotegroup, .vf-annotation, .vf-ornament, .vf-articulation'));
     const heads = texts.filter((t) => NOTEHEADS.has(cp(t)));
     const accs = texts.filter((t) => cp(t) in ACC);
-    const drawnPos = heads.map((t) => posOf(num(t, 'y'))).sort((a, b) => a - b);
+    const drawnPos = heads.map((t) => posOnLine(num(t, 'y'), n.line || 0)).sort((a, b) => a - b);
     const want = [...n.positions].sort((a, b) => a - b);
     if (drawnPos.length !== want.length) problems.push(`note ${i + 1}: ${drawnPos.length} noteheads, expected ${want.length}`);
     want.forEach((p, j) => {
@@ -76,7 +91,7 @@ export function checkEngraving(container) {
     keys.forEach((k, j) => { if (shown[j]) expectAcc.push({ acc: typeof k === 'string' ? accOf(k) : k.acc, pos: n.positions[j] }); });
     if (accs.length !== expectAcc.length) problems.push(`note ${i + 1}: ${accs.length} accidentals drawn, expected ${expectAcc.length}`);
     for (const e of expectAcc) {
-      const match = accs.find((t) => ACC[cp(t)] === e.acc && Math.abs(posOf(num(t, 'y')) - e.pos) < 0.1);
+      const match = accs.find((t) => ACC[cp(t)] === e.acc && Math.abs(posOnLine(num(t, 'y'), n.line || 0) - e.pos) < 0.1);
       if (!match) problems.push(`note ${i + 1}: missing ${e.acc} accidental at position ${e.pos}`);
     }
   });
@@ -89,11 +104,13 @@ export function checkEngraving(container) {
   if (ink.left < X - 1 || ink.right > W + 1) problems.push(`music runs off the side of the drawing (${ink.left.toFixed(0)}..${ink.right.toFixed(0)} of ${W.toFixed(0)})`);
   if (ink.top < Y - 1 || ink.bottom > H + 1) problems.push(`music runs off the top or bottom of the drawing (${ink.top.toFixed(0)}..${ink.bottom.toFixed(0)} of ${H.toFixed(0)})`);
   // Noteheads of successive notes do not overlap.
-  const xs = groups.map((el) => {
+  const xs = groups.map((el, i) => {
     const h = [...el.querySelectorAll('text')].find((t) => NOTEHEADS.has(cp(t)));
-    return h ? num(h, 'x') : null;
-  }).filter((v) => v !== null);
-  for (let i = 1; i < xs.length; i++) if (xs[i] - xs[i - 1] < 8) problems.push(`notes ${i} and ${i + 1} overlap`);
+    return h ? { x: num(h, 'x'), line: info.notes[i]?.line || 0 } : null;
+  });
+  for (let i = 1; i < xs.length; i++) {
+    if (xs[i] && xs[i - 1] && xs[i].line === xs[i - 1].line && xs[i].x - xs[i - 1].x < 8) problems.push(`notes ${i} and ${i + 1} overlap`);
+  }
   return problems;
 }
 

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>Dev: single question</title>
+  <link rel="stylesheet" href="../styles/app.css">
+  <script src="../vendor/vexflow/vexflow-bravura.js" defer></script>
+  <script type="module">
+    import { questionView } from '../src/questions/engine.js';
+    const p = new URLSearchParams(location.search);
+    const sec = p.get('section') || '1';
+    const type = p.get('type');
+    const idx = Number(p.get('i') || 0);
+    const list = await (await fetch(`../data/questions/section-${sec}.json`)).json();
+    const q = (type ? list.filter((x) => x.type === type) : list)[idx];
+    window.__q = q;
+    window.__results = [];
+    const el = questionView(q, { mode: p.get('mode') || 'practice', onAnswer: (r, resp) => window.__results.push({ r, resp }) });
+    document.getElementById('host').append(el);
+    window.__ready = true;
+  </script>
+</head>
+<body style="padding:24px"><div id="host" class="card"></div></body>
+</html>

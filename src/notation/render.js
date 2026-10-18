@@ -22,7 +22,8 @@ export function notationReady() {
 
 const VEX_DUR = { breve: '1/2', semibreve: 'w', minim: 'h', crotchet: 'q', quaver: '8', semiquaver: '16', demisemiquaver: '32', w: 'w', h: 'h', q: 'q', 8: '8', 16: '16', 32: '32', '1/2': '1/2' };
 const ART = { staccato: 'a.', accent: 'a>', tenuto: 'a-', staccatissimo: 'av', marcato: 'a^', 'strong accent': 'a^', fermata: 'a@a', pause: 'a@a', 'semi-staccato': 'a.' };
-const ORN = { trill: 'tr', turn: 'turn', 'inverted turn': 'turn_inverted', 'upper mordent': 'mordent', 'lower mordent': 'mordent_inverted', mordent: 'mordent' };
+// VexFlow 5 names: 'mordent' draws the upper mordent (no line), 'mordentInverted' the lower (with line).
+const ORN = { trill: 'tr', turn: 'turn', 'upper mordent': 'mordent', 'lower mordent': 'mordentInverted' };
 // Rest positions per clef (middle of the stave).
 const REST_KEY = { treble: 'b/4', bass: 'd/3', alto: 'c/4', tenor: 'a/3' };
 
@@ -62,6 +63,8 @@ export function autoAccidentals(measures, fifths) {
 
 function toKeys(n) {
   const ks = Array.isArray(n.keys) ? n.keys : n.keys ? [n.keys] : [];
+  // Every drawn pitch must say its octave; a missing one is a bug, never a default.
+  for (const k of ks) if (typeof k === 'string' && !/\d/.test(k)) throw new Error(`Pitch "${k}" has no octave`);
   return ks.map(P);
 }
 
@@ -183,41 +186,77 @@ export async function renderMusic(container, spec) {
     topPos = Math.max(topPos, hi + 2 + (up ? 6 : 0) + (sp.orn || sp.text || sp.art?.length || sp.tuplet ? 4 : 0));
     botPos = Math.min(botPos, lo - 2 - (stemmed && !up ? 6 : 0) - (sp.art?.length ? 2 : 0));
   }
+  if (spec.range) { topPos = Math.max(topPos, spec.range[1] + 1); botPos = Math.min(botPos, spec.range[0] - 1); }
   const anyLabelsEarly = allNotes.some((n) => n.__spec.label);
   const topLineTarget = 8 + (topPos - 8) * 5;
   const y0 = Math.max(0, topLineTarget - 40);
-  let x = x0;
+  const lineHeight = Math.ceil(40 + Math.max(0, topPos - 8) * 5 + (-botPos) * 5 + 30 + (anyLabelsEarly ? 22 : 0));
+
+  // Measure widths (content only), then pack into lines.
+  const contentWidths = built.map(({ m, vexNotes }) => {
+    let w = Math.max(s.free ? 60 : 90, vexNotes.length * s.minNoteWidth + 24);
+    w += vexNotes.reduce((acc, n) => acc + (n.getModifiers().filter((md) => md.getCategory?.() === 'Accidental').length ? 12 : 0) + (n.__spec.grace ? 26 : 0), 0);
+    return m.width || w;
+  });
+  const modWidthFor = (first, mi) => {
+    const st = new Stave(0, 0, 100);
+    if (first) {
+      if (s.showClef) st.addClef(s.clef);
+      if (s.fifths !== null && s.fifths !== 0) st.addKeySignature(vexKeySigName(s.fifths));
+      if (mi === 0 && s.time && !s.free) st.addTimeSignature(s.time);
+    }
+    if (built[mi].m.time) st.addTimeSignature(built[mi].m.time);
+    return st.getNoteStartX();
+  };
+  const maxW = spec.maxWidth || 1e9;
+  const lines = [];
+  let cur = [], curW = 0;
+  built.forEach((_, mi) => {
+    const w = modWidthFor(cur.length === 0, mi) + contentWidths[mi];
+    if (cur.length && curW + w > maxW) { lines.push(cur); cur = []; curW = 0; }
+    const w2 = modWidthFor(cur.length === 0, mi) + contentWidths[mi];
+    cur.push(mi); curW += w2;
+  });
+  if (cur.length) lines.push(cur);
+  const wrapped = lines.length > 1;
+
   const staves = [];
   const formatted = [];
-  built.forEach(({ m, vexNotes }, mi) => {
-    const stave = new Stave(x, y0, 100);
-    if (mi === 0) {
-      if (s.showClef) stave.addClef(s.clef);
-      if (s.fifths !== null && s.fifths !== 0) stave.addKeySignature(vexKeySigName(s.fifths));
-      if (s.time && !s.free) stave.addTimeSignature(s.time === 'C' ? 'C' : s.time === 'C|' ? 'C|' : s.time);
-    } else if (m.time) stave.addTimeSignature(m.time);
-    if (s.noBarlines || (s.free && mi < built.length - 1)) stave.setEndBarType(VF.Barline.type.NONE);
-    if (mi === built.length - 1) {
-      const t = { single: VF.Barline.type.SINGLE, double: VF.Barline.type.DOUBLE, end: VF.Barline.type.END, none: VF.Barline.type.NONE }[s.endBar];
-      stave.setEndBarType(t);
-    }
-    if (mi > 0) stave.setBegBarType(VF.Barline.type.NONE);
-    if (m.begRepeat) stave.setBegBarType(VF.Barline.type.REPEAT_BEGIN);
-    if (m.endRepeat) stave.setEndBarType(VF.Barline.type.REPEAT_END);
-    const modWidth = stave.getNoteStartX() - x;
-    const tickables = vexNotes.length;
-    let contentW = Math.max(s.free ? 60 : 90, tickables * s.minNoteWidth + 24);
-    // Extra room for accidentals and grace notes.
-    contentW += vexNotes.reduce((w, n) => w + (n.getModifiers().filter((md) => md.getCategory?.() === 'Accidental').length ? 12 : 0) + (n.__spec.grace ? 26 : 0), 0);
-    if (m.width) contentW = m.width;
-    stave.setWidth(modWidth + contentW);
-    staves.push(stave);
-    x += modWidth + contentW;
-    formatted.push({ stave, vexNotes, contentW, m });
+  let totalW = 0;
+  lines.forEach((line, li) => {
+    const natural = line.reduce((acc, mi, j) => acc + modWidthFor(j === 0, mi) + contentWidths[mi], 0);
+    const stretch = wrapped && (li < lines.length - 1 || natural > maxW * 0.7) ? (maxW - natural) / line.reduce((acc, mi) => acc + contentWidths[mi], 0) : 0;
+    let x = x0;
+    const y = y0 + li * lineHeight;
+    line.forEach((mi, j) => {
+      const { m, vexNotes } = built[mi];
+      const stave = new Stave(x, y, 100);
+      if (j === 0) {
+        if (s.showClef) stave.addClef(s.clef);
+        if (s.fifths !== null && s.fifths !== 0) stave.addKeySignature(vexKeySigName(s.fifths));
+        if (mi === 0 && s.time && !s.free) stave.addTimeSignature(s.time);
+      }
+      if (m.time) stave.addTimeSignature(m.time);
+      if (s.noBarlines || (s.free && mi < built.length - 1)) stave.setEndBarType(VF.Barline.type.NONE);
+      if (mi === built.length - 1) {
+        const t = { single: VF.Barline.type.SINGLE, double: VF.Barline.type.DOUBLE, end: VF.Barline.type.END, none: VF.Barline.type.NONE }[s.endBar];
+        stave.setEndBarType(t);
+      }
+      if (j > 0) stave.setBegBarType(VF.Barline.type.NONE);
+      if (m.begRepeat) stave.setBegBarType(VF.Barline.type.REPEAT_BEGIN);
+      if (m.endRepeat) stave.setEndBarType(VF.Barline.type.REPEAT_END);
+      const modWidth = stave.getNoteStartX() - x;
+      let contentW = contentWidths[mi] * (1 + Math.max(0, stretch));
+      stave.setWidth(modWidth + contentW);
+      staves.push(stave);
+      x += modWidth + contentW;
+      formatted.push({ stave, vexNotes, contentW, m, line: li });
+      for (const n of vexNotes) n.__line = li;
+    });
+    totalW = Math.max(totalW, x + s.padding);
   });
 
-  let totalW = x + s.padding;
-  if (s.width && s.width > totalW) {
+  if (s.width && s.width > totalW && !wrapped) {
     // Stretch the last stave to the requested width.
     const last = formatted[formatted.length - 1];
     const extra = s.width - totalW;
@@ -225,7 +264,7 @@ export async function renderMusic(container, spec) {
     last.contentW += extra;
     totalW = s.width;
   }
-  const bottomLineY = y0 + 80;
+  const bottomLineY = y0 + 80 + (lines.length - 1) * lineHeight;
   const height = s.height || Math.ceil(bottomLineY + (-botPos) * 5 + 10 + (anyLabelsEarly ? 22 : 0));
   renderer.resize(totalW * s.scale, height * s.scale);
   ctx.scale(s.scale, s.scale);
@@ -269,7 +308,7 @@ export async function renderMusic(container, spec) {
   if (spec.fit !== false) {
     const b = inkBounds(svgEl);
     vbY = Math.floor(Math.min(b.top - 6, geometry0(staves[0]).topLineY - 14));
-    const bottom = Math.ceil(Math.max(b.bottom + 6, geometry0(staves[0]).bottomLineY + 14));
+    const bottom = Math.ceil(Math.max(b.bottom + 6, geometry0(staves[staves.length - 1]).bottomLineY + 14));
     vbH = bottom - vbY;
     vbX = Math.floor(Math.min(0, b.left - 4));
     vbW = Math.ceil(Math.max(totalW, b.right + 4)) - vbX;
@@ -291,6 +330,7 @@ export async function renderMusic(container, spec) {
     width: vbW,
     height: vbH,
     viewBox: [vbX, vbY, vbW, vbH],
+    lines: lines.map((line) => { const st = staves[formatted.findIndex((f) => f.line === lines.indexOf(line))]; return { topLineY: st.getYForLine(0), bottomLineY: st.getYForLine(4) }; }),
   };
   /** y (unscaled) for a staff position (0 = bottom line). */
   geometry.yForPos = (pos) => geometry.bottomLineY - pos * geometry.spacing / 2;
@@ -298,7 +338,7 @@ export async function renderMusic(container, spec) {
 
   const info = {
     clef: s.clef, fifths: s.fifths, time: s.time, geometry, svg: svgEl,
-    notes: allNotes.map((n) => ({ spec: n.__spec, m: n.__m, n: n.__n, x: n.getAbsoluteX(), positions: n.__spec.rest ? [] : toKeys(n.__spec).map((p) => staffPos(p, s.clef)) })),
+    notes: allNotes.map((n) => ({ spec: n.__spec, m: n.__m, n: n.__n, line: n.__line || 0, x: n.getAbsoluteX(), positions: n.__spec.rest ? [] : toKeys(n.__spec).map((p) => staffPos(p, s.clef)) })),
     accidentals: accMap,
   };
   container.__music = info;

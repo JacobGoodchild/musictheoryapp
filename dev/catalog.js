@@ -4,8 +4,41 @@ import { GRADE5_KEYS, keyName, scale, chromaticScale } from '../src/theory/keys.
 import { parse, name, CLEF_NAMES } from '../src/theory/pitch.js';
 import { voiceChord, chordLabel } from '../src/theory/chords.js';
 
+function questionStaves(q, group) {
+  const out = [];
+  const d = (extra) => `${q.prompt.split('\n').pop()}${extra}`;
+  if (q.music) out.push({ group, id: q.id, describe: d(` | answer: ${answerSummary(q)}`), spec: q.music });
+  (q.options || []).forEach((o, i) => { if (o.music) out.push({ group, id: `${q.id}/opt${String.fromCharCode(65 + i)}${i === q.answer ? ' (correct)' : ''}`, describe: d(` | option ${String.fromCharCode(65 + i)}${o.label ? ': ' + o.label : ''}${i === q.answer ? ' ← CORRECT' : ''}`), spec: o.music }); });
+  if (q.place) out.push({ group, id: `${q.id}/answer`, describe: d(` | correct answer drawn: ${q.place.accept[0]}`), spec: { clef: q.place.clef, key: q.place.fifths, free: true, notes: [...(q.place.notes || []), { keys: q.place.accept[0], dur: 'w', color: '#1d8a55' }, ...(q.place.after || [])] } });
+  return out;
+}
+
+function answerSummary(q) {
+  if (q.type === 'mcq') return q.options[q.answer].label || `option ${String.fromCharCode(65 + q.answer)}`;
+  if (q.type === 'number') return q.numbers.map((n) => n.answer).join(', ');
+  if (q.type === 'truefalse') return q.statements.map((s) => (s.answer ? 'T' : 'F')).join('');
+  if (q.type === 'dropdown') return q.acceptCombos ? q.acceptCombos.map((c) => c.join('-')).join(' / ') : '';
+  if (q.type === 'place') return q.place.accept.join(' or ');
+  return '';
+}
+
+export async function bankStaves() {
+  const out = [];
+  for (let s = 1; s <= 7; s++) {
+    const list = await (await fetch(`../data/questions/section-${s}.json`)).json();
+    for (const q of list) out.push(...questionStaves(q, `bank-s${s}`));
+  }
+  const mocks = await (await fetch('../data/mocks.json')).json();
+  for (const m of mocks) for (const sec of m.sections) for (const q of sec.questions) out.push(...questionStaves(q, 'mocks'));
+  return out;
+}
+
 export async function allStaves() {
   const out = [];
+  const q = new URLSearchParams(location.search);
+  const grp = q.get('group') || '';
+  if (grp.startsWith('bank') || grp === 'mocks') return (await bankStaves()).filter((x) => x.group === grp);
+  if (grp === 'lessons') { const { lessonStaves } = await import('./lesson-staves.js'); return lessonStaves(); }
   // Key signatures in every clef.
   for (const clef of CLEF_NAMES) for (const k of GRADE5_KEYS.filter((k) => k.mode === 'major')) {
     out.push({ group: 'keysig', id: `${clef}-${k.tonic}`, describe: `${clef} clef, key signature of ${keyName(k)} (${Math.abs(k.fifths)} ${k.fifths >= 0 ? 'sharps' : 'flats'})`, spec: { clef, key: k, notes: [] , free: true } });

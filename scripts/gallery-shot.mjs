@@ -7,6 +7,7 @@ import fs from 'node:fs';
 const out = process.argv[2] || 'screenshots/gallery';
 const group = process.argv[3] || '';
 const batch = Number(process.argv[4] || 24);
+const noShots = process.argv.includes('--no-shots');
 fs.mkdirSync(out, { recursive: true });
 const srv = spawn('node', ['scripts/serve.mjs', '4199'], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 400));
@@ -20,7 +21,7 @@ try {
     const res = await page.evaluate(() => window.galleryResults);
     if (!res.length) break;
     for (const r of res) if (r.problems.length) console.log(r.group, r.id, '→', r.problems.join(' | '));
-    await page.screenshot({ path: `${out}/batch-${String(from).padStart(4, '0')}.png`, fullPage: true });
+    if (!noShots) await page.screenshot({ path: `${out}/batch-${String(from).padStart(4, '0')}.png`, fullPage: true, timeout: 120000 });
     console.log(`batch ${from}: ${res.length} staves`);
     if (res.length < batch) break;
   }
