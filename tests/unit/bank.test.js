@@ -106,3 +106,18 @@ test('live generation is deterministic and valid for every topic', () => {
     }
   }
 });
+
+test('wording guards: articles, spacing, statement counts, no ambiguous simple-time statements, no repeats within a mock', () => {
+  const text = (q) => `${q.prompt} ${q.explanation || ''} ${JSON.stringify(q.options || [])} ${JSON.stringify(q.statements || [])} ${JSON.stringify(q.whyWrong || {})}`;
+  for (const q of bank) {
+    assert.ok(!/\ba (augmented|accent|acciaccatura|appoggiatura|upper mordent|octave|8th|11th)\b/.test(text(q)), `${q.id}: "a" before a vowel sound`);
+    assert.ok(!/ {2}/.test(`${q.prompt} ${q.explanation || ''}`), `${q.id}: double space`);
+    assert.ok(!/\b1 (semitones|demisemiquavers|crotchet beats)\b|\b0½/.test(text(q)), `${q.id}: plural slip`);
+    if (q.type === 'truefalse') assert.ok(q.statements.length >= 3, `${q.id}: too few statements`);
+    if (q.music && /^(5|7)\//.test(q.music.time || '') && q.statements) assert.ok(!q.statements.some((s) => /simple time|compound time/.test(s.text)), `${q.id}: simple/compound statement on irregular time`);
+  }
+  for (const m of mocks) {
+    const fps = m.sections.flatMap((s) => s.questions).map((q) => JSON.stringify([q.prompt, q.music, q.place && q.place.accept, q.options, q.statements]));
+    assert.equal(new Set(fps).size, fps.length, `${m.title} repeats a question`);
+  }
+});

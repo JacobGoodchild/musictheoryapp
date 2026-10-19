@@ -337,7 +337,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 
 ## How the content was checked (numbers)
 - **Music logic** (`src/theory/`): hand-written reference tables for all 26 keys (scales, key signatures, relative keys, degrees, chromatic scales, key-signature positions in all four clefs). It was also cross-checked against the `tonal` library: 52 scales, 26 key signatures, over 5,000 intervals, over 8,000 transpositions, 104 triads and every MIDI number agree.
-- **Question bank:** 2,412 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 10 mocks.
+- **Question bank:** 2,406 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 10 mocks.
 - **Engraving:** every stave (about 4,100: the whole bank, all options, all placed answers, all mocks, all lessons) is drawn and read back. The check covers the clef, key signature positions, each notehead's line or space, accidentals, rests, ornaments, nothing clipped and no overlaps. All are clean, and screenshots were looked at by eye.
 - **Tests:** 51 Node unit tests and 29 Playwright browser tests, all green, run in CI before every deploy. The browser tests cover:
   - every screen loads with no console errors, no outside requests and no stray "null" text
@@ -347,10 +347,10 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
   - the offline mode
   - blind-bag odds (200,000 openings) and the pity rule
   - economy pacing (30 simulated students: median about 54 days to collect everything)
-- **Independent reviews** (subagents that didn't write the content):
+- **Independent reviews** (subagents that didn't write the content), 3 passes:
   - Review 1 (bank): 6 errors and 14 warnings, all fixed.
   - Review 2 (lessons): 4 errors and 17 warnings; all errors and most warnings fixed.
-  - Review 3 (bank re-check plus new questions): see below.
+  - Review 3 (whole bank and all mocks re-checked by script, 182 by hand): no wrong answers; 1 ambiguous statement and 12 warnings, the ambiguity and most warnings fixed.
 - **Bugs I caught myself:**
   - bass notes losing their octave (`.map(toString)`)
   - wide staves clipped inside answer cards
@@ -376,3 +376,4 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 5. A mobile-friendly layout pass for the drag-a-note stave (it works with touch, but small screens need bigger hit areas).
 - 07:20 Fixed mocks increased from 10 to 15 (all pass the marks, validation and engraving checks).
 - Music-in-context extract melodies capped to about a 10th above the tonic (worked example revealed an F6 in treble); added a worked context example computed from the lesson's extract.
+- 07:45 Review pass 3 (bank re-check, fresh subagent, scripts over all 2,412 questions + 945 mock questions, 182 by hand): no wrong answers; 1 ambiguity (simple time vs 5/4), 12 warnings, 11 nits. Ambiguity and most warnings fixed (docs/review-3.md); a wording-guard unit test now covers them. Bank: 2,406 questions.

@@ -31,7 +31,7 @@ export function genKeySigName(r, diff) {
     prompt: `Which ${mode} key has this key signature?`,
     check: { kind: 'key', fifths: k.fifths, mode },
     music: sigMusic(k, clef, 1.3),
-    explanation: `This key signature has ${sigWords(k)}, which is ${keyName(k)} (and its relative ${relative(k).mode}, ${keyName(relative(k))}). ${k.fifths > 0 ? 'Tip: for major keys, the last sharp is the leading note, so the key is a semitone above it.' : k.fifths < -1 ? 'Tip: for major keys with flats, the second-to-last flat is the key name.' : 'One flat (B♭) is F major or D minor.'}`,
+    explanation: `This key signature has ${sigWords(k)}, which is ${keyName(k)} (and its relative ${relative(k).mode}, ${keyName(relative(k))}). ${k.fifths > 0 ? 'Tip: for major keys, the last sharp is the leading note, so the key is a semitone above it.' : k.fifths < -1 ? 'Tip: for major keys with flats, the second-to-last flat is the key name.' : 'One flat (B♭) is F major or D minor.'}${mode === 'minor' ? ' For the minor key, find the major key first, then go down three semitones to its relative minor.' : ''}`,
   }, { label: keyName(k) }, ds.filter((d) => d.label !== keyName(relative(k)) || true));
 }
 
@@ -67,7 +67,7 @@ export function genRelative(r, diff) {
   const ds = [];
   for (const f of [k.fifths + 1, k.fifths - 1, k.fifths + 3, k.fifths - 3]) if (f >= -6 && f <= 6) ds.push({ label: keyName(keyFromFifths(f, rel.mode)) });
   // Same tonic, other mode (common confusion).
-  try { const par = key(k.tonic, rel.mode); ds.push({ label: keyName(par), why: `${keyName(par)} has the same tonic (the "tonic ${rel.mode}"), not the same key signature.` }); } catch { /* not a listed key */ }
+  try { const par = key(k.tonic, rel.mode); if (Math.abs(par.fifths) <= 6) ds.push({ label: keyName(par), why: `${keyName(par)} has the same tonic (the "tonic ${rel.mode}"), not the same key signature.` }); } catch { /* not a listed key */ }
   return mcq(r, {
     section: SEC, topic: 'k-relative', difficulty: diff,
     prompt: `What is the relative ${rel.mode} of ${keyName(k)}?`,
@@ -119,11 +119,11 @@ export function genScaleIdentify(r, diff) {
   if (k.mode === 'minor') {
     ds.push({ label: label(k, type === 'harmonic' ? 'melodic' : 'harmonic'), why: type === 'harmonic' ? 'The melodic minor (going up) raises the 6th as well as the 7th.' : 'The harmonic minor only raises the 7th; here the 6th is raised too.' });
     ds.push({ label: label(relative(k), 'major'), why: `${keyName(relative(k))} uses the same key signature but starts on ${name(parse(relative(k).tonic))}.` });
-    try { ds.push({ label: label(key(k.tonic, 'major'), 'major'), why: `${name(parse(k.tonic))} major has a major 3rd above the tonic; this scale has a minor 3rd.` }); } catch { /* */ }
+    try { if (Math.abs(key(k.tonic, 'major').fifths) <= 6) ds.push({ label: label(key(k.tonic, 'major'), 'major'), why: `${name(parse(k.tonic))} major has a major 3rd above the tonic; this scale has a minor 3rd.` }); } catch { /* */ }
   } else {
     ds.push({ label: label(relative(k), 'harmonic'), why: `This scale starts and ends on ${name(parse(k.tonic))}, not ${name(parse(relative(k).tonic))}.` });
-    try { ds.push({ label: label(key(k.tonic, 'minor'), 'harmonic'), why: 'A minor scale has a minor 3rd above the tonic.' }); } catch { /* */ }
-    try { ds.push({ label: label(key(k.tonic, 'minor'), 'melodic'), why: 'A minor scale has a minor 3rd above the tonic.' }); } catch { /* */ }
+    try { if (Math.abs(key(k.tonic, 'minor').fifths) <= 6) ds.push({ label: label(key(k.tonic, 'minor'), 'harmonic'), why: 'A minor scale has a minor 3rd above the tonic.' }); } catch { /* */ }
+    try { if (Math.abs(key(k.tonic, 'minor').fifths) <= 6) ds.push({ label: label(key(k.tonic, 'minor'), 'melodic'), why: 'A minor scale has a minor 3rd above the tonic.' }); } catch { /* */ }
     ds.push({ label: label(keyFromFifths(Math.max(-6, Math.min(6, k.fifths + 1)), 'major'), 'major') });
   }
   return mcq(r, {
@@ -214,7 +214,7 @@ export function genKeyOfMelody(r, diff) {
   const music = { clef, key: k.fifths, time: '3/4', measures: [{ notes: notes.slice(0, 3) }, { notes: notes.slice(3, 6) }, { notes: [{ ...notes[6], dur: 'h', dots: 1 }] }], scale: 1.05 };
   const ds = [{ label: keyName(relative(k)), why: k.mode === 'major' ? `${keyName(relative(k))} shares the key signature, but its leading note would need an accidental, and the melody would centre on ${name(parse(relative(k).tonic))}.` : `${keyName(relative(k))} shares the key signature, but the ${name(sc[6])} accidental is the raised leading note of ${keyName(k)}.` }];
   for (const f of [k.fifths + 1, k.fifths - 1]) if (f >= -6 && f <= 6) ds.push({ label: keyName(keyFromFifths(f, k.mode)) });
-  try { ds.push({ label: keyName(key(k.tonic, k.mode === 'major' ? 'minor' : 'major')) }); } catch { /* */ }
+  try { const o = key(k.tonic, k.mode === 'major' ? 'minor' : 'major'); if (Math.abs(o.fifths) <= 6) ds.push({ label: keyName(o) }); } catch { /* */ }
   return mcq(r, {
     section: SEC, topic: 'k-key-of-melody', difficulty: diff,
     prompt: 'In which key is this melody?',

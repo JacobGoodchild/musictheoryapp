@@ -129,7 +129,7 @@ export function genContext(r, diff, { all = false } = {}) {
     const iv = between(lo, hi);
     const ds = qualitiesFor(iv.number).filter((q) => q !== iv.quality).map((q) => ({ label: intervalName({ number: iv.number, quality: q }) }));
     for (const n of [iv.number - 1, iv.number + 1]) if (n >= 2 && n <= 15) ds.push({ label: intervalName({ number: n, quality: qualitiesFor(n)[0] }) });
-    qs.push(() => mcq(r, { ...base, check: { kind: 'interval', low: toString(lo), high: toString(hi) }, prompt: `${intro}\nName the interval between the notes marked X and Y (bar ${ex.ivBar + 1}).`, explanation: `X is ${name(a)} and Y is ${name(c)} (remember the key signature). From ${name(lo)} up to ${name(hi)} is a ${intervalName(iv)}.`, listenAfter: { kind: 'interval', notes: [toString(lo), toString(hi)] } },
+    qs.push(() => mcq(r, { ...base, check: { kind: 'interval', low: toString(lo), high: toString(hi) }, prompt: `${intro}\nName the interval between the notes marked X and Y (bar ${ex.ivBar + 1}).`, explanation: `X is ${name(a)} and Y is ${name(c)} (remember the key signature). From ${name(lo)} up to ${name(hi)} is ${/^[ae]/.test(intervalName(iv)) ? 'an' : 'a'} ${intervalName(iv)}.`, listenAfter: { kind: 'interval', notes: [toString(lo), toString(hi)] } },
       { label: intervalName(iv) }, ds));
   }
 

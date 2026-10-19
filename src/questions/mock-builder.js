@@ -24,6 +24,7 @@ function buildSection(sec, seed) {
   const out = [];
   let marks = 0;
   const usedTopics = {};
+  const seenQ = new Set();
   for (let i = 0; i < 400 && marks < target; i++) {
     // Cover every topic once before repeating, weighted by topic emphasis.
     const fresh = topics.filter((t) => !usedTopics[t.id]);
@@ -32,12 +33,15 @@ function buildSection(sec, seed) {
     const diff = r.weighted([[1, 1], [2, 2], [3, 1]]);
     let q;
     try { q = generate(t.id, `mock:${seed}:${sec}:${i}`, diff); } catch { continue; }
+    const fp = JSON.stringify([q.prompt, q.music, q.place && q.place.accept]);
+    if (seenQ.has(fp)) continue;
     const m = marksFor(q);
     if (marks + m > target) continue;
     // Keep multi-mark questions to a sensible share.
     if (m > 1 && out.filter((x) => marksFor(x) > 1).length >= 1 && sec !== 3) continue;
     if (m > 1 && out.filter((x) => marksFor(x) > 1).length >= 2) continue;
     out.push(q);
+    seenQ.add(fp);
     marks += m;
     usedTopics[t.id] = (usedTopics[t.id] || 0) + 1;
   }

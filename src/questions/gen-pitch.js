@@ -72,7 +72,7 @@ export function genSamePitch(r, diff) {
       prompt: `Which note in the ${to} clef is at the same pitch as this note in the ${from} clef?`,
       check: { kind: 'same-pitch', pitch: toString(p) },
       music: { clef: from, free: true, notes: [{ keys: toString(p), dur: 'w' }] },
-      explanation: `The note is ${name(p, true)} (${name(p)}${p.octave === 4 && p.letter === 'C' ? ', middle C' : ''}). In the ${to} clef, ${clefTip(to)} So it sits ${describeStaffPos(posTo)}.`,
+      explanation: `The note is ${name(p, true)} (${name(p)}${p.octave === 4 && p.letter === 'C' && p.acc === 0 ? ', middle C' : ''}). In the ${to} clef, ${clefTip(to)} So it sits ${describeStaffPos(posTo)}.`,
     }, { label: '', music: opt(p), key: toString(p), aria: `${to} clef note` }, wrongs.map((w) => ({ label: '', music: opt(w.q), key: toString(w.q), why: w.why, aria: `${to} clef note` })));
   }
   throw new Error('samePitch');

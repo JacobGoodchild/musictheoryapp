@@ -118,7 +118,7 @@ export function genIntervalPlace(r, diff) {
     const ivName = intervalName({ number, quality }, { style: number > 8 && r.chance(0.3) ? 'full' : 'compound' });
     return {
       section: SEC, topic: 'i-write', difficulty: diff, sub: clef, type: 'place',
-      prompt: `Write a note that is a ${ivName} ${below ? 'below' : 'above'} this note.`,
+      prompt: `Write a note that is ${art(ivName)} ${ivName} ${below ? 'below' : 'above'} this note.`,
       check: { kind: 'place-interval', given: toString(given), below, number, quality },
       music: { clef, free: true, notes: [{ keys: toString(given), dur: 'w' }] },
       place: { clef, accept: [toString(ans)], answerText: `${name(ans, true)} (${describeStaffPos(p)})`, range: [-5, 13] },

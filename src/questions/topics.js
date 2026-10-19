@@ -30,6 +30,7 @@ export function generate(topicId, seed, difficulty = null) {
       if (!q) continue;
       const problems = validateQuestion(q);
       if (problems.length) { lastErr = new Error(problems.join('; ')); continue; }
+      for (const k of ['prompt', 'explanation']) if (q[k]) q[k] = q[k].replace(/ {2,}/g, ' ').trim();
       q.id = q.id || `${topicId}-${hashString(`${seed}:${attempt}`).toString(36)}`;
       q.topic = q.topic || topicId;
       q.gen = gen.name;

@@ -51,7 +51,7 @@ export function genSign(r, diff) {
     section: SEC, topic: 't-signs', difficulty: diff,
     prompt: 'What does the sign on this note mean?',
     music,
-    explanation: `This is a ${s.name}: ${s.meaning}.`,
+    explanation: `This is ${/^[aeiou]/.test(s.name) ? 'an' : 'a'} ${s.name}: ${s.meaning}.`,
   }, { label: s.meaning }, SIGNS.filter((o) => o !== s).map((o) => ({ label: o.meaning, why: `That is the ${o.name}.` })));
 }
 
@@ -139,7 +139,7 @@ export function genInstrumentFacts(r, diff) {
   }
   if (kind === 'pitch') {
     const ins = r.pick(INSTRUMENTS.filter((i) => i.pitch));
-    return mcq(r, { section: SEC, topic: 't-instruments', difficulty: diff, prompt: `Is the ${ins.name} a percussion instrument of definite or indefinite pitch?`, explanation: `The ${ins.name} has ${ins.pitch} pitch${ins.pitch === 'definite' ? ' (it plays particular notes)' : ' (it does not play particular notes)'}.` },
+    return mcq(r, { section: SEC, topic: 't-instruments', difficulty: diff, prompt: `${/s$/.test(ins.name) ? `Are the ${ins.name} percussion instruments` : `Is the ${ins.name} a percussion instrument`} of definite or indefinite pitch?`, explanation: `The ${ins.name} has ${ins.pitch} pitch${ins.pitch === 'definite' ? ' (it plays particular notes)' : ' (it does not play particular notes)'}.` },
       { label: `${ins.pitch} pitch` }, [{ label: ins.pitch === 'definite' ? 'indefinite pitch' : 'definite pitch' }], 2);
   }
   if (kind === 'voice') {

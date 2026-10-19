@@ -215,7 +215,7 @@ export function genRests(r, diff) {
     return mcq(r, {
       section: SEC, topic: 'r-rests', difficulty: diff,
       prompt: `Which bar of ${ts} is completed with the correct rest${rests.length > 1 ? 's' : ''}?`,
-      explanation: `After the notes, ${describe(R.sub(bar, start))} ${/^(1 |½)/.test(describe(R.sub(bar, start))) ? 'is' : 'are'} left. ${restRuleText(ts)} So the rests are: ${rests.map((x) => R.valueName(x.id, x.dots, true)).join(', ')}.`,
+      explanation: `After the notes, ${describe(R.sub(bar, start))} ${/^(1 |½)/.test(describe(R.sub(bar, start))) ? 'is' : 'are'} left. ${restRuleText(ts, R.div(start, R.frac(c.kind === 'compound' ? 3 : 1, R.parseTime(ts).bottom)).d !== 1)} So the rests are: ${rests.map((x) => R.valueName(x.id, x.dots, true)).join(', ')}.`,
     }, { label: '', music: music(correctBar), key: JSON.stringify(rests), aria: 'bar with rests' },
     wrongs.map((w) => ({ label: '', music: music([...lead, ...toNotes(w.rests)]), key: JSON.stringify(w.rests), why: w.why, aria: 'bar with rests' })), 3);
   }
@@ -228,11 +228,12 @@ function groupingWhy(ts, start) {
   return 'The total is right, but rests should complete each beat (or half bar) separately rather than one rest crossing the beat.';
 }
 
-function restRuleText(ts) {
+function restRuleText(ts, partBeat) {
   const c = R.classifyTime(ts);
-  if (c.kind === 'compound') return 'In compound time, complete the part of the beat first, then use one dotted rest for each whole dotted beat.';
-  if (ts === '4/4' || ts === '4/2') return 'Complete the part beat first, then whole beats; a minim rest can only start on beat 1 or beat 3 in this time.';
-  return 'Complete the part beat first, then give each whole beat its own rest.';
+  const first = partBeat ? 'Complete the part beat first, then ' : 'The notes end on a beat, so ';
+  if (c.kind === 'compound') return `In compound time, ${partBeat ? 'complete the part of the beat first, then ' : ''}use one dotted rest for each whole dotted beat.`;
+  if (ts === '4/4' || ts === '4/2') return `${first}${partBeat ? 'whole beats' : 'fill the whole beats'}; a minim rest can only start on beat 1 or beat 3 in this time.`;
+  return `${first}give each whole beat its own rest.`;
 }
 
 /** Split a length (from the start of the bar) into simple note values that respect beats. */
@@ -331,7 +332,8 @@ export function genRhythmFacts(r, diff) {
   const hasDotted = notes.some((n) => n.dots);
   const hasSemi = notes.some((n) => n.dur === '16');
   const st = [
-    { text: `This bar is in ${c.kind === 'irregular' ? 'simple' : c.kind === 'simple' ? 'compound' : 'simple'} time.`, answer: false },
+    // 5/4, 7/8 etc. are called simple time in some books, so never ask simple-vs-compound about them.
+    ...(c.kind === 'irregular' ? [] : [{ text: `This bar is in ${c.kind === 'simple' ? 'compound' : 'simple'} time.`, answer: false }]),
     { text: `This bar is in ${c.kind} time.`, answer: true },
     { text: 'The bar contains a dotted note.', answer: hasDotted },
     { text: 'The bar contains at least one semiquaver.', answer: hasSemi },
@@ -368,7 +370,8 @@ export function genBarlines(r, diff) {
   const pool = diff === 1 ? ['2/4', '3/4', '4/4'] : diff === 2 ? ['3/4', '4/4', '6/8', '3/8', '2/2', '9/8'] : ['6/8', '9/8', '12/8', '5/4', '7/8', '5/8', '3/2', '6/4'];
   const ts = r.pick(pool);
   const nBars = r.pick([2, 3]);
-  const bars = Array.from({ length: nBars }, (_, i) => buildBar(r, ts, { pitchStart: i * 3 }).notes.map((n) => ({ ...n, beam: n.beam === undefined ? undefined : `${i}-${n.beam}` })));
+  // No explicit beams: each option is beamed automatically bar by bar, so beaming never gives the answer away.
+  const bars = Array.from({ length: nBars }, (_, i) => buildBar(r, ts, { pitchStart: i * 3 }).notes.map(({ beam, ...n }) => n));
   const flat = bars.flat();
   const cuts = []; let c = 0;
   for (const b of bars.slice(0, -1)) { c += b.length; cuts.push(c); }

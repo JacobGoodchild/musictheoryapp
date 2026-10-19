@@ -3,7 +3,7 @@
  "sections": {
   "1": 469,
   "2": 400,
-  "3": 568,
+  "3": 562,
   "4": 170,
   "5": 170,
   "6": 374,
@@ -21,7 +21,7 @@
   "p-transpose-clef": 111,
   "p-instruments": 119,
   "k-signatures": 128,
-  "k-relative": 74,
+  "k-relative": 68,
   "k-degrees": 85,
   "k-scales": 111,
   "k-chromatic": 85,
@@ -36,5 +36,5 @@
   "t-instruments": 85,
   "x-context": 261
  },
- "total": 2412
+ "total": 2406
 }

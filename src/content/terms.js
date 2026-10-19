@@ -51,7 +51,7 @@ export const TERMS = [
     ['non troppo', 'not too much'],
     ['più', 'more'],
     ['più mosso', 'more movement (quicker)'],
-    ['poco a poco', 'little by little'],
+    ['poco, poco a poco', 'a little; little by little'],
     ['presto', 'fast (quicker than allegro)'],
     ['ritenuto (riten.)', 'held back (slower at once)'],
     ['senza', 'without'],
@@ -171,9 +171,9 @@ export function meaningsClash(a, b) {
 // Signs (Grades 1–2) and Grade 4–5 instrumental directions.
 export const SIGNS = [
   { id: 'staccato', name: 'staccato dot', meaning: 'detached', art: 'staccato', grade: 1 },
-  { id: 'accent', name: 'accent', meaning: 'accent the note', art: 'accent', grade: 1 },
+  { id: 'accent', name: 'accent', meaning: 'play the note with emphasis', art: 'accent', grade: 1 },
   { id: 'pause', name: 'pause (fermata)', meaning: 'pause on the note (hold it longer)', art: 'fermata', grade: 1 },
-  { id: 'marcato', name: 'strong accent', meaning: 'strong accent', art: 'marcato', grade: 2 },
+  { id: 'marcato', name: 'strong accent', meaning: 'play the note with strong emphasis (more than >)', art: 'marcato', grade: 2 },
   { id: 'staccatissimo', name: 'staccatissimo', meaning: 'very detached (very short)', art: 'staccatissimo', grade: 2 },
   { id: 'tenuto', name: 'tenuto line', meaning: 'held (slight pressure, full value)', art: 'tenuto', grade: 2 },
 ];
@@ -241,10 +241,10 @@ export const INSTRUMENTS = [
 ];
 
 export const VOICES = [
-  { name: 'soprano', type: 'high female (or child) voice', order: 1, range: 'roughly middle C to the A two octaves above' },
+  { name: 'soprano', type: 'the highest female (or child) voice', order: 1, range: 'roughly middle C to the A two octaves above' },
   { name: 'mezzo-soprano', type: 'female voice between soprano and alto', order: 2, range: 'roughly the A below middle C to the F an octave and a half above' },
-  { name: 'alto', type: 'low female voice (contralto)', order: 3, range: 'roughly the F below middle C to the D an octave and a half above' },
+  { name: 'alto', type: 'the lowest female voice (contralto)', order: 3, range: 'roughly the F below middle C to the D an octave and a half above' },
   { name: 'tenor', type: 'high male voice', order: 4, range: 'roughly the C below middle C to the A above middle C' },
   { name: 'baritone', type: 'male voice between tenor and bass', order: 5, range: 'roughly the A an octave and a half below middle C to the F above middle C' },
-  { name: 'bass', type: 'low male voice', order: 6, range: 'roughly the E two octaves below middle C to the E above middle C' },
+  { name: 'bass', type: 'the lowest male voice', order: 6, range: 'roughly the E two octaves below middle C to the E above middle C' },
 ];

@@ -59,7 +59,10 @@ export function trueFalse(r, base, statements, n = 4) {
   const trues = r.shuffle(statements.filter((s) => s.answer));
   const falses = r.shuffle(statements.filter((s) => !s.answer));
   const nTrue = Math.max(1, Math.min(trues.length, r.int(1, n - 1)));
-  const chosen = r.shuffle([...trues.slice(0, nTrue), ...falses.slice(0, n - nTrue)]).slice(0, n);
+  let picked = [...trues.slice(0, nTrue), ...falses.slice(0, n - nTrue)];
+  // Top up from whichever list has spares so there are always n statements when possible.
+  for (const s of [...trues.slice(nTrue), ...falses.slice(n - nTrue)]) { if (picked.length >= n) break; picked.push(s); }
+  const chosen = r.shuffle(picked).slice(0, n);
   return { ...base, type: 'truefalse', statements: chosen.map((s) => ({ text: s.text, answer: s.answer, why: s.why })) };
 }
 
