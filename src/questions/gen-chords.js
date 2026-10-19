@@ -164,6 +164,9 @@ export function genCadenceChords(r, diff) {
     const b1 = [start, ...walk(start, n1, 2)];
     const mid = walk(n2, n3, 4);
     if ([...b1, ...mid].some((x) => !x)) continue;
+    // Keep the tune singable: no leap bigger than a 5th between neighbouring notes.
+    const line = [...b1, n1, n2, ...mid, n3, n4].map((p) => staffPos(p, 'treble'));
+    if (line.some((p, i) => i && Math.abs(p - line[i - 1]) > 4)) continue;
     const q = (p, extra = {}) => ({ keys: toString(p), dur: 'q', ...extra });
     const measures = [
       { notes: [...b1.map((p) => q(p)), q(n1, { text: '1' })] },

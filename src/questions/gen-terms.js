@@ -1,5 +1,5 @@
 // Section 6: Terms, signs, ornaments, instruments and voices.
-import { TERMS, SIGNS, DIRECTIONS, ORNAMENTS, INSTRUMENTS, VOICES, meaningsClash } from '../content/terms.js';
+import { TERMS, SIGNS, SIGN_TEXT, DIRECTIONS, ORNAMENTS, INSTRUMENTS, VOICES, meaningsClash } from '../content/terms.js';
 import { parse, toString, staffPos, pitchAtStaffPos } from '../theory/pitch.js';
 import { transpose } from '../theory/interval.js';
 import { GRADE5_MAJOR, keyScale } from '../theory/keys.js';
@@ -64,6 +64,16 @@ export function genDirection(r, diff) {
     prompt: `What does "${d.term}" mean?`,
     explanation: `${d.term} means: ${d.meaning}.`,
   }, { label: d.meaning }, quiz.filter((o) => o !== d).map((o) => ({ label: o.meaning, why: `That is ${o.term}.` })));
+}
+
+export function genSignText(r, diff) {
+  const s = r.pick(SIGN_TEXT);
+  if (r.chance(0.5)) {
+    return mcq(r, { section: SEC, topic: 't-signs', difficulty: diff, prompt: `What does ${s.sign} mean?`, explanation: `${s.sign[0].toUpperCase()}${s.sign.slice(1)} means: ${s.meaning}.` },
+      { label: s.meaning }, SIGN_TEXT.filter((o) => o !== s).map((o) => ({ label: o.meaning, why: `That is ${o.sign}.` })));
+  }
+  return mcq(r, { section: SEC, topic: 't-signs', difficulty: diff, prompt: `Which sign means "${s.meaning}"?`, explanation: `"${s.meaning}" is shown by ${s.sign}.` },
+    { label: s.sign }, SIGN_TEXT.filter((o) => o !== s).map((o) => ({ label: o.sign, why: `That means: ${o.meaning}.` })));
 }
 
 // ---- Ornaments: written-out → sign ----------------------------------------
@@ -187,7 +197,7 @@ export function genInstrumentFacts(r, diff) {
 
 export const TERMS_TOPICS = [
   { id: 't-terms', section: 6, title: 'Italian, French and German terms', gens: [genTermMeaning, genTermMeaning, genTermsTrueFalse], weight: 1.4 },
-  { id: 't-signs', section: 6, title: 'Signs and instrumental directions', gens: [genSign, genDirection] },
+  { id: 't-signs', section: 6, title: 'Signs and instrumental directions', gens: [genSign, genDirection, genSignText] },
   { id: 't-ornaments', section: 6, title: 'Ornaments (written out → sign)', gens: [genOrnament] },
   { id: 't-instruments', section: 6, title: 'Instruments and voices', gens: [genInstrumentFacts] },
 ];

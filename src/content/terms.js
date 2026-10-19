@@ -178,6 +178,23 @@ export const SIGNS = [
   { id: 'tenuto', name: 'tenuto line', meaning: 'held (slight pressure, full value)', art: 'tenuto', grade: 2 },
 ];
 
+// Signs taught as text (they are not single-note articulations).
+export const SIGN_TEXT = [
+  { id: 'hairpin-cresc', sign: 'a crescendo hairpin (<)', meaning: 'gradually getting louder', grade: 1 },
+  { id: 'hairpin-dim', sign: 'a diminuendo hairpin (>)', meaning: 'gradually getting quieter', grade: 1 },
+  { id: 'slur', sign: 'a slur (curved line over different notes)', meaning: 'play the notes smoothly (legato)', grade: 1 },
+  { id: 'tie', sign: 'a tie (curved line joining two notes of the same pitch)', meaning: 'hold for the combined length of both notes', grade: 1 },
+  { id: 'metronome', sign: '♩ = 120', meaning: '120 crotchet beats in a minute', grade: 1 },
+  { id: 'repeat', sign: 'repeat marks', meaning: 'play the passage between the marks again', grade: 1 },
+  { id: 'semi-staccato', sign: 'dots under a slur (semi-staccato)', meaning: 'slightly separated', grade: 2 },
+  { id: '8va', sign: '8va written over the notes', meaning: 'play an octave higher', grade: 2 },
+  { id: '8vb', sign: '8va bassa written under the notes', meaning: 'play an octave lower', grade: 2 },
+  { id: 'multibar', sign: 'a multi-bar rest (thick bar with a number above it)', meaning: 'rest for that number of bars', grade: 2 },
+  { id: 'volta', sign: 'volta brackets (1. and 2.)', meaning: 'play bar 1. the first time, then skip it and play bar 2. on the repeat', grade: 2 },
+  { id: 'alla-breve-sign', sign: '¢ (instead of a time signature)', meaning: 'alla breve: 2/2 time', grade: 2 },
+  { id: 'common-time', sign: 'C (instead of a time signature)', meaning: 'common time: 4/4', grade: 1 },
+];
+
 export const DIRECTIONS = [
   { term: 'pizzicato (pizz.)', meaning: 'pluck the strings', grade: 4 },
   { term: 'arco', meaning: 'with the bow', grade: 4 },

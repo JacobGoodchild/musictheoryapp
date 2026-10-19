@@ -367,7 +367,7 @@ export function genIrregular(r, diff) {
 
 /** Where do the bar lines go? Two or three bars run together; options split them differently. */
 export function genBarlines(r, diff) {
-  const pool = diff === 1 ? ['2/4', '3/4', '4/4'] : diff === 2 ? ['3/4', '4/4', '6/8', '3/8', '2/2', '9/8'] : ['6/8', '9/8', '12/8', '5/4', '7/8', '5/8', '3/2', '6/4'];
+  const pool = diff === 1 ? ['2/4', '3/4', '4/4'] : diff === 2 ? ['3/4', '4/4', '6/8', '3/8', '2/2', '9/8', '5/4', '7/8'] : ['6/8', '9/8', '12/8', '5/4', '7/4', '7/8', '5/8', '3/2', '6/4', '7/4', '5/8'];
   const ts = r.pick(pool);
   const nBars = r.pick([2, 3]);
   // No explicit beams: each option is beamed automatically bar by bar, so beaming never gives the answer away.
@@ -395,7 +395,7 @@ export function genBarlines(r, diff) {
 
 export const RHYTHM_TOPICS = [
   { id: 'r-values', section: 1, title: 'Note and rest values', gens: [genEquivalence] },
-  { id: 'r-time', section: 1, title: 'Time signatures', gens: [genTimeDescribe, genWhichTime, genRhythmFacts, genIrregular] },
+  { id: 'r-time', section: 1, title: 'Time signatures (including 5/4, 7/4, 5/8, 7/8)', gens: [genTimeDescribe, genWhichTime, genRhythmFacts, genIrregular, genIrregular], weight: 1.3 },
   { id: 'r-rests', section: 1, title: 'Completing bars with rests', gens: [genRests] },
   { id: 'r-barlines', section: 1, title: 'Adding bar lines', gens: [genBarlines] },
   { id: 'r-tuplets', section: 1, title: 'Triplets, duplets and other tuplets', gens: [genTuplet] },

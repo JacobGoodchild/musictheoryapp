@@ -1,7 +1,7 @@
 {
  "generated": "2026-10-19",
  "sections": {
-  "1": 469,
+  "1": 495,
   "2": 400,
   "3": 562,
   "4": 170,
@@ -11,7 +11,7 @@
  },
  "topics": {
   "r-values": 46,
-  "r-time": 85,
+  "r-time": 111,
   "r-rests": 85,
   "r-barlines": 85,
   "r-tuplets": 85,
@@ -36,5 +36,5 @@
   "t-instruments": 85,
   "x-context": 261
  },
- "total": 2406
+ "total": 2432
 }

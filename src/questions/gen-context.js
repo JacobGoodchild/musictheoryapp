@@ -1,7 +1,7 @@
 // Section 7: Music in context. An original short extract plus several questions
 // about it, all computed from the extract's data.
 import { parse, name, toString, staffPos, midi, wordName } from '../theory/pitch.js';
-import { GRADE5_KEYS, keyName, scale, relative, keyScale, DEGREE_NAMES, signature } from '../theory/keys.js';
+import { GRADE5_KEYS, keyName, scale, relative, keyScale, DEGREE_NAMES, signature, signatureMap } from '../theory/keys.js';
 import { between, intervalName } from '../theory/interval.js';
 import { triad, chordLabel } from '../theory/chords.js';
 import { toConcert, INSTRUMENT_KEYS } from '../theory/transpose.js';
@@ -176,17 +176,30 @@ export function genContext(r, diff, { all = false } = {}) {
     const leading = ex.sc[6];
     const hasLeading = notes.some((n) => n.p.letter === leading.letter && n.p.acc === leading.acc);
     const artWord = { staccato: 'staccato (detached)', accent: 'accented', tenuto: 'held (tenuto)' }[ex.art];
+    // Every fact has a true and a false version (or a computed truth), so no statement is always true.
+    const nBars = ex.measures.length;
+    const sig = signatureMap(ex.k);
+    const barHasAcc = (b) => ex.measures[b].notes.some((x) => !x.rest && parse(x.keys).acc !== sig[parse(x.keys).letter]);
+    const barHasRest = (b) => ex.measures[b].notes.some((x) => x.rest);
+    const accBar = r.int(0, nBars - 1), restBar = r.int(0, nBars - 1);
+    const otherLow = r.pick(ex.sc.slice(0, 7).filter((p) => !(p.letter === lowest.p.letter && p.acc === lowest.p.acc)));
+    const firstIsTonic = notes[0].p.letter === ex.sc[0].letter && notes[0].p.acc === ex.sc[0].acc;
+    const artBars = ex.measures.map((m, i) => (m.notes.some((x) => (x.art || []).includes(ex.art)) ? i : -1)).filter((i) => i >= 0);
+    const noArtBar = [0, 1, 2, 3, 4, 5].find((i) => i < nBars && !artBars.includes(i));
+    const otherArt = r.pick(['staccato (detached)', 'accented', 'held (tenuto)'].filter((w) => w !== artWord));
     const st = [
       { text: `The highest note appears in bar ${highBars[0]}.`, answer: true },
       { text: `The highest note appears in bar ${wrongBar}.`, answer: false },
-      { text: `The lowest note is ${name(lowest.p)}.`, answer: true },
+      r.chance(0.5) ? { text: `The lowest note is ${name(lowest.p)}.`, answer: true } : { text: `The lowest note is ${name(otherLow)}.`, answer: false },
       { text: 'The extract contains a dotted note.', answer: hasDotted },
-      { text: `The leading note (${name(leading)}) appears in the extract.`, answer: hasLeading },
-      { text: `Some notes in bar ${ex.artBar + 1} are to be played ${artWord}.`, answer: true },
-      { text: `The extract ends on the dominant.`, answer: false },
-      { text: `The extract ends on the tonic.`, answer: true },
-      { text: `The extract is written in the ${ex.clef} clef.`, answer: true },
-      { text: `The extract is written in the ${r.pick(['treble', 'bass', 'alto', 'tenor'].filter((c) => c !== ex.clef))} clef.`, answer: false },
+      (() => { const d = r.pick([2, 3, 4, 6]); const t = ex.sc[d - 1]; return { text: `The ${DEGREE_NAMES[d - 1]} (${name(t)}) appears in the extract.`, answer: notes.some((n) => n.p.letter === t.letter && n.p.acc === t.acc) }; })(),
+      r.chance(0.5) ? { text: `Some notes in bar ${ex.artBar + 1} are to be played ${artWord}.`, answer: true } : { text: `Some notes in bar ${ex.artBar + 1} are to be played ${otherArt}.`, answer: false },
+      ...(noArtBar !== undefined ? [{ text: `Some notes in bar ${noArtBar + 1} are to be played ${artWord}.`, answer: false }] : []),
+      r.chance(0.5) ? { text: 'The extract ends on the tonic.', answer: true } : { text: `The extract ends on the ${r.pick(['dominant', 'subdominant', 'mediant'])}.`, answer: false },
+      { text: 'The extract begins on the tonic.', answer: firstIsTonic },
+      { text: `Bar ${accBar + 1} contains an accidental.`, answer: barHasAcc(accBar) },
+      { text: `Bar ${restBar + 1} contains a dotted note.`, answer: ex.measures[restBar].notes.some((x) => !x.rest && x.dots) },
+      r.chance(0.5) ? { text: `The extract is written in the ${ex.clef} clef.`, answer: true } : { text: `The extract is written in the ${r.pick(['treble', 'bass', 'alto', 'tenor'].filter((c) => c !== ex.clef))} clef.`, answer: false },
     ];
     return trueFalse(r, { ...base, prompt: `${intro}\nAre these statements true or false?`, explanation: `Highest note ${name(highest.p, true)} (bar ${highBars[0]}); lowest ${name(lowest.p, true)}. The extract is in ${keyName(ex.k)} and ends on the tonic.` }, st, 4);
   });
