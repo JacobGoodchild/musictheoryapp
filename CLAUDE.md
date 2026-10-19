@@ -263,7 +263,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - [x] 11. Rewards: coins economy (simulated + tested), avatar (8 slots, 45 paid items + free starters), blind bags with shown odds and pity, 60-sticker album with swaps
 - [x] 12. Settings (name, theme, reduced motion, sound/volume), export/import save file, reset with double confirm, migration test, offline PWA with update banner, version shown
 - [x] 13. Polish: new Home (avatar, coins, streak, suggested next step from weakest topic/next lesson, continue, quick start, per-section progress), first-visit welcome, 48 screenshots reviewed (12 screens × 1366/1920 × light/dark)
-- [ ] 14. Backlog
+- [~] 14. Backlog: mastery map, daily challenge, exam-day page, printable summaries, bar-line questions done; more mocks/tricky sets and further review passes ongoing
 
 ## Decisions (one line each)
 - 2026-10-18 19:00 UTC: Work on branch `claude/elegant-davinci-qdhagy` (session branch) and fast-forward `main` to it after every green commit, as the brief allows.
@@ -306,3 +306,71 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Backlog: printable one-page summary per section (#/summary/N, print stylesheet hides the app chrome), linked from each section on the Learn page; tables computed from the brain and term lists.
 - 07:20 Review pass 2 (lessons, fresh subagent): 4 errors, 17 warnings, 16 nits. All 4 errors and the main warnings fixed (docs/review-2-lessons.md). New r-barlines topic; bank now 2,412 questions.
 - Found and fixed a test bug: Playwright's waitForFunction does not await async predicates, so the offline test wasn't really waiting for the service worker cache. Now uses expect.poll. Also the app no longer reloads itself on the first service-worker install (only after "Update now").
+
+
+---
+
+# Morning summary — Monday 19 October 2026 (written ~07:20 UTC)
+
+**Live site:** https://jacobgoodchild.github.io/musictheoryapp/
+
+**Note on timing:** the build stopped at about 20:30 UTC on Sunday when the usage limit was hit, and nothing woke it until about 06:50 UTC on Monday, so roughly 10 hours were lost. An hourly scheduled check-in now resumes the build automatically if it stops again. Everything below was finished between 19:00–20:30 UTC and 06:50–07:20 UTC.
+
+## What's in the app
+- **Home:** your avatar, coins, daily streak, a suggested next step (your weakest topic, or the next lesson), continue-where-you-left-off, quick-start tiles and progress for each of the 7 exam sections. On the first visit, a welcome screen asks for a name.
+- **Learn:** 33 short lessons in exam order, covering all 7 sections (Grade 1–4 basics are marked "Refresh"). Each lesson has engraved examples, worked examples, key points, common mistakes, things to memorise, "Hear it" buttons and a 5–8 question check. There is also a printable one-page summary for each section.
+- **Practice:**
+  - by topic (25 topics) or by whole section, plus random mode (bank and freshly generated questions)
+  - review mistakes, a tricky set (key signatures, clefs, transposition) and a daily challenge
+  - a mastery map, and listening practice (clearly labelled as a bonus)
+  - all five real-exam answer types: multiple choice, tick/cross, drag a notehead with accidentals onto the stave, number entry, and drop-downs
+- **Mock exams:** 10 fixed papers plus "generate a new mock". Each has 7 sections and 75 marks (10/10/15/10/10/10/10) with a 2-hour countdown, a question navigator, flags and resume after a reload. Results show the band, section scores and a full review with explanations, and past mocks are kept in a history.
+- **Memorise:** an interactive circle of fifths (in all four clefs), 7 flashcard decks with spaced repetition (the Grade 5 set can be drilled on its own), beat the clock, and matching pairs.
+- **Rewards:**
+  - coins for real learning, with less for repeating the same question
+  - an original SVG avatar with 8 customisable slots
+  - blind bags with the odds shown on screen (55/27/12/5/1) and a pity rule (Epic or better at least every 10 bags)
+  - a 60-sticker album with padlocked silhouettes; duplicate stickers give "notes" you can swap for a sticker you choose
+- **Settings:** name, light/dark/system theme, reduced motion, sound and volume, save export/import as a file, and reset behind two confirmations. The version is shown here.
+- **Installable and offline:** it can be installed from Chrome, works offline after the first visit, and shows an "update ready" banner when a new version arrives.
+- **Exam-day guide:** the format, how to answer each question type, timing tips and a checklist.
+
+## How the content was checked (numbers)
+- **Music logic** (`src/theory/`): hand-written reference tables for all 26 keys (scales, key signatures, relative keys, degrees, chromatic scales, key-signature positions in all four clefs). It was also cross-checked against the `tonal` library: 52 scales, 26 key signatures, over 5,000 intervals, over 8,000 transpositions, 104 triads and every MIDI number agree.
+- **Question bank:** 2,412 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 10 mocks.
+- **Engraving:** every stave (about 4,100: the whole bank, all options, all placed answers, all mocks, all lessons) is drawn and read back. The check covers the clef, key signature positions, each notehead's line or space, accidentals, rests, ornaments, nothing clipped and no overlaps. All are clean, and screenshots were looked at by eye.
+- **Tests:** 51 Node unit tests and 29 Playwright browser tests, all green, run in CI before every deploy. The browser tests cover:
+  - every screen loads with no console errors, no outside requests and no stray "null" text
+  - every question type answered through the real UI
+  - a full mock taken through the UI with an exact score
+  - export/import and migration of old saves
+  - the offline mode
+  - blind-bag odds (200,000 openings) and the pity rule
+  - economy pacing (30 simulated students: median about 54 days to collect everything)
+- **Independent reviews** (subagents that didn't write the content):
+  - Review 1 (bank): 6 errors and 14 warnings, all fixed.
+  - Review 2 (lessons): 4 errors and 17 warnings; all errors and most warnings fixed.
+  - Review 3 (bank re-check plus new questions): see below.
+- **Bugs I caught myself:**
+  - bass notes losing their octave (`.map(toString)`)
+  - wide staves clipped inside answer cards
+  - a stray "null" on two screens
+  - an offline test that wasn't really waiting
+  - the app reloading itself on the first install
+
+## Not done, or uncertain (please check)
+- **Rests in irregular time signatures** (5/4, 7/8 …) are taught only briefly and never quizzed, because the conventions vary. Rests questions in compound time only leave whole dotted beats to fill, for the same reason.
+- **Septuplets** are not included: the 2020 spec only names quintuplets and sextuplets at Grade 5.
+- **Term meanings** follow ABRSM style, but only about 15 are confirmed word for word from ABRSM model answers (the official list gives terms without meanings). The term list itself is the official 2020 one.
+- **Grade 2 signs:** ABRSM's spec lists 8 and another ABRSM document says 9; the ninth is unidentified.
+- **Compound intervals** are named "compound major 3rd" by default (the lessons also teach "major 10th"); I'm not sure which style ABRSM's online multiple choice uses.
+- **Chord questions** use close, single-stave voicings, not four-part grand-stave voicings like some ABRSM papers.
+- **Cadence chord questions** accept every valid chord pair, rather than one fixed answer.
+- **Not finished from review 2:** a worked music-in-context example on the extract shown in that lesson, and chords with doubled notes.
+
+## Top 5 things to improve next
+1. Four-part (grand stave) chord and cadence examples and questions, closer to real paper layout.
+2. More music-in-context extracts in piano style (two staves, with left-hand chords) and more varied questions about them.
+3. Have a human teacher check the term meanings and the rest-grouping conventions, then add irregular-time rest questions if they're confirmed.
+4. More fixed mocks (aim for 15–20) and a larger tricky set for alto/tenor key signatures and transposing without a key signature.
+5. A mobile-friendly layout pass for the drag-a-note stave (it works with touch, but small screens need bigger hit areas).
