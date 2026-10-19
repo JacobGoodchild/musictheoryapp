@@ -74,6 +74,6 @@ fs.writeFileSync(path.join(outDir, 'index.json'), JSON.stringify(index, null, 1)
 import("./gen-sw.mjs").then(({ swSource }) => fs.writeFileSync(path.join(root, "sw.js"), swSource()));
 
 // Fixed mock papers.
-const mocks = buildFixedMocks(10);
+const mocks = buildFixedMocks(15);
 fs.writeFileSync(path.join(root, 'data', 'mocks.json'), JSON.stringify(mocks));
 console.log(`Total ${total} questions (${dupes} duplicates skipped). ${mocks.length} fixed mocks.`);

@@ -324,7 +324,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
   - review mistakes, a tricky set (key signatures, clefs, transposition) and a daily challenge
   - a mastery map, and listening practice (clearly labelled as a bonus)
   - all five real-exam answer types: multiple choice, tick/cross, drag a notehead with accidentals onto the stave, number entry, and drop-downs
-- **Mock exams:** 10 fixed papers plus "generate a new mock". Each has 7 sections and 75 marks (10/10/15/10/10/10/10) with a 2-hour countdown, a question navigator, flags and resume after a reload. Results show the band, section scores and a full review with explanations, and past mocks are kept in a history.
+- **Mock exams:** 15 fixed papers plus "generate a new mock". Each has 7 sections and 75 marks (10/10/15/10/10/10/10) with a 2-hour countdown, a question navigator, flags and resume after a reload. Results show the band, section scores and a full review with explanations, and past mocks are kept in a history.
 - **Memorise:** an interactive circle of fifths (in all four clefs), 7 flashcard decks with spaced repetition (the Grade 5 set can be drilled on its own), beat the clock, and matching pairs.
 - **Rewards:**
   - coins for real learning, with less for repeating the same question
@@ -374,3 +374,4 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 3. Have a human teacher check the term meanings and the rest-grouping conventions, then add irregular-time rest questions if they're confirmed.
 4. More fixed mocks (aim for 15–20) and a larger tricky set for alto/tenor key signatures and transposing without a key signature.
 5. A mobile-friendly layout pass for the drag-a-note stave (it works with touch, but small screens need bigger hit areas).
+- 07:20 Fixed mocks increased from 10 to 15 (all pass the marks, validation and engraving checks).
