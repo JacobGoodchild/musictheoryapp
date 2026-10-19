@@ -2,7 +2,7 @@
 import { parse, toString, name } from '../../theory/pitch.js';
 import { scale, melodicMinor, chromaticScale, key, keyName } from '../../theory/keys.js';
 import { transpose } from '../../theory/interval.js';
-import { voiceChord, chordLabel } from '../../theory/chords.js';
+import { voiceChord, voiceFourPart, chordLabel } from '../../theory/chords.js';
 
 export const ts = (p) => toString(p);
 export const notes = (list, dur = 'w', extra = {}) => list.map((p) => ({ keys: typeof p === 'string' ? p : toString(p), dur, ...extra }));
@@ -39,5 +39,26 @@ export function chordsMusic(tonic, mode, list, clef = 'treble', bassOct = 4) {
   return { clef, key: k.fifths, free: true, scale: 1.05, notes: list.map(([d, inv]) => ({ keys: voiceChord(k, d, inv, bassOct).map((p) => toString(p)), dur: 'w', label: chordLabel(d, inv, { showA: true }) })) };
 }
 export const chordAudio = (tonic, mode, d, inv, bassOct = 4) => ({ kind: 'chord', notes: voiceChord(key(tonic, mode), d, inv, bassOct).map((p) => toString(p)) });
+
+/** Four-part chords on a grand stave (bass note below, three notes above), with smooth voice leading. */
+function fourPart(tonic, mode, list) {
+  const k = key(tonic, mode);
+  const vs = [];
+  for (const [d, inv] of list) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1].upper : null));
+  return { k, vs };
+}
+export function grandChordsMusic(tonic, mode, list) {
+  const { k, vs } = fourPart(tonic, mode, list);
+  const dur = list.length > 1 ? 'h' : 'w';
+  return {
+    grand: true, key: k.fifths, free: true, scale: 1, noteWidth: 70,
+    upper: [{ notes: vs.map((v) => ({ keys: v.upper.map((p) => toString(p)), dur })) }],
+    lower: [{ notes: vs.map((v) => ({ keys: [toString(v.bass)], dur })) }],
+  };
+}
+export function grandChordsAudio(tonic, mode, list) {
+  const { vs } = fourPart(tonic, mode, list);
+  return { kind: 'sequence', tempo: 66, events: vs.map((v, i) => ({ notes: [v.bass, ...v.upper].map((p) => toString(p)), beats: i === vs.length - 1 ? 3 : 2 })) };
+}
 
 export { keyName, key, parse, toString, name };

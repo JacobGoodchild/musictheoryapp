@@ -429,7 +429,7 @@ export async function renderGrand(container, spec) {
     }));
   });
   const nBars = spec.upper.length;
-  const x0 = 10;
+  const x0 = 24; // room for the brace, which VexFlow draws to the left of the staves
   const yTop = 30, gap = 110;
   // Bar widths from the busier staff.
   const widths = Array.from({ length: nBars }, (_, mi) => Math.max(110, Math.max(built[0][mi].length, built[1][mi].length) * (spec.noteWidth || 62) + 30));

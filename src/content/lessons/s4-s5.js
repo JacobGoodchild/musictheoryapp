@@ -1,5 +1,5 @@
 // Section 4 (intervals) and Section 5 (chords) lessons.
-import { intervalMusic, intervalAudio, chordsMusic, chordAudio, scaleMusic } from './helpers.js';
+import { intervalMusic, intervalAudio, chordsMusic, chordAudio, scaleMusic, grandChordsMusic, grandChordsAudio } from './helpers.js';
 import { parse, toString, name } from '../../theory/pitch.js';
 import { transpose, intervalName, between } from '../../theory/interval.js';
 import { key, keyName } from '../../theory/keys.js';
@@ -99,6 +99,12 @@ export const CHORD_LESSONS = [
         { text: `Which triad has these notes? I = ${tri('Bb', 'major', 1)}. ✓` },
         { text: 'The lowest note is D, the **3rd** of the chord → **1st inversion**: **Ib**.' },
       ] },
+      { type: 'text', text: 'Chords are often written in **four parts on two staves**: one note on the bass stave and three on the treble stave, with one letter doubled. Collect the letter names from **both** staves to find the chord, then look at the **bass stave** for the lowest note.' },
+      { type: 'musicRow', items: [
+        { music: grandChordsMusic('Bb', 'major', [[1, 'a']]), caption: 'B♭ major: Ia (B♭ in the bass)', audio: grandChordsAudio('Bb', 'major', [[1, 'a']]) },
+        { music: grandChordsMusic('Bb', 'major', [[1, 'b']]), caption: 'B♭ major: Ib (D in the bass)', audio: grandChordsAudio('Bb', 'major', [[1, 'b']]) },
+        { music: grandChordsMusic('Bb', 'major', [[1, 'c']]), caption: 'B♭ major: Ic (F in the bass)', audio: grandChordsAudio('Bb', 'major', [[1, 'c']]) },
+      ] },
       { type: 'keypoints', items: ['a = root in the bass, b = 3rd in the bass, c = 5th in the bass.', 'First find which chord it is, then look only at the lowest note.'] },
       { type: 'mistakes', items: ['Looking at the top note instead of the lowest.', 'Mixing up IVc and Ia (both have the tonic in the bass): check the other notes.'] },
       { type: 'memorise', items: ['"b = 3rd in the bass, c = 5th in the bass".'] },
@@ -115,6 +121,12 @@ export const CHORD_LESSONS = [
         { music: chordsMusic('C', 'major', [[5, 'a'], [1, 'a']], 'bass', 2), caption: 'Perfect (V–I) in C', audio: { kind: 'sequence', tempo: 66, events: [{ notes: voiceChord(key('C'), 5, 'a', 2).map((p) => toString(p)), beats: 2 }, { notes: voiceChord(key('C'), 1, 'a', 2).map((p) => toString(p)), beats: 3 }] } },
         { music: chordsMusic('C', 'major', [[4, 'a'], [1, 'a']], 'bass', 2), caption: 'Plagal (IV–I) in C', audio: { kind: 'sequence', tempo: 66, events: [{ notes: voiceChord(key('C'), 4, 'a', 2).map((p) => toString(p)), beats: 2 }, { notes: voiceChord(key('C'), 1, 'a', 2).map((p) => toString(p)), beats: 3 }] } },
         { music: chordsMusic('C', 'major', [[2, 'a'], [5, 'a']], 'bass', 2), caption: 'Imperfect (II–V) in C', audio: { kind: 'sequence', tempo: 66, events: [{ notes: voiceChord(key('C'), 2, 'a', 2).map((p) => toString(p)), beats: 2 }, { notes: voiceChord(key('C'), 5, 'a', 2).map((p) => toString(p)), beats: 3 }] } },
+      ] },
+      { type: 'text', text: 'On many papers cadences are written in **four parts on two staves**. The cadence is the same: work out each chord from all its notes, then name the pair.' },
+      { type: 'musicRow', items: [
+        { music: grandChordsMusic('G', 'major', [[5, 'a'], [1, 'a']]), caption: 'Perfect (V–I) in G', audio: grandChordsAudio('G', 'major', [[5, 'a'], [1, 'a']]) },
+        { music: grandChordsMusic('G', 'major', [[4, 'a'], [1, 'a']]), caption: 'Plagal (IV–I) in G', audio: grandChordsAudio('G', 'major', [[4, 'a'], [1, 'a']]) },
+        { music: grandChordsMusic('G', 'major', [[1, 'a'], [5, 'a']]), caption: 'Imperfect (I–V) in G', audio: grandChordsAudio('G', 'major', [[1, 'a'], [5, 'a']]) },
       ] },
       { type: 'table', head: ['Key', 'I', 'II', 'IV', 'V'], rows: ['C', 'G', 'D', 'F'].map((t) => [keyName(key(t)), tri(t, 'major', 1), tri(t, 'major', 2), tri(t, 'major', 4), tri(t, 'major', 5)]) },
       { type: 'keypoints', items: ['Perfect = V–I. Plagal = IV–I. Imperfect = ends on V.', 'At Grade 5 cadences are only in C, G, D and F major.'] },
