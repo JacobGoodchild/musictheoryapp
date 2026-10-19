@@ -387,3 +387,7 @@ Done on Monday from the original list: four-part grand-stave chords and cadences
 - 12:25 Phone layout: no sideways scrolling on any screen at 390px (grid columns use minmax(0,1fr) and min(Npx,100%)), lesson tables wrap, and the drag-a-note stave doubles in size on small/touch screens (tap position uses the SVG screen matrix, so scaling is safe).
 - 12:45 Review 4 (fresh subagent; 140 grand-stave chord questions, 150 piano sets): 0 errors, 0 ambiguities, 6 style warnings, all fixed (parallels, leaps, augmented 2nds, IIa in minor, clashing long notes, interval question coverage) plus 3 nits; style guard test added (docs/review-4.md).
 - 12:55 Fixed mocks 15 → 20 (all pass marks, validation and engraving checks). Morning summary updated with Monday's work.
+
+## Feedback round (student feedback, started 18:51 UTC 19 Oct)
+1) girl avatar, brown hair default, many more hairstyles/accessories; 2) easier coins; 3) easier beginner-friendly questions + 3-level optional hints; 4) larger question text/options on desktop; 5) replace stickers with cute kawaii food/sweets collectables.
+- 18:56 Feedback 1 done: avatar redrawn as a kawaii girl (brown long hair by default), 18 hairstyles, 15 hair colours (6 natural free), new 'Hair bits' slot (bows, clips, headband…), 14 outfits (dresses, tutu, pinafore…), 8 faces with lashes, 10 accessories, 11 headwear (bunny/cat ears, tiara…), 12 backgrounds. Fixed a bug where all avatars on a page shared the first one's gradient (shop thumbnails showed the wrong background).

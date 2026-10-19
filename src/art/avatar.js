@@ -1,172 +1,289 @@
-// Original avatar art (SVG strings, app-authored). A cute round character built
-// from layers: background, body + outfit, head + skin, hair, face, hat, accessory.
+// Original avatar art (SVG strings, app-authored). A cute kawaii-style girl built
+// from layers: background, back hair, outfit, head + skin, face, front hair,
+// hair accessory, accessory, headwear.
 
 export const SLOTS = [
-  { id: 'background', name: 'Background' },
-  { id: 'skin', name: 'Skin' },
-  { id: 'hair', name: 'Hair' },
+  { id: 'hair', name: 'Hairstyle' },
   { id: 'hairColour', name: 'Hair colour' },
+  { id: 'hairAcc', name: 'Hair bits' },
   { id: 'outfit', name: 'Outfit' },
   { id: 'face', name: 'Face' },
-  { id: 'hat', name: 'Hat' },
   { id: 'accessory', name: 'Accessory' },
+  { id: 'hat', name: 'Headwear' },
+  { id: 'background', name: 'Background' },
+  { id: 'skin', name: 'Skin' },
 ];
 
 // Prices are tuned by the economy test (docs/economy.md); PRICE_SCALE shifts them all.
-export const PRICE_SCALE = 0.45;
+export const PRICE_SCALE = 0.32;
 const I = (id, slot, name, price, data = {}) => ({ id, slot, name, price: Math.round((price * PRICE_SCALE) / 5) * 5, ...data });
 
 export const ITEMS = [
   // Skin tones: all free (everyone should look like themselves from day one).
   ...[['#f9d7c0', 'Light'], ['#eabf9b', 'Fair'], ['#c99272', 'Medium'], ['#a86f4c', 'Tan'], ['#7b4a2e', 'Deep'], ['#5a3420', 'Rich']].map(([c, n], i) => I(`skin-${i + 1}`, 'skin', n, 0, { colour: c })),
-  // Hair colours
-  I('hc-brown', 'hairColour', 'Brown', 0, { colour: '#5b3a24' }),
+  // Hair colours: natural shades free, fun colours to unlock.
+  I('hc-brown', 'hairColour', 'Brown', 0, { colour: '#6b4128' }),
+  I('hc-chestnut', 'hairColour', 'Chestnut', 0, { colour: '#8a4b2a' }),
+  I('hc-darkbrown', 'hairColour', 'Dark brown', 0, { colour: '#3f2617' }),
+  I('hc-lightbrown', 'hairColour', 'Light brown', 0, { colour: '#a87a52' }),
   I('hc-black', 'hairColour', 'Black', 0, { colour: '#1f1a1a' }),
   I('hc-blonde', 'hairColour', 'Blonde', 0, { colour: '#e2b85c' }),
+  I('hc-auburn', 'hairColour', 'Auburn', 40, { colour: '#9c3b22' }),
   I('hc-ginger', 'hairColour', 'Ginger', 40, { colour: '#c4612b' }),
   I('hc-pink', 'hairColour', 'Candy pink', 120, { colour: '#f27aa8' }),
-  I('hc-blue', 'hairColour', 'Ocean blue', 120, { colour: '#4a86e8' }),
-  I('hc-purple', 'hairColour', 'Violet', 150, { colour: '#8f5be0' }),
+  I('hc-peach', 'hairColour', 'Peach', 120, { colour: '#f6a57f' }),
+  I('hc-lilac', 'hairColour', 'Lilac', 150, { colour: '#b48ee8' }),
+  I('hc-blue', 'hairColour', 'Ocean blue', 150, { colour: '#4a86e8' }),
   I('hc-mint', 'hairColour', 'Mint', 150, { colour: '#4fc7a3' }),
   I('hc-silver', 'hairColour', 'Silver', 220, { colour: '#c9ccd6' }),
-  I('hc-rainbow', 'hairColour', 'Rainbow', 520, { colour: 'url(#rainbow)' }),
-  // Hair styles
-  I('hair-short', 'hair', 'Short', 0),
-  I('hair-bob', 'hair', 'Bob', 0),
-  I('hair-long', 'hair', 'Long', 60),
-  I('hair-ponytail', 'hair', 'Ponytail', 90),
+  I('hc-rainbow', 'hairColour', 'Rainbow', 520, { colour: 'url(#rainbow§)' }),
+  // Hairstyles (18)
+  I('hair-long', 'hair', 'Long and straight', 0),
+  I('hair-bob', 'hair', 'Bob with fringe', 0),
+  I('hair-ponytail', 'hair', 'Ponytail', 0),
+  I('hair-pigtails', 'hair', 'Pigtails', 0),
+  I('hair-wavy', 'hair', 'Long waves', 60),
+  I('hair-shoulder', 'hair', 'Shoulder length', 60),
+  I('hair-pixie', 'hair', 'Pixie cut', 80),
+  I('hair-highpony', 'hair', 'High ponytail', 100),
+  I('hair-topbun', 'hair', 'Top bun', 100),
+  I('hair-braids', 'hair', 'Two braids', 140),
+  I('hair-sidebraid', 'hair', 'Side braid', 140),
   I('hair-buns', 'hair', 'Space buns', 160),
-  I('hair-curly', 'hair', 'Curls', 160),
-  I('hair-spiky', 'hair', 'Spiky', 140),
-  I('hair-braids', 'hair', 'Braids', 220),
+  I('hair-twintails', 'hair', 'Twin tails', 180),
+  I('hair-halfup', 'hair', 'Half-up bun', 180),
+  I('hair-curly', 'hair', 'Long curls', 200),
+  I('hair-shortcurls', 'hair', 'Short curls', 160),
+  I('hair-puffs', 'hair', 'Curly puffs', 220),
+  I('hair-wavybob', 'hair', 'Wavy bob', 120),
+  // Hair accessories
+  I('ha-none', 'hairAcc', 'None', 0),
+  I('ha-bow-pink', 'hairAcc', 'Pink bow', 50, { colour: '#ff7eb6' }),
+  I('ha-bow-red', 'hairAcc', 'Red bow', 50, { colour: '#e8455a' }),
+  I('ha-bigbow', 'hairAcc', 'Big lilac bow', 140, { colour: '#b48ee8', big: true }),
+  I('ha-hearts', 'hairAcc', 'Heart clips', 80),
+  I('ha-stars', 'hairAcc', 'Star clips', 80),
+  I('ha-flower', 'hairAcc', 'Flower clip', 90),
+  I('ha-headband', 'hairAcc', 'Headband', 70, { colour: '#4fc7a3' }),
+  I('ha-pearls', 'hairAcc', 'Pearl clips', 120),
+  I('ha-strawberry', 'hairAcc', 'Strawberry clip', 140),
+  I('ha-butterfly', 'hairAcc', 'Butterfly clip', 160),
   // Outfits
-  I('tee-blue', 'outfit', 'Blue tee', 0, { colour: '#5b8def' }),
-  I('tee-green', 'outfit', 'Green tee', 50, { colour: '#3aa76d' }),
-  I('hoodie', 'outfit', 'Cosy hoodie', 140, { colour: '#8a4fd8', hoodie: true }),
-  I('jumper-stripes', 'outfit', 'Stripy jumper', 180, { colour: '#e85d75', stripes: '#fff3' }),
-  I('dungarees', 'outfit', 'Dungarees', 220, { colour: '#f5f0e6', overlay: '#4a7bd0' }),
-  I('concert-black', 'outfit', 'Concert blacks', 260, { colour: '#22222c', collar: '#fff' }),
-  I('piano-jacket', 'outfit', 'Piano-key jacket', 380, { colour: '#1d1d24', keys: true }),
-  I('star-cape', 'outfit', 'Star cape', 480, { colour: '#2a2266', cape: '#f5c542' }),
-  I('maestro-tails', 'outfit', 'Maestro tails', 650, { colour: '#14141a', collar: '#fff', bow: '#e8457c' }),
+  I('tee-pink', 'outfit', 'Pink tee', 0, { colour: '#ff8fb8' }),
+  I('tee-lilac', 'outfit', 'Lilac tee', 0, { colour: '#b9a2f0' }),
+  I('tee-blue', 'outfit', 'Blue tee', 0, { colour: '#6f9df2' }),
+  I('dress-yellow', 'outfit', 'Sunny dress', 80, { colour: '#ffd36e', dress: true }),
+  I('pinafore', 'outfit', 'Pinafore', 120, { colour: '#fff4ea', overlay: '#e8607a' }),
+  I('cardigan', 'outfit', 'Cosy cardigan', 120, { colour: '#fff', cardigan: '#7fcfb4' }),
+  I('hoodie', 'outfit', 'Cosy hoodie', 140, { colour: '#a77ce8', hoodie: true }),
+  I('jumper-stripes', 'outfit', 'Stripy jumper', 160, { colour: '#ff9aa8', stripes: '#ffffff88' }),
+  I('dungarees', 'outfit', 'Dungarees', 180, { colour: '#fde7f0', overlay: '#6f9df2' }),
+  I('sailor', 'outfit', 'Sailor top', 200, { colour: '#fff', collar2: '#3b5bb8' }),
+  I('strawberry-dress', 'outfit', 'Strawberry dress', 260, { colour: '#ff6f86', dress: true, dots: '#fff7' }),
+  I('tutu', 'outfit', 'Sparkly tutu', 300, { colour: '#ffb6d5', dress: true, tutu: true }),
+  I('concert-dress', 'outfit', 'Concert dress', 340, { colour: '#2a2440', dress: true, sparkle: true }),
+  I('star-cape', 'outfit', 'Star cape', 420, { colour: '#3a2f80', cape: '#f5c542' }),
   // Faces
   I('smile', 'face', 'Smile', 0),
+  I('happy', 'face', 'Happy eyes', 0),
   I('grin', 'face', 'Big grin', 40),
-  I('wink', 'face', 'Wink', 80),
-  I('starry', 'face', 'Star eyes', 160),
-  I('cool', 'face', 'Cool', 120),
-  // Hats
-  I('hat-none', 'hat', 'No hat', 0),
-  I('beanie', 'hat', 'Beanie', 80, { colour: '#3aa76d' }),
-  I('cap', 'hat', 'Cap', 90, { colour: '#e85d75' }),
-  I('beret', 'hat', 'Beret', 150, { colour: '#c0392b' }),
-  I('flower-crown', 'hat', 'Flower crown', 200),
-  I('headphones', 'hat', 'Headphones', 240, { colour: '#5b5bd6' }),
-  I('wizard', 'hat', 'Wizard hat', 360, { colour: '#4b3ab0' }),
-  I('crown', 'hat', 'Golden crown', 600),
+  I('wink', 'face', 'Wink', 60),
+  I('cat', 'face', 'Kitty smile', 80),
+  I('tongue', 'face', 'Cheeky', 80),
+  I('starry', 'face', 'Star eyes', 140),
+  I('hearts', 'face', 'Heart eyes', 160),
   // Accessories
   I('acc-none', 'accessory', 'None', 0),
-  I('glasses', 'accessory', 'Round glasses', 70),
-  I('star-glasses', 'accessory', 'Star glasses', 180),
-  I('bow-tie', 'accessory', 'Bow tie', 100, { colour: '#e8457c' }),
-  I('scarf', 'accessory', 'Scarf', 130, { colour: '#f08c3a' }),
-  I('note-badge', 'accessory', 'Quaver badge', 160),
-  I('baton', 'accessory', 'Conductor\'s baton', 280),
-  I('violin', 'accessory', 'Tiny violin', 420),
+  I('freckles', 'accessory', 'Freckles', 0),
+  I('glasses', 'accessory', 'Round glasses', 60),
+  I('heart-glasses', 'accessory', 'Heart glasses', 140),
+  I('star-glasses', 'accessory', 'Star glasses', 140),
+  I('earrings', 'accessory', 'Pearl earrings', 90),
+  I('necklace', 'accessory', 'Heart necklace', 110),
+  I('choker', 'accessory', 'Bow choker', 100, { colour: '#e8607a' }),
+  I('scarf', 'accessory', 'Stripy scarf', 130, { colour: '#ff9e5e' }),
+  I('sparkles', 'accessory', 'Cheek sparkles', 120),
+  I('note-badge', 'accessory', 'Music note badge', 160),
+  // Headwear
+  I('hat-none', 'hat', 'Nothing', 0),
+  I('bunny', 'hat', 'Bunny ears', 120),
+  I('cat-ears', 'hat', 'Cat ears', 120, { colour: '#6b4128' }),
+  I('beanie', 'hat', 'Pompom beanie', 90, { colour: '#ff8fb8' }),
+  I('beret', 'hat', 'Beret', 120, { colour: '#c0392b' }),
+  I('bucket', 'hat', 'Bucket hat', 140, { colour: '#ffd36e' }),
+  I('flower-crown', 'hat', 'Flower crown', 180),
+  I('headphones', 'hat', 'Headphones', 200, { colour: '#a77ce8' }),
+  I('tiara', 'hat', 'Tiara', 260),
+  I('witch', 'hat', 'Witch hat', 300, { colour: '#4b3ab0' }),
+  I('crown', 'hat', 'Golden crown', 480),
   // Backgrounds
   I('bg-mint', 'background', 'Mint', 0, { a: '#c9f2e3', b: '#9fe3cb' }),
+  I('bg-pink', 'background', 'Bubblegum', 0, { a: '#ffe0ee', b: '#ffbcd9' }),
   I('bg-sky', 'background', 'Sky', 0, { a: '#cfe6ff', b: '#9cc8ff' }),
-  I('bg-peach', 'background', 'Peach', 50, { a: '#ffe0cc', b: '#ffbf99' }),
-  I('bg-lilac', 'background', 'Lilac', 50, { a: '#eadcff', b: '#cbb0ff' }),
-  I('bg-stave', 'background', 'Stave paper', 150, { a: '#fffdf5', b: '#f3ecd6', stave: true }),
-  I('bg-sunset', 'background', 'Sunset', 220, { a: '#ffb36b', b: '#e85d9a' }),
-  I('bg-night', 'background', 'Starry night', 300, { a: '#28205e', b: '#0d0b2b', stars: true }),
-  I('bg-concert', 'background', 'Concert hall', 450, { a: '#7a1f2b', b: '#3d0f16', curtain: true }),
+  I('bg-peach', 'background', 'Peach', 40, { a: '#ffe0cc', b: '#ffbf99' }),
+  I('bg-lilac', 'background', 'Lilac', 40, { a: '#eadcff', b: '#cbb0ff' }),
+  I('bg-dots', 'background', 'Polka dots', 100, { a: '#fff1f6', b: '#ffd6e7', dots: '#ff9cc4' }),
+  I('bg-hearts', 'background', 'Hearts', 140, { a: '#ffe9f1', b: '#ffc6dc', hearts: true }),
+  I('bg-clouds', 'background', 'Clouds', 140, { a: '#bfe3ff', b: '#e8f5ff', clouds: true }),
+  I('bg-candy', 'background', 'Candy stripes', 180, { a: '#fff', b: '#fff', candy: true }),
+  I('bg-sunset', 'background', 'Sunset', 200, { a: '#ffb36b', b: '#e85d9a' }),
+  I('bg-night', 'background', 'Starry night', 260, { a: '#28205e', b: '#0d0b2b', stars: true }),
+  I('bg-rainbow', 'background', 'Rainbow', 360, { a: '#fff7fb', b: '#e9f6ff', rainbow: true }),
 ];
 
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
-export const DEFAULT_EQUIPPED = { background: 'bg-mint', skin: 'skin-2', hair: 'hair-short', hairColour: 'hc-brown', outfit: 'tee-blue', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
+export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
 export const FREE_ITEMS = ITEMS.filter((i) => i.price === 0).map((i) => i.id);
 
-function hairSVG(style, c) {
+// ---- Hair ------------------------------------------------------------------
+// Each style has a back part (behind the body and head) and a front part
+// (fringe/top, drawn over the head).
+const FRINGE = 'M57 92C57 60 77 42 100 42S143 60 143 92Q137 79 130 74Q100 84 70 74Q63 79 57 92Z';
+const SIDE = 'M57 94C55 60 76 41 101 41S145 60 143 94Q140 80 132 72Q116 66 104 70Q84 84 62 84Q59 88 57 94Z';
+const MIDDLE = 'M57 98C55 60 76 41 100 41S145 60 143 98Q140 74 104 62L100 56L96 62Q60 74 57 98Z';
+const PIXIE = 'M55 104C50 60 76 39 100 39S150 60 145 104Q143 86 136 78Q114 70 92 80Q74 86 62 80Q57 92 55 104Z';
+const LONG_BACK = 'M54 92C50 58 74 38 100 38S150 58 146 92L152 172Q100 186 48 172Z';
+const curls = (pts, r, c) => `<g fill="${c}">${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
+const braid = (x0, y0, x1, y1, n, c) => `<g fill="${c}" stroke="#0002" stroke-width="1.5">${Array.from({ length: n }, (_, i) => { const t = i / (n - 1); return `<ellipse cx="${x0 + (x1 - x0) * t}" cy="${y0 + (y1 - y0) * t}" rx="${8 - t * 2}" ry="7"/>`; }).join('')}</g>`;
+const tie = (x, y) => `<circle cx="${x}" cy="${y}" r="4.5" fill="#ff7eb6"/>`;
+
+function hairParts(style, c) {
+  const P = (d) => `<path d="${d}" fill="${c}"/>`;
   switch (style) {
-    case 'hair-bob': return `<path d="M58 92c-4-34 18-54 42-54s46 20 42 54c-2 14-6 26-10 30l-4-34c-14 6-42 6-56 0l-4 34c-4-4-8-16-10-30z" fill="${c}"/>`;
-    case 'hair-long': return `<path d="M56 96c-6-38 16-58 44-58s50 20 44 58l2 54c-10 4-20 2-26-2l-2-56c-12 4-40 4-52 0l-2 56c-6 4-16 6-26 2z" fill="${c}"/>`;
-    case 'hair-ponytail': return `<path d="M60 88c0-30 18-48 40-48s40 18 40 48c-12-10-28-14-40-14s-28 4-40 14z" fill="${c}"/><path d="M138 70c18 4 22 30 12 50-4-12-8-22-16-28z" fill="${c}"/>`;
-    case 'hair-buns': return `<circle cx="66" cy="50" r="16" fill="${c}"/><circle cx="134" cy="50" r="16" fill="${c}"/><path d="M60 88c0-30 18-46 40-46s40 16 40 46c-12-8-28-12-40-12s-28 4-40 12z" fill="${c}"/>`;
-    case 'hair-curly': return `<g fill="${c}">${[[64, 74], [74, 56], [92, 46], [110, 46], [128, 56], [138, 74], [60, 92], [140, 92]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15"/>`).join('')}</g>`;
-    case 'hair-spiky': return `<path d="M60 86l-2-26 14 10 6-24 12 18 10-24 10 24 12-18 6 24 14-10-2 26c-12-8-28-12-40-12s-28 4-40 12z" fill="${c}"/>`;
-    case 'hair-braids': return `<path d="M60 88c0-30 18-48 40-48s40 18 40 48c-12-10-28-14-40-14s-28 4-40 14z" fill="${c}"/><g fill="${c}">${[0, 1, 2, 3].map((i) => `<circle cx="58" cy="${100 + i * 13}" r="7"/><circle cx="142" cy="${100 + i * 13}" r="7"/>`).join('')}</g>`;
-    default: return `<path d="M60 88c0-30 18-48 40-48s40 18 40 48c-10-12-26-18-40-18s-30 6-40 18z" fill="${c}"/>`;
+    case 'hair-bob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L148 130Q138 138 128 132L72 132Q62 138 52 130Z'), front: P(FRINGE) };
+    case 'hair-wavybob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C150 104 144 114 150 126Q140 140 128 132Q100 138 72 132Q60 140 50 126C56 114 50 104 54 92Z'), front: P(SIDE) };
+    case 'hair-shoulder': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 150Q100 160 50 150Z'), front: P(MIDDLE) };
+    case 'hair-wavy': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C152 110 144 124 152 140S146 166 154 176Q100 190 46 176C54 166 44 154 48 140S48 110 54 92Z'), front: P(SIDE) };
+    case 'hair-pixie': return { back: '', front: P(PIXIE) };
+    case 'hair-ponytail': return { back: P('M136 70C170 64 176 108 160 146C156 124 150 102 134 90Z'), front: P(FRINGE) + tie(138, 72) };
+    case 'hair-highpony': return { back: P('M108 40C150 16 176 60 162 116C152 88 138 66 112 54Z'), front: P(SIDE) + tie(112, 42) };
+    case 'hair-pigtails': return { back: P('M64 104C40 110 34 142 44 166C52 148 58 130 72 120Z') + P('M136 104C160 110 166 142 156 166C148 148 142 130 128 120Z'), front: P(MIDDLE) + tie(64, 108) + tie(136, 108) };
+    case 'hair-twintails': return { back: P('M66 58C34 50 22 104 32 148C42 120 50 94 72 76Z') + P('M134 58C166 50 178 104 168 148C158 120 150 94 128 76Z'), front: P(FRINGE) + tie(68, 60) + tie(132, 60) };
+    case 'hair-topbun': return { back: '', front: `<circle cx="100" cy="36" r="17" fill="${c}"/>` + P(MIDDLE) };
+    case 'hair-buns': return { back: '', front: `<circle cx="64" cy="50" r="17" fill="${c}"/><circle cx="136" cy="50" r="17" fill="${c}"/>` + P(MIDDLE) };
+    case 'hair-halfup': return { back: P(LONG_BACK), front: `<circle cx="100" cy="38" r="12" fill="${c}"/>` + P(SIDE) };
+    case 'hair-braids': return { back: '', front: P(MIDDLE) + braid(60, 104, 60, 164, 6, c) + braid(140, 104, 140, 164, 6, c) + tie(60, 170) + tie(140, 170) };
+    case 'hair-sidebraid': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L140 110L60 110Z'), front: P(SIDE) + braid(62, 108, 72, 172, 7, c) + tie(72, 178) };
+    case 'hair-curly': return { back: curls([[56, 78], [52, 100], [54, 122], [56, 144], [62, 166], [144, 78], [148, 100], [146, 122], [144, 144], [138, 166], [100, 170], [80, 172], [120, 172]], 15, c) + P(LONG_BACK), front: curls([[66, 66], [80, 52], [100, 46], [120, 52], [134, 66]], 14, c) + P(FRINGE) };
+    case 'hair-shortcurls': return { back: curls([[58, 84], [56, 106], [60, 124], [142, 84], [144, 106], [140, 124]], 13, c), front: curls([[62, 72], [72, 56], [90, 46], [110, 46], [128, 56], [138, 72]], 14, c) + P(PIXIE) };
+    case 'hair-puffs': return { back: '', front: curls([[50, 48], [62, 36], [72, 50], [56, 60]], 15, c) + curls([[150, 48], [138, 36], [128, 50], [144, 60]], 15, c) + P(MIDDLE) };
+    default: return { back: P(LONG_BACK), front: P(FRINGE) }; // hair-long
   }
 }
 
+const bow = (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0L-16-9Q-20 0-16 9Z" fill="${c}"/><path d="M0 0L16-9Q20 0 16 9Z" fill="${c}"/><circle r="4.5" fill="${c}" stroke="#0002"/></g>`;
+const heart = (x, y, s, c) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0 4C-6-2-10 2-8 6S0 12 0 14C0 12 6 10 8 6S6-2 0 4Z" fill="${c}"/>`;
+const star = (x, y, r, c, stroke = '#0000') => { const p = []; for (let i = 0; i < 10; i++) { const a = (Math.PI / 5) * i - Math.PI / 2; const rr = i % 2 ? r * 0.45 : r; p.push(`${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`); } return `<polygon points="${p.join(' ')}" fill="${c}" stroke="${stroke}" stroke-width="1"/>`; };
+
+function hairAccSVG(a) {
+  switch (a.id) {
+    case 'ha-bow-pink': case 'ha-bow-red': return bow(128, 54, 0.9, a.colour);
+    case 'ha-bigbow': return bow(100, 38, 1.5, a.colour);
+    case 'ha-hearts': return heart(72, 60, 0.9, '#ff6f9c') + heart(84, 54, 0.9, '#ff6f9c');
+    case 'ha-stars': return star(74, 64, 6, '#ffd84d', '#d9a400') + star(86, 56, 6, '#ffd84d', '#d9a400');
+    case 'ha-flower': return `<g transform="translate(130 60)">${[0, 72, 144, 216, 288].map((r) => `<ellipse rx="5" ry="8" transform="rotate(${r}) translate(0 -7)" fill="#ffb3cf"/>`).join('')}<circle r="4.5" fill="#ffd84d"/></g>`;
+    case 'ha-headband': return `<path d="M60 76C64 48 82 38 100 38S136 48 140 76" stroke="${a.colour}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    case 'ha-pearls': return [70, 78, 86].map((x, i) => `<circle cx="${x}" cy="${66 - i * 4}" r="3.5" fill="#fffaf0" stroke="#d8cfc0"/>`).join('');
+    case 'ha-strawberry': return '<g transform="translate(130 60)"><path d="M0-6C-10-6-10 4-6 8S0 14 0 14S6 12 6 8S10-6 0-6Z" fill="#ff4f6d"/><path d="M-6-6L0-12L6-6L0-3Z" fill="#4caf50"/><circle cx="-3" cy="2" r="1" fill="#fff"/><circle cx="3" cy="4" r="1" fill="#fff"/><circle cx="0" cy="8" r="1" fill="#fff"/></g>';
+    case 'ha-butterfly': return '<g transform="translate(130 58)"><ellipse cx="-7" cy="-4" rx="7" ry="6" fill="#7fc8ff"/><ellipse cx="7" cy="-4" rx="7" ry="6" fill="#7fc8ff"/><ellipse cx="-5" cy="5" rx="5" ry="4" fill="#b48ee8"/><ellipse cx="5" cy="5" rx="5" ry="4" fill="#b48ee8"/><rect x="-1.2" y="-8" width="2.4" height="16" rx="1.2" fill="#3b2f50"/></g>';
+    default: return '';
+  }
+}
+
+// ---- Face --------------------------------------------------------------------
 function faceSVG(face) {
-  const eye = (x) => `<ellipse cx="${x}" cy="96" rx="4.5" ry="6" fill="#2a2230"/><circle cx="${x + 1.5}" cy="93.5" r="1.6" fill="#fff"/>`;
-  const cheeks = '<circle cx="76" cy="108" r="6" fill="#ff8fa3" opacity=".45"/><circle cx="124" cy="108" r="6" fill="#ff8fa3" opacity=".45"/>';
+  const eye = (x) => `<ellipse cx="${x}" cy="98" rx="5" ry="6.5" fill="#2a2230"/><circle cx="${x + 1.8}" cy="95.5" r="1.8" fill="#fff"/><path d="M${x - 6} 93l-3-3M${x - 4} 91l-2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
+  const eyeR = (x) => `<ellipse cx="${x}" cy="98" rx="5" ry="6.5" fill="#2a2230"/><circle cx="${x + 1.8}" cy="95.5" r="1.8" fill="#fff"/><path d="M${x + 6} 93l3-3M${x + 4} 91l2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
+  const closed = (x) => `<path d="M${x - 6} 99q6-7 12 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  const cheeks = '<ellipse cx="76" cy="110" rx="7" ry="4.5" fill="#ff8fa3" opacity=".55"/><ellipse cx="124" cy="110" rx="7" ry="4.5" fill="#ff8fa3" opacity=".55"/>';
+  const smile = '<path d="M93 111q7 6 14 0" stroke="#2a2230" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
   switch (face) {
-    case 'grin': return eye(86) + eye(114) + cheeks + '<path d="M86 110q14 14 28 0z" fill="#7a2a3a"/><path d="M89 111q11 5 22 0" fill="#fff"/>';
-    case 'wink': return eye(86) + '<path d="M108 96q6-5 12 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>' + cheeks + '<path d="M90 110q10 8 20 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>';
-    case 'starry': return '<path d="M86 88l2.5 5.5 6 .8-4.4 4.2 1 6-5.1-2.8-5.1 2.8 1-6-4.4-4.2 6-.8z" fill="#f5c542" stroke="#c58a00"/><path d="M114 88l2.5 5.5 6 .8-4.4 4.2 1 6-5.1-2.8-5.1 2.8 1-6-4.4-4.2 6-.8z" fill="#f5c542" stroke="#c58a00"/>' + cheeks + '<path d="M90 110q10 9 20 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>';
-    case 'cool': return '<rect x="74" y="88" width="22" height="13" rx="5" fill="#1d1d24"/><rect x="104" y="88" width="22" height="13" rx="5" fill="#1d1d24"/><path d="M96 93h8" stroke="#1d1d24" stroke-width="3"/>' + '<path d="M92 112q8 4 16-1" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>';
-    default: return eye(86) + eye(114) + cheeks + '<path d="M90 110q10 8 20 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    case 'happy': return closed(86) + closed(114) + cheeks + '<path d="M92 109q8 8 16 0z" fill="#d9465f"/>';
+    case 'grin': return eye(86) + eyeR(114) + cheeks + '<path d="M90 108q10 12 20 0z" fill="#7a2a3a"/><path d="M93 109q7 4 14 0" fill="#fff"/>';
+    case 'wink': return eye(86) + closed(114) + cheeks + smile;
+    case 'cat': return eye(86) + eyeR(114) + cheeks + '<path d="M92 109q4 4 8 0q4 4 8 0" stroke="#2a2230" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    case 'tongue': return closed(86) + eyeR(114) + cheeks + '<path d="M92 108q8 8 16 0" stroke="#2a2230" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M98 112q2 7 6 0z" fill="#ff6f86"/>';
+    case 'starry': return star(86, 98, 7, '#ffd84d', '#c58a00') + star(114, 98, 7, '#ffd84d', '#c58a00') + cheeks + smile;
+    case 'hearts': return heart(86, 92, 0.85, '#ff4f7d') + heart(114, 92, 0.85, '#ff4f7d') + cheeks + smile;
+    default: return eye(86) + eyeR(114) + cheeks + smile;
   }
 }
 
+// ---- Outfit ------------------------------------------------------------------
 function outfitSVG(o) {
   const c = o.colour;
-  let s = `<path d="M50 200c0-38 22-58 50-58s50 20 50 58z" fill="${c}"/>`;
-  if (o.cape) s = `<path d="M38 200c4-40 26-62 62-62s58 22 62 62z" fill="${o.cape}"/>` + s + '<g fill="#f5c542"><path d="M80 170l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z"/><path d="M118 182l1.5 3.5 3.5.7-2.8 2.4.8 3.6-3-1.9-3 1.9.8-3.6-2.8-2.4 3.5-.7z"/></g>';
-  if (o.hoodie) s += `<path d="M76 146q24 18 48 0" stroke="#0002" stroke-width="6" fill="none"/><path d="M96 160v18M104 160v18" stroke="#fff8" stroke-width="2"/>`;
-  if (o.stripes) s += [160, 174, 188].map((y) => `<path d="M${54 + (y - 160) / 6} ${y}h${92 - (y - 160) / 3}" stroke="${o.stripes}" stroke-width="6"/>`).join('');
-  if (o.overlay) s += `<path d="M70 200v-36h60v36z" fill="${o.overlay}"/><path d="M76 164l-6-20M124 164l6-20" stroke="${o.overlay}" stroke-width="6"/><circle cx="80" cy="168" r="3" fill="#f5c542"/><circle cx="120" cy="168" r="3" fill="#f5c542"/>`;
-  if (o.collar) s += `<path d="M86 144l14 16 14-16" fill="${o.collar}"/>`;
-  if (o.bow) s += `<path d="M90 156l10 5 10-5v10l-10-5-10 5z" fill="${o.bow}"/>`;
-  if (o.keys) s += Array.from({ length: 9 }, (_, i) => `<rect x="${58 + i * 9.5}" y="182" width="8.5" height="18" fill="#fff"/>${i % 7 !== 2 && i % 7 !== 6 && i < 8 ? `<rect x="${64 + i * 9.5}" y="182" width="5" height="11" fill="#111"/>` : ''}`).join('');
+  let s = o.dress
+    ? `<path d="M40 200C46 168 70 144 100 144S154 168 160 200Z" fill="${c}"/>`
+    : `<path d="M50 200c0-38 22-58 50-58s50 20 50 58z" fill="${c}"/>`;
+  if (o.cape) s = `<path d="M38 200c4-40 26-62 62-62s58 22 62 62z" fill="${o.cape}"/>` + `<path d="M50 200c0-38 22-58 50-58s50 20 50 58z" fill="${c}"/>` + star(80, 176, 6, '#f5c542') + star(120, 186, 4.5, '#f5c542');
+  if (o.tutu) s += '<path d="M44 186q8-8 14 0q8-8 14 0q8-8 14 0q8-8 14 0q8-8 14 0q8-8 14 0q8-8 14 0v14H44z" fill="#ffd6e8"/>' + [60, 84, 110, 136].map((x, i) => star(x, 168 + (i % 2) * 6, 3, '#fff')).join('');
+  if (o.dots) s += [[70, 170], [96, 160], [120, 174], [84, 188], [134, 190], [60, 192]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${o.dots}"/>`).join('');
+  if (o.sparkle) s += [[72, 176], [104, 166], [128, 184], [88, 192]].map(([x, y]) => star(x, y, 3.5, '#f5d27a')).join('') + '<path d="M84 146q16 10 32 0" stroke="#f5d27a" stroke-width="2" fill="none"/>';
+  if (o.hoodie) s += '<path d="M76 146q24 18 48 0" stroke="#0002" stroke-width="6" fill="none"/><path d="M96 160v18M104 160v18" stroke="#fff9" stroke-width="2"/>';
+  if (o.stripes) s += `<clipPath id="body§"><path d="M50 200c0-38 22-58 50-58s50 20 50 58z"/></clipPath><g clip-path="url(#body§)">${[160, 174, 188].map((y) => `<path d="M40 ${y}h120" stroke="${o.stripes}" stroke-width="6"/>`).join('')}</g>`;
+  if (o.overlay) s += `<path d="M68 200v-34h64v34z" fill="${o.overlay}"/><path d="M76 166l-6-20M124 166l6-20" stroke="${o.overlay}" stroke-width="6"/><circle cx="80" cy="170" r="3" fill="#ffd84d"/><circle cx="120" cy="170" r="3" fill="#ffd84d"/>` + heart(100, 176, 0.9, '#fff8');
+  if (o.cardigan) s += `<path d="M50 200c0-38 22-58 50-58l-12 58z" fill="${o.cardigan}"/><path d="M150 200c0-38-22-58-50-58l12 58z" fill="${o.cardigan}"/>` + [166, 180, 194].map((y) => `<circle cx="${112 - (y - 160) / 9}" cy="${y}" r="2.5" fill="#fff"/>`).join('');
+  if (o.collar2) s += `<path d="M78 146l22 22 22-22 8 10-30 22-30-22z" fill="${o.collar2}"/><path d="M95 170l5 8 5-8z" fill="#e8455a"/>`;
   return s;
 }
 
+// ---- Accessories -----------------------------------------------------------
+function accSVG(a) {
+  switch (a.id) {
+    case 'freckles': return [[78, 106], [82, 109], [74, 109], [122, 106], [118, 109], [126, 109]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.2" fill="#a0603a"/>`).join('');
+    case 'glasses': return '<circle cx="86" cy="98" r="11" fill="#fff3" stroke="#2a2230" stroke-width="2.6"/><circle cx="114" cy="98" r="11" fill="#fff3" stroke="#2a2230" stroke-width="2.6"/><path d="M97 98h6" stroke="#2a2230" stroke-width="2.6"/>';
+    case 'heart-glasses': return heart(86, 88, 1.45, '#ff5c8acc') + heart(114, 88, 1.45, '#ff5c8acc') + '<path d="M96 96h8" stroke="#d63c6a" stroke-width="2.4"/>';
+    case 'star-glasses': return star(86, 98, 12, '#ffb3d4cc', '#e05595') + star(114, 98, 12, '#ffb3d4cc', '#e05595');
+    case 'earrings': return '<circle cx="58" cy="112" r="3.5" fill="#fffaf0" stroke="#d8cfc0"/><circle cx="142" cy="112" r="3.5" fill="#fffaf0" stroke="#d8cfc0"/>';
+    case 'necklace': return '<path d="M84 146q16 14 32 0" stroke="#f5c542" stroke-width="1.6" fill="none"/>' + heart(100, 152, 0.7, '#ff4f7d');
+    case 'choker': return `<path d="M88 140h24" stroke="${a.colour}" stroke-width="4"/>` + bow(100, 141, 0.45, a.colour);
+    case 'scarf': return `<path d="M72 144q28 14 56 0v10q-28 14-56 0z" fill="${a.colour}"/><path d="M116 152l6 28h-12l-2-24z" fill="${a.colour}"/><path d="M80 150q20 10 40 0" stroke="#fff8" stroke-width="2" fill="none"/>`;
+    case 'sparkles': return star(70, 104, 4, '#ffd84d') + star(130, 104, 4, '#ffd84d') + star(64, 96, 2.5, '#fff');
+    case 'note-badge': return '<circle cx="124" cy="172" r="10" fill="#fff" stroke="#f5c542" stroke-width="3"/><text x="124" y="178" text-anchor="middle" font-family="Bravura" font-size="20" fill="#2a2230"></text>';
+    default: return '';
+  }
+}
+
+// ---- Headwear --------------------------------------------------------------
 function hatSVG(h) {
   switch (h.id) {
-    case 'beanie': return `<path d="M58 80c0-28 18-44 42-44s42 16 42 44z" fill="${h.colour}"/><rect x="56" y="74" width="88" height="12" rx="6" fill="#0002"/><circle cx="100" cy="34" r="8" fill="#fff"/>`;
-    case 'cap': return `<path d="M60 76c0-24 18-38 40-38s40 14 40 38z" fill="${h.colour}"/><path d="M98 74h58q-4 8-18 8h-40z" fill="${h.colour}" opacity=".85"/>`;
-    case 'beret': return `<ellipse cx="96" cy="58" rx="46" ry="16" fill="${h.colour}" transform="rotate(-10 96 58)"/><rect x="96" y="38" width="4" height="8" fill="${h.colour}"/>`;
-    case 'flower-crown': return [64, 80, 100, 120, 136].map((x, i) => `<circle cx="${x}" cy="${62 - Math.abs(2 - i) * -2}" r="7" fill="${['#ff8fa3', '#ffd93d', '#b45cff', '#6bcb77', '#4d96ff'][i]}"/><circle cx="${x}" cy="${62 - Math.abs(2 - i) * -2}" r="2.5" fill="#fff"/>`).join('');
-    case 'headphones': return `<path d="M56 98c0-36 20-56 44-56s44 20 44 56" stroke="${h.colour}" stroke-width="8" fill="none"/><rect x="46" y="88" width="16" height="28" rx="7" fill="${h.colour}"/><rect x="138" y="88" width="16" height="28" rx="7" fill="${h.colour}"/>`;
-    case 'wizard': return `<path d="M62 70l40-62 36 62z" fill="${h.colour}"/><ellipse cx="100" cy="70" rx="50" ry="9" fill="${h.colour}"/><path d="M100 30l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill="#f5c542"/>`;
+    case 'bunny': return '<g><ellipse cx="80" cy="30" rx="10" ry="26" fill="#fff" stroke="#e8dce4" stroke-width="2" transform="rotate(-12 80 30)"/><ellipse cx="80" cy="32" rx="5" ry="18" fill="#ffc2d6" transform="rotate(-12 80 32)"/><ellipse cx="120" cy="30" rx="10" ry="26" fill="#fff" stroke="#e8dce4" stroke-width="2" transform="rotate(12 120 30)"/><ellipse cx="120" cy="32" rx="5" ry="18" fill="#ffc2d6" transform="rotate(12 120 32)"/></g>';
+    case 'cat-ears': return `<path d="M62 62l6-30 22 18z" fill="${h.colour}"/><path d="M68 54l3-14 10 8z" fill="#ffc2d6"/><path d="M138 62l-6-30-22 18z" fill="${h.colour}"/><path d="M132 54l-3-14-10 8z" fill="#ffc2d6"/>`;
+    case 'beanie': return `<path d="M58 80c0-28 18-44 42-44s42 16 42 44z" fill="${h.colour}"/><rect x="56" y="74" width="88" height="12" rx="6" fill="#0002"/><circle cx="100" cy="34" r="9" fill="#fff"/>`;
+    case 'beret': return `<ellipse cx="96" cy="56" rx="46" ry="16" fill="${h.colour}" transform="rotate(-10 96 56)"/><rect x="96" y="36" width="4" height="8" fill="${h.colour}"/>`;
+    case 'bucket': return `<path d="M66 68l6-26h56l6 26z" fill="${h.colour}"/><path d="M48 72q52-14 104 0q-52 10-104 0z" fill="${h.colour}" stroke="#0001"/>` + [80, 100, 120].map((x) => `<circle cx="${x}" cy="56" r="3" fill="#fff8"/>`).join('');
+    case 'flower-crown': return [64, 80, 100, 120, 136].map((x, i) => `<circle cx="${x}" cy="${58 + Math.abs(2 - i) * 2}" r="7" fill="${['#ff8fa3', '#ffd93d', '#b45cff', '#6bcb77', '#4d96ff'][i]}"/><circle cx="${x}" cy="${58 + Math.abs(2 - i) * 2}" r="2.5" fill="#fff"/>`).join('');
+    case 'headphones': return `<path d="M56 98c0-36 20-56 44-56s44 20 44 56" stroke="${h.colour}" stroke-width="8" fill="none"/><rect x="46" y="88" width="16" height="28" rx="7" fill="${h.colour}"/><rect x="138" y="88" width="16" height="28" rx="7" fill="${h.colour}"/>` + heart(54, 96, 0.5, '#fff') + heart(146, 96, 0.5, '#fff');
+    case 'tiara': return '<path d="M72 56l8-14 10 10 10-16 10 16 10-10 8 14q-28-6-56 0z" fill="#e9eef7" stroke="#b9c3d6" stroke-width="1.5"/><circle cx="100" cy="42" r="3.5" fill="#ff7eb6"/><circle cx="80" cy="48" r="2.5" fill="#7fc8ff"/><circle cx="120" cy="48" r="2.5" fill="#7fc8ff"/>';
+    case 'witch': return `<path d="M62 70l40-62 36 62z" fill="${h.colour}"/><ellipse cx="100" cy="70" rx="52" ry="9" fill="${h.colour}"/><rect x="66" y="60" width="68" height="7" fill="#b48ee8"/>` + star(102, 34, 6, '#f5c542');
     case 'crown': return '<path d="M66 64l8-26 14 16 12-22 12 22 14-16 8 26z" fill="#f5c542" stroke="#c58a00" stroke-width="2"/><circle cx="100" cy="52" r="4" fill="#e8457c"/><circle cx="80" cy="56" r="3" fill="#4d96ff"/><circle cx="120" cy="56" r="3" fill="#6bcb77"/>';
     default: return '';
   }
 }
 
-function accSVG(a) {
-  switch (a.id) {
-    case 'glasses': return '<circle cx="86" cy="96" r="11" fill="none" stroke="#2a2230" stroke-width="3"/><circle cx="114" cy="96" r="11" fill="none" stroke="#2a2230" stroke-width="3"/><path d="M97 96h6" stroke="#2a2230" stroke-width="3"/>';
-    case 'star-glasses': return '<path d="M86 82l4 8 9 1.3-6.5 6.3 1.5 9-8-4.2-8 4.2 1.5-9-6.5-6.3 9-1.3z" fill="#ff6fb1" opacity=".85"/><path d="M114 82l4 8 9 1.3-6.5 6.3 1.5 9-8-4.2-8 4.2 1.5-9-6.5-6.3 9-1.3z" fill="#ff6fb1" opacity=".85"/>';
-    case 'bow-tie': return `<path d="M88 150l12 6 12-6v14l-12-6-12 6z" fill="${a.colour}"/><circle cx="100" cy="157" r="3" fill="#0003"/>`;
-    case 'scarf': return `<path d="M72 144q28 14 56 0v10q-28 14-56 0z" fill="${a.colour}"/><path d="M116 152l6 28h-12l-2-24z" fill="${a.colour}"/>`;
-    case 'note-badge': return '<circle cx="124" cy="172" r="10" fill="#fff" stroke="#f5c542" stroke-width="3"/><text x="124" y="178" text-anchor="middle" font-family="Bravura" font-size="20" fill="#2a2230"></text>';
-    case 'baton': return '<path d="M150 186l26-40" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="150" cy="186" r="5" fill="#8b5a2b"/>';
-    case 'violin': return '<g transform="translate(150 166) rotate(-30)"><ellipse cx="0" cy="8" rx="11" ry="15" fill="#b5651d"/><rect x="-3" y="-26" width="6" height="22" fill="#5a3420"/><path d="M0 -4v26" stroke="#f5deb3" stroke-width="1"/></g>';
-    default: return '';
-  }
-}
-
 function bgSVG(b) {
-  let s = `<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b.a}"/><stop offset="1" stop-color="${b.b}"/></linearGradient><linearGradient id="rainbow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs><rect width="200" height="200" fill="url(#bg)"/>`;
-  if (b.stave) s += [40, 52, 64, 76, 88].map((y) => `<path d="M0 ${y}h200" stroke="#c9b98f" stroke-width="1.2"/>`).join('');
+  let s = `<defs><linearGradient id="bg§" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b.a}"/><stop offset="1" stop-color="${b.b}"/></linearGradient><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs><rect width="200" height="200" fill="url(#bg§)"/>`;
+  if (b.dots) s += [[20, 24], [60, 14], [176, 30], [16, 90], [184, 100], [30, 160], [172, 168], [140, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${b.dots}" opacity=".6"/>`).join('');
+  if (b.hearts) s += [[22, 26], [174, 30], [18, 120], [180, 128], [40, 176], [160, 182]].map(([x, y]) => heart(x, y, 1.2, '#ff8fb8aa')).join('');
+  if (b.clouds) s += '<g fill="#fff" opacity=".9"><ellipse cx="34" cy="40" rx="22" ry="10"/><ellipse cx="48" cy="34" rx="14" ry="10"/><ellipse cx="166" cy="60" rx="22" ry="10"/><ellipse cx="152" cy="54" rx="14" ry="10"/><ellipse cx="30" cy="150" rx="20" ry="9"/></g>';
+  if (b.candy) s += Array.from({ length: 12 }, (_, i) => `<path d="M${-40 + i * 24} 200L${40 + i * 24} 0" stroke="${['#ffb3cf', '#bfe8ff', '#fff2a8'][i % 3]}" stroke-width="12"/>`).join('');
+  if (b.rainbow) s += ['#ff8a8a', '#ffc97a', '#fff08a', '#9fe6a0', '#8ac6ff', '#c3a3ff'].map((c, i) => `<path d="M${10 + i * 8} 200A${90 - i * 8} ${90 - i * 8} 0 0 1 ${190 - i * 8} 200" stroke="${c}" stroke-width="8" fill="none"/>`).join('');
   if (b.stars) s += [[20, 30], [170, 24], [40, 70], [160, 80], [100, 18], [180, 140], [16, 150]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="#fff"/>`).join('');
-  if (b.curtain) s += '<path d="M0 0h40c-6 60-6 140 0 200H0z" fill="#a8293a"/><path d="M200 0h-40c6 60 6 140 0 200h40z" fill="#a8293a"/><path d="M0 0h200v16H0z" fill="#e0a100"/>';
   return s;
 }
 
-/** Full avatar SVG string for an equipped set (missing slots use defaults). */
+/** Full avatar SVG string for an equipped set (missing or retired items use defaults). */
+let renderCount = 0;
 export function avatarSVG(equipped = {}, { size = 160, label = 'Your avatar' } = {}) {
+  // Gradient/clip ids must be unique per drawing, or many avatars on one page share the first one's colours.
+  const uid = `av${++renderCount}`;
   const e = { ...DEFAULT_EQUIPPED, ...equipped };
-  const get = (slot) => itemById(e[slot]) || itemById(DEFAULT_EQUIPPED[slot]);
+  const get = (slot) => {
+    const it = itemById(e[slot]);
+    return it && it.slot === slot ? it : itemById(DEFAULT_EQUIPPED[slot]);
+  };
   const skin = get('skin').colour;
   const hc = get('hairColour').colour;
-  const hairBack = ['hair-long', 'hair-braids'].includes(e.hair) ? hairSVG(e.hair, hc) : '';
-  const hairFront = ['hair-long', 'hair-braids'].includes(e.hair) ? `<path d="M60 88c0-30 18-48 40-48s40 18 40 48c-12-10-28-14-40-14s-28 4-40 14z" fill="${hc}"/>` : hairSVG(e.hair, hc);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hairBack}${outfitSVG(get('outfit'))}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${hairFront}${faceSVG(e.face)}${accSVG(get('accessory'))}${hatSVG(get('hat'))}</svg>`;
+  const hair = hairParts(get('hair').id, hc);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id)}${hair.front}${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}</svg>`.replace(/§/g, uid);
 }

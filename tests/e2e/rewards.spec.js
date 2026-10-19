@@ -6,8 +6,8 @@ test('buy an avatar item, open a blind bag, see the sticker in the album', async
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto('/index.html#/rewards/avatar');
-  await page.locator('.slot-tabs button', { hasText: 'Hat' }).click();
-  await page.locator('.shop-item', { hasText: 'Beanie' }).locator('button.primary').click();
+  await page.locator('.slot-tabs button', { hasText: 'Headwear' }).click();
+  await page.locator('.shop-item', { hasText: 'Pompom beanie' }).locator('button.primary').click();
   await page.locator('.modal button', { hasText: 'Buy it' }).click();
   await expect(page.locator('.chip.coin-chip').first()).not.toContainText('500');
   await page.goto('/index.html#/rewards/bags');

@@ -33,7 +33,7 @@ function refresh() { window.dispatchEvent(new HashChangeEvent('hashchange')); }
 // ---------------------------------------------------------------- Avatar
 function avatarTab() {
   const s = getState();
-  let slot = 'outfit';
+  let slot = 'hair';
   const preview = h('div', { class: 'avatar-preview' });
   let trying = null;
   const shop = h('div', {});
