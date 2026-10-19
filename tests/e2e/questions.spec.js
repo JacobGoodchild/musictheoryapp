@@ -113,3 +113,26 @@ test('placed note can be adjusted with the keyboard before answering', async ({ 
   expect(res.resp.pos).toBe(target.pos);
   expect(res.r.correct).toBe(true);
 });
+
+test('hints: three levels, wrong options greyed out, the answer still works', async ({ page }) => {
+  const q = await open(page, 5, 'mcq', 2);
+  for (let i = 1; i <= 3; i++) {
+    await page.click('[data-action=hint]');
+    await expect(page.locator('.hint-card')).toHaveCount(i);
+  }
+  await expect(page.locator('[data-action=hint]')).toHaveCount(0);
+  await expect(page.locator('.q-option:not(.eliminated)')).toHaveCount(2);
+  await expect(page.locator('.q-option').nth(q.answer)).not.toHaveClass(/eliminated/);
+  await page.locator('.q-option').nth(q.answer).click();
+  await page.click('[data-action=answer]');
+  const res = (await lastResult(page)).r;
+  expect(res.correct).toBe(true);
+  expect(res.hintsUsed).toBe(3);
+});
+
+test('hints: a drop-down hint fills in the first box', async ({ page }) => {
+  await open(page, 5, 'dropdown', 0);
+  await page.click('[data-action=hint]');
+  await page.click('[data-action=hint]');
+  await expect(page.locator('.q-dropdowns select').first()).not.toHaveValue('');
+});

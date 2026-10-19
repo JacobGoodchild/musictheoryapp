@@ -8,7 +8,8 @@ const SEC = 5;
 const DEGS = [1, 2, 4, 5];
 const INVS = ['a', 'b', 'c'];
 const CAD_KEYS = ['C', 'G', 'D', 'F'].map((t) => key(t, 'major'));
-const keysFor = (diff) => GRADE5_KEYS.filter((k) => (diff === 1 ? Math.abs(k.fifths) <= 2 : diff === 2 ? Math.abs(k.fifths) <= 4 : Math.abs(k.fifths) >= 2));
+// Beginner: major keys with up to 2 sharps or flats.
+const keysFor = (diff) => GRADE5_KEYS.filter((k) => (diff === 1 ? k.mode === 'major' && Math.abs(k.fifths) <= 2 : diff === 2 ? Math.abs(k.fifths) <= 4 : Math.abs(k.fifths) >= 2));
 
 /** Voice a chord in the octave that sits best on the stave (centred on the middle line). */
 export function fitChord(k, d, inv, clef) {

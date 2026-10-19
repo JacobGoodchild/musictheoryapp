@@ -8,7 +8,7 @@ export function freshSave() {
   return {
     version: SAVE_VERSION,
     profile: { name: '', createdAt: Date.now() },
-    settings: { theme: 'system', sound: true, volume: 0.7, reducedMotion: 'system' },
+    settings: { theme: 'system', sound: true, volume: 0.7, reducedMotion: 'system', level: 'beginner' },
     coins: 0,
     dupeNotes: 0,
     totalCoinsEarned: 0,

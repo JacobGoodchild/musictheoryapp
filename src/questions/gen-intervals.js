@@ -45,10 +45,13 @@ export function genIntervalName(r, diff) {
   const iv = { number, quality };
   const correct = intervalName(iv, { style });
   const ds = [];
-  for (const q of qualitiesFor(number)) if (q !== quality) ds.push({ label: intervalName({ number, quality: q }, { style }), why: whyQuality(low, high, number, q) });
-  for (const n of [number - 1, number + 1, number > 8 ? number - 7 : number + 7]) {
-    if (n < 2 || n > 15) continue;
-    const qs = qualitiesFor(n);
+  // Beginner (difficulty 1): only simple intervals and the common qualities, so no
+  // augmented/diminished or compound options appear.
+  const qualsFor = (n) => (diff === 1 ? COMMON[n] || qualitiesFor(n) : qualitiesFor(n));
+  for (const q of qualsFor(number)) if (q !== quality) ds.push({ label: intervalName({ number, quality: q }, { style }), why: whyQuality(low, high, number, q) });
+  for (const n of [number - 1, number + 1, diff === 1 ? 0 : number > 8 ? number - 7 : number + 7]) {
+    if (n < 2 || n > 15 || (diff === 1 && n > 8)) continue;
+    const qs = qualsFor(n);
     ds.push({ label: intervalName({ number: n, quality: qs.includes(quality) ? quality : qs[0] }, { style }), why: n === number - 7 || n === number + 7 ? (n > number ? 'That would be an octave wider.' : 'This interval is more than an octave: it is compound.') : `Count the letter names from ${low.letter} to ${high.letter}, including both: that gives ${art(ordinalNum(number))} ${ordinalNum(number)}${number > 8 ? ` (a compound ${simpleNumber(number) === 1 ? 'octave' : ordinalNum(simpleNumber(number))})` : ''}.` });
   }
   const harmonic = r.chance(0.5);

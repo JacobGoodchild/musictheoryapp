@@ -507,3 +507,25 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
   .notehead-chip { width: 56px; height: 46px; }
   .place-toolbar { flex-wrap: wrap; }
 }
+/* Hints */
+.hint-btn { border-color: #f5c542; background: #fff8dc; color: #6b4e00; }
+.hint-btn:hover { background: #fff0b3; }
+.q-hints { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.q-hints:empty { display: none; }
+.hint-card { border-radius: 14px; padding: 12px 16px; background: #fffbea; border: 1.5px solid #f5d77a; color: #3d2f00; animation: fade-up .25s var(--ease); }
+.hint-card.level-2 { background: #fff4e0; border-color: #f7b866; }
+.hint-card.level-3 { background: #ffeef3; border-color: #f59bb8; }
+.hint-title { display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 4px; }
+.hint-text p { margin: 4px 0; }
+.q-option.eliminated { opacity: .35; text-decoration: line-through; cursor: not-allowed; filter: grayscale(1); }
+.tf-row.revealed .tf-text::after { content: " (from hint)"; color: var(--text-3); font-size: .85em; }
+:root[data-theme="dark"] .hint-btn { background: #3a3110; color: #ffe08a; border-color: #8a6d12; }
+:root[data-theme="dark"] .hint-card { background: #2c2610; color: #fbeec0; border-color: #7a6418; }
+:root[data-theme="dark"] .hint-card.level-2 { background: #33240f; border-color: #8a5a1c; }
+:root[data-theme="dark"] .hint-card.level-3 { background: #3a1c26; border-color: #8a3a58; color: #ffd6e4; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hint-btn { background: #3a3110; color: #ffe08a; border-color: #8a6d12; }
+  :root:not([data-theme="light"]) .hint-card { background: #2c2610; color: #fbeec0; border-color: #7a6418; }
+  :root:not([data-theme="light"]) .hint-card.level-2 { background: #33240f; border-color: #8a5a1c; }
+  :root:not([data-theme="light"]) .hint-card.level-3 { background: #3a1c26; border-color: #8a3a58; color: #ffd6e4; }
+}

@@ -101,11 +101,14 @@ export function genEnharmonic(r, diff) {
   for (let tries = 0; tries < 40; tries++) {
     const L = r.pick(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
     const p = pitch(L, r.pick(accs), 4);
+    // Beginner: only single sharps/flats (no double sharps or flats) in the answer and options.
+    const simple = (x) => diff !== 1 || Math.abs(x.acc) <= 1;
     const others = spellingsOf(midi(p)).filter((s) => !sameSpelling(s, p));
-    if (!others.length) continue;
-    const ans = r.pick(others);
+    const easyOthers = others.filter(simple);
+    if (!easyOthers.length) continue;
+    const ans = r.pick(easyOthers);
     const wrongs = [];
-    for (const d of [-2, -1, 1, 2]) for (const s of spellingsOf(midi(p) + d)) wrongs.push({ label: name(s), why: `${name(s)} is ${Math.abs(d)} semitone${Math.abs(d) > 1 ? 's' : ''} ${d > 0 ? 'higher' : 'lower'} than ${name(p)}.` });
+    for (const d of [-2, -1, 1, 2]) for (const s of spellingsOf(midi(p) + d).filter(simple)) wrongs.push({ label: name(s), why: `${name(s)} is ${Math.abs(d)} semitone${Math.abs(d) > 1 ? 's' : ''} ${d > 0 ? 'higher' : 'lower'} than ${name(p)}.` });
     const okNames = new Set(spellingsOf(midi(p)).map((s) => name(s)));
     return mcq(r, {
       section: SEC, topic: 'p-enharmonic', difficulty: diff,
@@ -144,7 +147,8 @@ function melodyMusic(clef, fifths, pitches, time = '4/4', rhythm = null) {
 
 export function genOctaveTranspose(r, diff) {
   const from = clefFor(r, diff);
-  const to = r.pick(CLEF_LIST.filter((c) => c !== from));
+  // Beginner: only between treble and bass clef.
+  const to = diff === 1 ? (from === 'treble' ? 'bass' : 'treble') : r.pick(CLEF_LIST.filter((c) => c !== from));
   const k = r.pick(diff === 1 ? GRADE5_MAJOR.slice(4, 9) : [...GRADE5_MAJOR, ...GRADE5_MINOR]);
   const mel = shortMelody(r, k, from, 6);
   const dir = r.pick(['up', 'down', 'same']);

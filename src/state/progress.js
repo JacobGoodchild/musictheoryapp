@@ -39,7 +39,8 @@ export function recordAnswer(s, q, result, context = 'practice') {
   let coins = 0;
   if (result.correct) {
     seen.c += 1;
-    if (context !== 'mock') coins += addCoins(s, coinsForCorrect(q, before), 'answers');
+    // Using all three hints halves the coins (one or two hints cost nothing).
+    if (context !== 'mock') coins += addCoins(s, Math.ceil(coinsForCorrect(q, before) * ((result.hintsUsed || 0) >= 3 ? 0.5 : 1)), 'answers');
     if (s.mistakes[q.id] && (context === 'mistakes' || Date.now() - s.mistakes[q.id].added > 60_000)) {
       delete s.mistakes[q.id];
       coins += addCoins(s, ECONOMY.mistakeCleared, 'mistakes');

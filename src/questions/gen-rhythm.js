@@ -290,9 +290,10 @@ export function genTuplet(r, diff) {
 }
 
 export function genConvert(r, diff) {
-  const kind = r.pick(diff === 1 ? ['triplets'] : ['triplets', 'duplets', 'halve', 'double']);
+  // Beginner: halving and doubling note values (the friendliest kind).
+  const kind = r.pick(diff === 1 ? ['halve', 'double'] : ['triplets', 'duplets', 'halve', 'double']);
   if (kind === 'triplets') {
-    const ts = r.pick(['2/4', '3/4', '4/4', '2/2', '3/8', '3/2']);
+    const ts = r.pick(diff === 2 ? ['2/4', '3/4', '4/4'] : ['2/4', '3/4', '4/4', '2/2', '3/8', '3/2']);
     const ans = R.simpleToCompound(ts);
     const unit = { 2: 'crotchet', 4: 'quaver', 8: 'semiquaver' }[R.parseTime(ts).bottom];
     const distract = [R.parseTime(ts).top * 3 + '/' + R.parseTime(ts).bottom, R.parseTime(ts).top * 2 + '/' + R.parseTime(ts).bottom * 2, ans.split('/')[0] + '/' + R.parseTime(ts).bottom * 4, ts];

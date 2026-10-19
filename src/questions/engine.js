@@ -5,6 +5,7 @@ import { mark, isComplete, marksFor, answerText, placedPitch } from './mark.js';
 import { icon } from '../ui/icons.js';
 import { pitchAtStaffPos, toString as pitchStr, describeStaffPos } from '../theory/pitch.js';
 import { playQuestionAudio } from '../audio/synth.js';
+import { hintsFor } from './hints.js';
 
 const ACC_BUTTONS = [
   { acc: null, label: 'None', aria: 'no accidental' },
@@ -66,15 +67,47 @@ export function questionView(q, opts = {}) {
     case 'dropdown': buildDropdown(); break;
     default: body.append(h('p', {}, 'Unknown question type'));
   }
-  const actions = h('div', { class: 'q-actions row' }, mode !== 'review' ? answerBtn : null);
-  root.append(actions, feedback);
+  // Optional hints (practice only; never in mocks).
+  let hintsUsed = 0;
+  const hintBox = h('div', { class: 'q-hints', 'aria-live': 'polite' });
+  let hintBtn = null;
+  if (mode === 'practice' && opts.hints !== false) {
+    const hints = hintsFor(q);
+    const labels = ['Hint', 'Bigger hint', 'Show me nearly all of it'];
+    hintBtn = h('button', { class: 'btn hint-btn', 'data-action': 'hint', onclick: () => showHint() }, icon('bulb', 'coin-icon'), `${labels[0]} (1 of 3)`);
+    const showHint = () => {
+      if (locked || hintsUsed >= hints.length) return;
+      const hint = hints[hintsUsed];
+      hintsUsed++;
+      hintBox.append(h('div', { class: `hint-card level-${hintsUsed}` }, h('div', { class: 'hint-title' }, icon('bulb', 'coin-icon'), ['Hint 1: a nudge', 'Hint 2: a big clue', 'Hint 3: almost the answer'][hintsUsed - 1]), richText(hint.text)));
+      applyHint(hint);
+      if (hintsUsed >= hints.length) hintBtn.remove();
+      else { clear(hintBtn); hintBtn.append(icon('bulb', 'coin-icon'), `${labels[hintsUsed]} (${hintsUsed + 1} of 3)`); }
+    };
+  }
+  function applyHint(hint) {
+    if (hint.eliminate && q.type === 'mcq') {
+      const btns = root.querySelectorAll('.q-option');
+      for (const i of hint.eliminate) { btns[i]?.classList.add('eliminated'); btns[i]?.setAttribute('aria-disabled', 'true'); if (response === i) response = null; }
+    }
+    if (hint.reveal?.statements) for (const i of hint.reveal.statements) { response[i] = q.statements[i].answer; root.querySelectorAll('.tf-row')[i]?.classList.add('revealed'); }
+    if (hint.reveal?.boxes) {
+      const combo = q.acceptCombos ? q.acceptCombos[0] : q.dropdowns.map((d) => d.answer);
+      const sels = root.querySelectorAll('.q-dropdowns select');
+      for (const i of hint.reveal.boxes) { response[i] = combo[i]; if (sels[i]) sels[i].value = combo[i]; }
+    }
+    update();
+  }
+  const actions = h('div', { class: 'q-actions row' }, mode !== 'review' ? answerBtn : null, hintBtn);
+  root.append(hintBox, actions, feedback);
   update();
   if (mode === 'review') showFeedback(mark(q, response));
 
   function buildMcq() {
     const list = h('div', { class: `q-options ${q.options.some((o) => o.music) ? 'with-music' : ''}`, role: 'radiogroup', 'aria-label': 'Options' });
     q.options.forEach((opt, i) => {
-      const btn = h('button', { class: 'q-option', role: 'radio', 'aria-checked': 'false', 'data-index': i, onclick: () => { if (locked) return; response = i; update(); } },
+      let btn;
+      btn = h('button', { class: 'q-option', role: 'radio', 'aria-checked': 'false', 'data-index': i, onclick: () => { if (locked || btn.classList.contains('eliminated')) return; response = i; update(); } },
         h('span', { class: 'q-letter', 'aria-hidden': 'true' }, String.fromCharCode(65 + i)),
         h('span', { class: 'q-option-body' }, opt.music ? musicBlock(opt.music, 'small') : null, opt.label ? h('span', { class: 'q-option-label' }, opt.label) : null));
       if (opt.music && !opt.label) btn.setAttribute('aria-label', opt.aria || `Option ${String.fromCharCode(65 + i)}`);
@@ -270,6 +303,8 @@ export function questionView(q, opts = {}) {
       return;
     }
     locked = true;
+    result.hintsUsed = hintsUsed;
+    hintBtn?.remove();
     update();
     root.querySelectorAll('input, select').forEach((el) => { el.disabled = true; });
     showFeedback(result);
@@ -318,4 +353,15 @@ function initialResponse(q) {
     case 'dropdown': return q.dropdowns.map(() => '');
     default: return null;
   }
+}
+
+/** Text with **bold** and line breaks, built safely (no innerHTML). */
+function richText(text) {
+  const wrap = h('div', { class: 'hint-text' });
+  for (const line of String(text).split('\n')) {
+    const p = h('p', {});
+    String(line).split(/(\*\*[^*]+\*\*)/).forEach((part) => { if (!part) return; p.append(part.startsWith('**') ? h('strong', {}, part.slice(2, -2)) : document.createTextNode(part)); });
+    wrap.append(p);
+  }
+  return wrap;
 }
