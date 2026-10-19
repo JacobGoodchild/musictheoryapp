@@ -1,4 +1,4 @@
-import { h, clear, svgFromString, toast, confirmDialog } from '../dom.js';
+import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
 import { getState, update } from '../state/store.js';
 import { icon, coinIcon, noteIcon } from '../ui/icons.js';
 import { avatarSVG, ITEMS, SLOTS, DEFAULT_EQUIPPED, itemById, FREE_ITEMS } from '../art/avatar.js';
@@ -83,8 +83,8 @@ function bagsTab() {
   const showBag = () => {
     clear(stage);
     const bag = h('button', { class: 'blind-bag', 'aria-label': `Open a blind bag for ${ECONOMY.bagCost} coins`, disabled: getState().coins < ECONOMY.bagCost, onclick: () => open(bag) }, svgFromString(bagArt()));
-    stage.append(bag, h('button', { class: 'btn primary big', disabled: getState().coins < ECONOMY.bagCost, onclick: () => open(bag) }, 'Open a bag · ', coinIcon(), String(ECONOMY.bagCost)),
-      getState().coins < ECONOMY.bagCost ? h('p', { class: 'muted small' }, `You need ${ECONOMY.bagCost - getState().coins} more coins. Answer some questions to earn them!`) : null);
+    append(stage, [bag, h('button', { class: 'btn primary big', disabled: getState().coins < ECONOMY.bagCost, onclick: () => open(bag) }, 'Open a bag · ', coinIcon(), String(ECONOMY.bagCost)),
+      getState().coins < ECONOMY.bagCost ? h('p', { class: 'muted small' }, `You need ${ECONOMY.bagCost - getState().coins} more coins. Answer some questions to earn them!`) : null]);
   };
   const open = async (bagEl) => {
     let res = null;

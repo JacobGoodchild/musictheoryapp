@@ -461,3 +461,22 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .checklist li { display: flex; gap: 10px; align-items: flex-start; }
 .checklist input { width: 20px; height: 20px; accent-color: var(--accent); margin-top: 2px; flex: none; }
 .lesson > .card { margin-bottom: 16px; }
+
+/* ---------- Home ---------- */
+.home-hero { display: grid; grid-template-columns: auto 1fr minmax(260px, 340px); gap: 22px; align-items: center; padding: 24px; background: linear-gradient(135deg, var(--surface), var(--accent-soft)); }
+@media (max-width: 1000px) { .home-hero { grid-template-columns: auto 1fr; } .home-next { grid-column: 1 / -1; } }
+.home-avatar svg { display: block; border-radius: 28px; box-shadow: var(--shadow-2); transition: transform .2s var(--ease); }
+.home-avatar:hover svg { transform: rotate(-3deg) scale(1.04); }
+.home-hello h1 { margin: 2px 0 10px; }
+.home-next { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.home-next .btn.big { white-space: normal; text-align: left; }
+.home-next p { margin: 0; }
+.sec-card h3 { margin: 6px 0 8px; }
+.sec-card .progress { margin-top: 4px; }
+.welcome { max-width: 640px; margin: 30px auto; padding: 34px; text-align: left; }
+.welcome-art { float: right; margin: -10px -6px 10px 16px; }
+.welcome-art svg { border-radius: 26px; box-shadow: var(--shadow-2); }
+.welcome-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; clear: both; margin-top: 14px; }
+@media (max-width: 600px) { .welcome-steps { grid-template-columns: 1fr; } .welcome-art { float: none; } }
+.welcome-step { display: flex; gap: 10px; align-items: flex-start; }
+.quick-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }

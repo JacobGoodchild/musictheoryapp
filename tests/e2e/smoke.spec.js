@@ -34,3 +34,12 @@ test('no console errors and no external requests on every screen', async ({ page
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
+
+test('screens with plenty of coins and progress show no stray text', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('g5theory.save', JSON.stringify({ version: 3, profile: { name: 'Rich' }, coins: 5000, dupeNotes: 900, lessons: { 'rhythm-values': { done: true, at: 1, perfect: true } }, mistakes: {}, stickers: { owned: { crotchet: 2, 'alto-clef': 1 }, bagsOpened: 3, sinceEpic: 9, seed: 2 } })));
+  for (const s of ['#/home', '#/rewards/avatar', '#/rewards/bags', '#/rewards/album', '#/learn', '#/practice']) {
+    await page.goto('/index.html' + s);
+    await page.waitForTimeout(400);
+    expect(await page.locator('main').innerText(), s).not.toMatch(/\b(null|undefined|NaN)\b|\[object/);
+  }
+});
