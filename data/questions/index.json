@@ -2,8 +2,8 @@
  "generated": "2026-10-19",
  "sections": {
   "1": 495,
-  "2": 400,
-  "3": 562,
+  "2": 500,
+  "3": 652,
   "4": 170,
   "5": 170,
   "6": 374,
@@ -16,11 +16,11 @@
   "r-barlines": 85,
   "r-tuplets": 85,
   "r-convert": 83,
-  "p-clefs": 85,
+  "p-clefs": 105,
   "p-enharmonic": 85,
-  "p-transpose-clef": 111,
-  "p-instruments": 119,
-  "k-signatures": 128,
+  "p-transpose-clef": 131,
+  "p-instruments": 179,
+  "k-signatures": 218,
   "k-relative": 68,
   "k-degrees": 85,
   "k-scales": 111,
@@ -36,5 +36,5 @@
   "t-instruments": 85,
   "x-context": 346
  },
- "total": 2517
+ "total": 2707
 }

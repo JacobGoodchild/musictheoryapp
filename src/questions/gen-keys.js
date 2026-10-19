@@ -51,6 +51,24 @@ export function genKeySigChoose(r, diff) {
   }, { label: '', music: sigMusic(k, clef), key: String(k.fifths), aria: 'key signature' }, ds);
 }
 
+/** Key signature in any clef: drag the tonic of the named mode onto the stave (any octave). */
+export function genSigTonicPlace(r, diff) {
+  const mode = r.pick(['major', 'minor']);
+  const k = r.pick(keyPool(diff, mode).filter((x) => x.fifths !== 0));
+  const clef = diff === 1 ? r.pick(['treble', 'bass']) : r.pick(['alto', 'tenor', 'alto', 'tenor', 'treble', 'bass']);
+  // Show the answer in an octave that sits on the stave.
+  let ans = parse(k.tonic + OCT[clef]);
+  while (staffPos(ans, clef) > 8) ans = { ...ans, octave: ans.octave - 1 };
+  while (staffPos(ans, clef) < 0) ans = { ...ans, octave: ans.octave + 1 };
+  const rel = relative(k);
+  return {
+    section: SEC, topic: 'k-signatures', difficulty: diff, sub: clef, type: 'place', tricky: ['alto', 'tenor'].includes(clef),
+    prompt: `This is the key signature of a ${mode} key in the ${clef} clef. Write its tonic (key note) on the stave, in any octave.`,
+    place: { clef, fifths: k.fifths, anyOctave: true, accept: [toString(ans)], answerText: `${name(ans)} (any octave)` },
+    explanation: `The key signature has ${sigWords(k)}: ${keyName(k)} (relative ${rel.mode}: ${keyName(rel)}). The tonic is ${name(ans)}.${ans.acc !== 0 ? ` The key signature already makes it ${name(ans)}, so no extra accidental is needed.` : ''} In the ${clef} clef ${name(ans)} sits ${staffPos(ans, clef) % 2 === 0 ? 'on a line' : 'in a space'}.`,
+  };
+}
+
 export function genSigCount(r, diff) {
   const k = r.pick(keyPool(diff, null));
   return {
@@ -250,7 +268,7 @@ export function genScaleFacts(r, diff) {
 }
 
 export const KEYS_TOPICS = [
-  { id: 'k-signatures', section: 3, title: 'Key signatures in all four clefs', gens: [genKeySigName, genKeySigChoose, genSigCount], weight: 1.5 },
+  { id: 'k-signatures', section: 3, title: 'Key signatures in all four clefs', gens: [genKeySigName, genKeySigChoose, genSigTonicPlace, genSigCount], weight: 1.5 },
   { id: 'k-relative', section: 3, title: 'Relative major and minor', gens: [genRelative] },
   { id: 'k-degrees', section: 3, title: 'Technical names of scale degrees', gens: [genDegree] },
   { id: 'k-scales', section: 3, title: 'Major, harmonic and melodic minor scales', gens: [genScaleIdentify, genScaleMissing, genScaleFacts], weight: 1.3 },

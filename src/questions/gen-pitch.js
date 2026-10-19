@@ -251,6 +251,46 @@ export function genInstrumentPlace(r, diff) {
   throw new Error('instPlace');
 }
 
+/**
+ * A short melody with a key signature; write ONE marked note transposed, on a stave
+ * that already has the new key signature. The key signature decides whether the
+ * note needs an accidental, which is the tricky part.
+ */
+export function genInstrumentPlaceInKey(r, diff) {
+  const inst = r.pick(['Bb', 'A', 'F']);
+  const instName = r.pick(INSTR_NAME[inst]);
+  const iv = INSTRUMENT_KEYS[inst];
+  const toConcertDir = r.chance(0.5);
+  for (let t = 0; t < 40; t++) {
+    const ck = r.pick(GRADE5_MAJOR.filter((k) => Math.abs(k.fifths) <= 6 && Math.abs(writtenKeyFifths(k.fifths, inst)) <= 6 && (diff === 1 ? Math.abs(k.fifths) <= 2 : true)));
+    const wk = keyFromFifths(writtenKeyFifths(ck.fifths, inst), 'major');
+    const concertMel = shortMelody(r, ck, 'treble', 6);
+    const writtenMel = concertMel.map((p) => toWritten(p, inst));
+    const [srcMel, srcKey, ansKey] = toConcertDir ? [writtenMel, wk, ck] : [concertMel, ck, wk];
+    const xi = r.int(1, 5);
+    const src = srcMel[xi];
+    const ans = toConcertDir ? toConcert(src, inst) : toWritten(src, inst);
+    const pos = staffPos(ans, 'treble');
+    if (pos < -2 || pos > 10 || srcMel.some((p) => staffPos(p, 'treble') < -3 || staffPos(p, 'treble') > 11)) continue;
+    // Prefer notes whose accidental is supplied by a key signature (that is where mistakes happen).
+    if (diff >= 2 && ans.acc === 0 && src.acc === 0 && r.chance(0.7)) continue;
+    const music = melodyMusic('treble', srcKey.fifths, srcMel, '4/4', ['q', 'q', 'h', 'q', 'q', 'h']);
+    let k = 0;
+    for (const m of music.measures) for (const n of m.notes) { if (k === xi) n.text = 'X'; k++; }
+    const inSig = ans.acc !== 0 && signatureMap(ansKey)[ans.letter] === ans.acc;
+    return {
+      section: SEC, topic: 'p-instruments', difficulty: diff, type: 'place', tricky: true, sub: inst,
+      prompt: toConcertDir
+        ? `This melody is written for ${instName}, which sounds ${iv.words} than written. Write the note marked X at concert pitch. The concert-pitch key signature is given.`
+        : `This melody is at concert pitch. Write the note marked X as it would appear in a part for ${instName} (which sounds ${iv.words} than written). The key signature for the part is given.`,
+      music,
+      place: { clef: 'treble', fifths: ansKey.fifths, accept: [toString(ans)], answerText: `${name(ans, true)} (${describeStaffPos(pos)})` },
+      explanation: `With the key signature, X is ${name(src, true)}. ${toConcertDir ? 'Concert pitch is lower, so go down' : 'The written part is higher, so go up'} ${iv.words.replace(' lower', '')}: ${name(src, true)} → ${name(ans, true)}. The new key is ${keyName(ansKey)}${inSig ? `, whose key signature already gives ${name(ans)}, so no accidental is needed` : ans.acc !== (signatureMap(ansKey)[ans.letter] || 0) ? `, so ${name(ans)} needs an accidental` : ''}.`,
+    };
+  }
+  throw new Error('instPlaceInKey');
+}
+
 export function genInstrumentFacts(r, diff) {
   const st = [
     { text: 'A clarinet in B♭ sounds a major 2nd lower than written.', answer: true },
@@ -278,7 +318,7 @@ export const PITCH_TOPICS = [
   { id: 'p-clefs', section: 2, title: 'Clefs and note names (incl. tenor clef)', gens: [genNameNote, genSamePitch, genClefPlace] },
   { id: 'p-enharmonic', section: 2, title: 'Accidentals and enharmonic equivalents', gens: [genEnharmonic] },
   { id: 'p-transpose-clef', section: 2, title: 'Transposing at the octave between clefs', gens: [genOctaveTranspose], weight: 1.3 },
-  { id: 'p-instruments', section: 2, title: 'Transposing instruments (B♭, A, F)', gens: [genInstrument, genInstrumentPlace, genInstrumentFacts], weight: 1.4 },
+  { id: 'p-instruments', section: 2, title: 'Transposing instruments (B♭, A, F)', gens: [genInstrument, genInstrumentPlace, genInstrumentPlaceInKey, genInstrumentFacts], weight: 1.4 },
 ];
 
 void buildBar; void CLEFS; void trueFalse; void GRADE5_MINOR;
