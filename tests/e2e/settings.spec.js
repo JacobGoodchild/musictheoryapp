@@ -50,8 +50,18 @@ test('installable and works offline after the first visit', async ({ browser }) 
   const page = await ctx.newPage();
   await page.addInitScript(() => { if (!localStorage.getItem('g5theory.save')) localStorage.setItem('g5theory.save', JSON.stringify({ version: 3, profile: { name: 'Off' } })); });
   await page.goto('/index.html#/home');
-  await page.waitForFunction(async () => { const r = await navigator.serviceWorker.getRegistration(); return r && r.active; }, null, { timeout: 60_000 });
-  await page.waitForFunction(async () => (await caches.keys()).length > 0);
+  // Wait until the worker is fully activated and every file is in the cache.
+  // (expect.poll awaits the async check; waitForFunction would not.)
+  await expect.poll(() => page.evaluate(async () => {
+    const r = await navigator.serviceWorker.getRegistration();
+    if (!r || !r.active || r.active.state !== 'activated') return 0;
+    const keys = await caches.keys();
+    if (!keys.length) return 0;
+    return (await (await caches.open(keys[0])).keys()).length;
+  }), { timeout: 60_000, intervals: [500] }).toBeGreaterThan(60);
+  // Reload once so the page is loaded through the service worker, as on any later visit.
+  await page.reload();
+  await expect(page.locator('main .view')).toBeVisible();
   const manifest = await page.evaluate(async () => (await fetch('manifest.webmanifest')).json());
   expect(manifest.icons.some((i) => i.sizes === '512x512')).toBe(true);
   await ctx.setOffline(true);

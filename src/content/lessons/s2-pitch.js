@@ -32,7 +32,7 @@ export const PITCH_LESSONS = [
         { music: { clef: 'bass', free: true, notes: [w('C4', { label: 'middle C' }), w('E4', { label: 'E' }), w('E2', { label: 'E' }), w('C2', { label: 'C' })] }, caption: 'Ledger lines in the bass clef' },
       ] },
       { type: 'keypoints', items: ['Treble lines E G B D F, spaces F A C E.', 'Bass lines G B D F A, spaces A C E G.', 'Middle C: 1 ledger line below treble = 1 ledger line above bass.'] },
-      { type: 'mistakes', items: ['Reading bass clef as if it were treble (everything comes out two letters too high).'] },
+      { type: 'mistakes', items: ['Reading bass clef as if it were treble (every note comes out two letters too low: the bottom line G would be read as E).'] },
       { type: 'memorise', items: ['Treble lines: **E**very **G**ood **B**oy **D**eserves **F**ootball. Spaces spell FACE.', 'Bass lines: **G**ood **B**oys **D**eserve **F**un **A**lways. Spaces: **A**ll **C**ows **E**at **G**rass.'] },
     ],
     check: { topics: ['p-clefs'], count: 5, difficulty: 1 },

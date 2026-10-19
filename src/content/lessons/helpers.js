@@ -38,6 +38,6 @@ export function chordsMusic(tonic, mode, list, clef = 'treble', bassOct = 4) {
   const k = key(tonic, mode);
   return { clef, key: k.fifths, free: true, scale: 1.05, notes: list.map(([d, inv]) => ({ keys: voiceChord(k, d, inv, bassOct).map((p) => toString(p)), dur: 'w', label: chordLabel(d, inv, { showA: true }) })) };
 }
-export const chordAudio = (tonic, mode, d, inv, bassOct = 3) => ({ kind: 'chord', notes: voiceChord(key(tonic, mode), d, inv, bassOct).map((p) => toString(p)) });
+export const chordAudio = (tonic, mode, d, inv, bassOct = 4) => ({ kind: 'chord', notes: voiceChord(key(tonic, mode), d, inv, bassOct).map((p) => toString(p)) });
 
 export { keyName, key, parse, toString, name };

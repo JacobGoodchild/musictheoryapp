@@ -184,9 +184,16 @@ export const DIRECTIONS = [
   { term: 'con sordino (con sord.)', meaning: 'with a mute', grade: 4 },
   { term: 'senza sordino (senza sord.)', meaning: 'without a mute', grade: 4 },
   { term: 'sul G', meaning: 'play on the G string', grade: 4 },
+  { term: 'down bow (⊓)', meaning: 'draw the bow downwards (from the heel)', grade: 4 },
+  { term: 'up bow (V)', meaning: 'push the bow upwards (from the tip)', grade: 4 },
+  { term: 'slur (string music)', meaning: 'play the notes in one bow', grade: 4 , lessonOnly: true },
+  { term: 'avec sourdines / sans sourdines', meaning: 'with mutes / without mutes (French)', grade: 4 , lessonOnly: true },
   { term: 'una corda', meaning: 'use the soft (left) pedal', grade: 5 },
   { term: 'tre corde', meaning: 'release the soft pedal', grade: 5 },
   { term: 'con pedale', meaning: 'with the sustaining pedal', grade: 5 },
+  { term: 'senza pedale', meaning: 'without the sustaining pedal', grade: 5 },
+  { term: 'Ped. … ✱ (pedal marks)', meaning: 'press, then release, the sustaining pedal', grade: 5 , lessonOnly: true },
+  { term: 'arpeggiation (wavy line before a chord)', meaning: 'spread the chord, from the bottom note up', grade: 5 },
   { term: 'mano sinistra (m.s.)', meaning: 'left hand', grade: 5 },
   { term: 'mano destra (m.d.)', meaning: 'right hand', grade: 5 },
 ];
@@ -234,10 +241,10 @@ export const INSTRUMENTS = [
 ];
 
 export const VOICES = [
-  { name: 'soprano', type: 'high female (or child) voice', order: 1 },
-  { name: 'mezzo-soprano', type: 'female voice between soprano and alto', order: 2 },
-  { name: 'alto', type: 'low female voice (contralto)', order: 3 },
-  { name: 'tenor', type: 'high male voice', order: 4 },
-  { name: 'baritone', type: 'male voice between tenor and bass', order: 5 },
-  { name: 'bass', type: 'low male voice', order: 6 },
+  { name: 'soprano', type: 'high female (or child) voice', order: 1, range: 'roughly middle C to the A two octaves above' },
+  { name: 'mezzo-soprano', type: 'female voice between soprano and alto', order: 2, range: 'roughly the A below middle C to the F an octave and a half above' },
+  { name: 'alto', type: 'low female voice (contralto)', order: 3, range: 'roughly the F below middle C to the D an octave and a half above' },
+  { name: 'tenor', type: 'high male voice', order: 4, range: 'roughly the C below middle C to the A above middle C' },
+  { name: 'baritone', type: 'male voice between tenor and bass', order: 5, range: 'roughly the A an octave and a half below middle C to the F above middle C' },
+  { name: 'bass', type: 'low male voice', order: 6, range: 'roughly the E two octaves below middle C to the E above middle C' },
 ];

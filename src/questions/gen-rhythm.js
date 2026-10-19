@@ -363,10 +363,38 @@ export function genIrregular(r, diff) {
   }, { label: ts }, [...others.filter((t) => R.parseTime(t).bottom === R.parseTime(ts).bottom), ...others].map((t) => ({ label: t })));
 }
 
+/** Where do the bar lines go? Two or three bars run together; options split them differently. */
+export function genBarlines(r, diff) {
+  const pool = diff === 1 ? ['2/4', '3/4', '4/4'] : diff === 2 ? ['3/4', '4/4', '6/8', '3/8', '2/2', '9/8'] : ['6/8', '9/8', '12/8', '5/4', '7/8', '5/8', '3/2', '6/4'];
+  const ts = r.pick(pool);
+  const nBars = r.pick([2, 3]);
+  const bars = Array.from({ length: nBars }, (_, i) => buildBar(r, ts, { pitchStart: i * 3 }).notes.map((n) => ({ ...n, beam: n.beam === undefined ? undefined : `${i}-${n.beam}` })));
+  const flat = bars.flat();
+  const cuts = []; let c = 0;
+  for (const b of bars.slice(0, -1)) { c += b.length; cuts.push(c); }
+  const split = (cs) => { const out = []; let start = 0; for (const x of [...cs, flat.length]) { out.push({ notes: flat.slice(start, x) }); start = x; } return out; };
+  const music = (cs) => ({ clef: 'treble', time: ts, measures: split(cs), scale: 0.95 });
+  const wrongs = [];
+  for (let i = 0; i < cuts.length; i++) for (const d of [-2, -1, 1, 2]) {
+    const cs = cuts.slice(); cs[i] += d;
+    if (cs.some((x, j) => x <= (j ? cs[j - 1] : 0) || x >= flat.length)) continue;
+    // A wrong split must really be wrong: some bar must not add up to a full bar.
+    const ok = split(cs).every((m) => R.eq(barTotal(m.notes), R.barLength(ts)));
+    if (!ok) wrongs.push({ label: '', music: music(cs), key: cs.join(','), aria: 'bars', why: 'At least one bar has the wrong number of beats.' });
+  }
+  if (wrongs.length < 2) throw new Error('barlines');
+  return mcq(r, {
+    section: SEC, topic: 'r-barlines', difficulty: diff,
+    prompt: `Which version has the bar lines in the right places for ${ts}?`,
+    explanation: `${explainTime(ts)} Count through the notes: each bar must add up to exactly ${describe(R.barLength(ts))}.`,
+  }, { label: '', music: music(cuts), key: cuts.join(','), aria: 'bars' }, wrongs, 3);
+}
+
 export const RHYTHM_TOPICS = [
   { id: 'r-values', section: 1, title: 'Note and rest values', gens: [genEquivalence] },
   { id: 'r-time', section: 1, title: 'Time signatures', gens: [genTimeDescribe, genWhichTime, genRhythmFacts, genIrregular] },
   { id: 'r-rests', section: 1, title: 'Completing bars with rests', gens: [genRests] },
+  { id: 'r-barlines', section: 1, title: 'Adding bar lines', gens: [genBarlines] },
   { id: 'r-tuplets', section: 1, title: 'Triplets, duplets and other tuplets', gens: [genTuplet] },
   { id: 'r-convert', section: 1, title: 'Simple ↔ compound, halving and doubling', gens: [genConvert] },
 ];

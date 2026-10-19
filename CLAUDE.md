@@ -304,3 +304,5 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Added exam-day guide page (format, answer types, timing tips, saved checklist), written in my own words.
 - Screenshot review caught a stray "null" on the blind-bag screen (native Element.append prints null); fixed and added a smoke test with a rich save that scans every screen for null/undefined/NaN text.
 - Backlog: printable one-page summary per section (#/summary/N, print stylesheet hides the app chrome), linked from each section on the Learn page; tables computed from the brain and term lists.
+- 07:20 Review pass 2 (lessons, fresh subagent): 4 errors, 17 warnings, 16 nits. All 4 errors and the main warnings fixed (docs/review-2-lessons.md). New r-barlines topic; bank now 2,412 questions.
+- Found and fixed a test bug: Playwright's waitForFunction does not await async predicates, so the offline test wasn't really waiting for the service worker cache. Now uses expect.poll. Also the app no longer reloads itself on the first service-worker install (only after "Update now").

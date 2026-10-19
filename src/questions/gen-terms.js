@@ -56,12 +56,14 @@ export function genSign(r, diff) {
 }
 
 export function genDirection(r, diff) {
-  const d = r.pick(DIRECTIONS);
+  // Directions whose meaning overlaps another (mutes, pedal marks) are taught but not quizzed.
+  const quiz = DIRECTIONS.filter((x) => !x.lessonOnly);
+  const d = r.pick(quiz);
   return mcq(r, {
     section: SEC, topic: 't-signs', difficulty: diff,
     prompt: `What does "${d.term}" mean?`,
     explanation: `${d.term} means: ${d.meaning}.`,
-  }, { label: d.meaning }, DIRECTIONS.filter((o) => o !== d).map((o) => ({ label: o.meaning, why: `That is ${o.term}.` })));
+  }, { label: d.meaning }, quiz.filter((o) => o !== d).map((o) => ({ label: o.meaning, why: `That is ${o.term}.` })));
 }
 
 // ---- Ornaments: written-out → sign ----------------------------------------
