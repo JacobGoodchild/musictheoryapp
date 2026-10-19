@@ -8,8 +8,8 @@ test('about 60 stickers, unique ids, every rarity present, shown odds add to 100
   assert.equal(new Set(STICKERS.map((s) => s.id)).size, STICKERS.length);
   for (const r of RARITIES) assert.ok(STICKERS.some((s) => s.rarity === r.id), r.id);
   assert.equal(RARITIES.reduce((a, r) => a + r.odds, 0), 100);
-  assert.equal(STICKERS.find((s) => s.id === 'alto-clef').rarity, 'legendary');
-  assert.equal(STICKERS.find((s) => s.id === 'tenor-clef').rarity, 'mythic');
+  assert.equal(STICKERS.filter((s) => s.rarity === 'mythic').length, 3);
+  assert.equal(STICKERS.find((s) => s.id === 'golden-teapot').rarity, 'mythic');
 });
 
 test('real odds over many openings match the shown odds (pity included)', () => {

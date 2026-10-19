@@ -1,8 +1,9 @@
+import { STICKERS } from './stickers.js';
 // Versioned save stored in localStorage. Every access is wrapped in try/catch
 // so private windows or blocked storage never break the app.
 
 export const SAVE_KEY = 'g5theory.save';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export function freshSave() {
   return {
@@ -33,6 +34,19 @@ export function freshSave() {
  * Bring any older save up to the current version. Each step only adds or
  * renames fields, so progress is never lost.
  */
+// Old (v3) sticker ids, by rarity, in catalogue order.
+const OLD_STICKERS = {
+  common: ['crotchet', 'quaver', 'minim', 'semibreve', 'semiquaver', 'treble-clef', 'bass-clef', 'sharp', 'flat', 'natural', 'crotchet-rest', 'quaver-rest', 'minim-rest', 'forte', 'piano', 'mezzo-forte', 'staccato', 'accent', 'fermata', 'repeat', 'common-time', 'time-34', 'crescendo', 'tie', 'breath'],
+  rare: ['demisemiquaver', 'breve', 'double-sharp', 'double-flat', 'fortissimo', 'pianissimo', 'sforzando', 'alla-breve', 'marcato', 'tenuto', 'staccatissimo', 'segno', 'coda', 'semibreve-rest', 'time-68', 'pedal'],
+  epic: ['trill', 'turn', 'upper-mordent', 'lower-mordent', 'quintuplet', 'sextuplet', 'triplet', 'time-58', 'arpeggio', 'dal-segno'],
+  legendary: ['alto-clef', 'time-78', 'rinforzando', 'niente', 'golden-crotchet', 'acciaccatura'],
+  mythic: ['tenor-clef', 'rainbow-treble', 'cosmic-semibreve'],
+};
+const OLD_STICKER_MAP = Object.fromEntries(Object.entries(OLD_STICKERS).flatMap(([rarity, ids]) => {
+  const now = STICKERS.filter((x) => x.rarity === rarity);
+  return ids.map((id, i) => [id, now[i % now.length].id]);
+}));
+
 export function migrate(data) {
   if (!data || typeof data !== 'object') return freshSave();
   let s = { ...data };
@@ -52,6 +66,17 @@ export function migrate(data) {
     s.stickers = s.stickers || { owned: {}, bagsOpened: 0, sinceEpic: 0, seed: 0 };
     s.dupeNotes = s.dupeNotes || 0;
     s.daily = s.daily || { day: null, done: false, best: 0 };
+  }
+  if (v < 4 && s.stickers && s.stickers.owned) {
+    // v4 replaced the music-symbol stickers with kawaii food stickers. Each old
+    // sticker becomes the food sticker in the same place in its rarity, so the
+    // collection (and its counts) carries over exactly.
+    const owned = {};
+    for (const [oldId, n] of Object.entries(s.stickers.owned)) {
+      const newId = OLD_STICKER_MAP[oldId] || oldId;
+      owned[newId] = (owned[newId] || 0) + n;
+    }
+    s.stickers = { ...s.stickers, owned };
   }
   // Fill in anything missing with defaults (deep for plain objects one level down).
   const base = freshSave();

@@ -1,6 +1,7 @@
 import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
 import { getState, update } from '../state/store.js';
 import { icon, coinIcon, noteIcon } from '../ui/icons.js';
+import { FOOD } from '../art/food.js';
 import { avatarSVG, ITEMS, SLOTS, DEFAULT_EQUIPPED, itemById, FREE_ITEMS } from '../art/avatar.js';
 import { stickerSVG } from '../art/stickers.js';
 import { STICKERS, RARITIES, PITY, openBag, collectionStats, rarityById } from '../state/stickers.js';
@@ -116,17 +117,18 @@ function bagsTab() {
     h('div', { class: 'card' }, stage),
     h('div', { class: 'card odds-card' },
       h('h3', {}, 'What\'s inside?'),
-      h('p', { class: 'small muted' }, 'Each bag holds one music sticker. The odds are always:'),
+      h('p', { class: 'small muted' }, 'Each bag holds one cute food or sweet sticker. The odds are always:'),
       h('ul', { class: 'odds-list' }, RARITIES.map((r) => h('li', {}, h('span', { class: 'rarity-pill', style: { background: r.colour } }, r.name), h('strong', {}, `${r.odds}%`)))),
       h('p', { class: 'small' }, h('strong', {}, 'Lucky dip guarantee: '), `at least one Epic or better every ${PITY} bags. `, since >= PITY - 1 ? h('strong', {}, 'Your next bag is guaranteed Epic or better!') : `${PITY - since} bag${PITY - since === 1 ? '' : 's'} to go at most.`),
       h('p', { class: 'small' }, h('strong', {}, 'Duplicates '), 'turn into notes. Spend notes in the album to pick any sticker you\'re missing.')));
 }
 
 function bagArt() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240" aria-hidden="true"><defs><linearGradient id="bagg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b8bff"/><stop offset="1" stop-color="#c04fd0"/></linearGradient></defs>
-  <path d="M40 40h120l10 180q-80 14-140 0z" fill="url(#bagg)"/><path d="M40 40l8-14h104l8 14z" fill="#6e6af0"/><path d="M44 40q8 8 16 0t16 0 16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#fff8" stroke-width="2"/>
-  <circle cx="100" cy="125" r="38" fill="#fff" opacity=".95"/><text x="100" y="145" text-anchor="middle" font-family="Bravura" font-size="54" fill="#6e6af0"></text>
-  <text x="100" y="196" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="20" fill="#fff">?</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240" aria-hidden="true"><defs><linearGradient id="bagg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb3d9"/><stop offset=".55" stop-color="#c9a6ff"/><stop offset="1" stop-color="#8fd3ff"/></linearGradient></defs>
+  <path d="M40 40h120l10 180q-80 14-140 0z" fill="url(#bagg)"/><path d="M40 40l8-14h104l8 14z" fill="#ff8fc0"/><path d="M44 40q8 8 16 0t16 0 16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#fff8" stroke-width="2"/>
+  ${[[60, 70], [150, 84], [56, 200], [146, 196], [72, 180]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#fff" opacity=".7"/>`).join('')}
+  <circle cx="100" cy="125" r="42" fill="#fff" opacity=".95"/><g transform="translate(64 89) scale(.6)">${FOOD.cupcake()}</g>
+  <text x="100" y="200" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="22" fill="#fff">?</text></svg>`;
 }
 
 // ---------------------------------------------------------------- Album

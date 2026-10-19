@@ -43,3 +43,10 @@ test('storage failures never throw', () => {
   assert.equal(loadSave(bad).version, SAVE_VERSION);
   assert.equal(writeSave(freshSave(), bad), false);
 });
+
+test('a v3 save keeps its sticker collection when the stickers became food', () => {
+  const s = migrate({ version: 3, coins: 5, stickers: { owned: { crotchet: 2, 'alto-clef': 1, 'tenor-clef': 1, quaver: 1 }, bagsOpened: 5, sinceEpic: 2, seed: 9 } });
+  assert.equal(s.version, SAVE_VERSION);
+  assert.deepEqual(s.stickers.owned, { strawberry: 2, 'golden-apple': 1, 'cosmic-cake': 1, apple: 1 });
+  assert.equal(s.stickers.bagsOpened, 5);
+});
