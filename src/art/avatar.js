@@ -15,7 +15,7 @@ export const SLOTS = [
 ];
 
 // Prices are tuned by the economy test (docs/economy.md); PRICE_SCALE shifts them all.
-export const PRICE_SCALE = 0.32;
+export const PRICE_SCALE = 0.55;
 const I = (id, slot, name, price, data = {}) => ({ id, slot, name, price: Math.round((price * PRICE_SCALE) / 5) * 5, ...data });
 
 export const ITEMS = [

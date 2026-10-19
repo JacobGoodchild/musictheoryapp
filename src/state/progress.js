@@ -45,6 +45,7 @@ export function recordAnswer(s, q, result, context = 'practice') {
       coins += addCoins(s, ECONOMY.mistakeCleared, 'mistakes');
     }
   } else {
+    if (context !== 'mock' && seen.n === 1) coins += addCoins(s, ECONOMY.goodTry, 'tries');
     const m = s.mistakes[q.id];
     s.mistakes[q.id] = { q: stripForSave(q), added: Date.now(), attempts: (m?.attempts || 0) + 1 };
   }

@@ -1,7 +1,10 @@
 # Reward economy
 
-The goal is a reward layer that feels generous day to day but takes roughly
-**6–8 weeks of regular study** to complete (all avatar items and all stickers).
+The goal is a reward layer that feels generous day to day (several treats every
+session) and takes roughly **4–5 weeks of regular study** to complete (all avatar
+items and all stickers). It was made easier after student feedback on 19 Oct:
+coins roughly doubled, a small "good try" coin for wrong answers, and the original
+6–8 week target shortened.
 All numbers live in `src/state/rewards.js`, `src/state/stickers.js` and
 `src/art/avatar.js`, and the pacing is checked by `tests/unit/economy.test.js`
 using the simulation in `src/state/economy-sim.js`.
@@ -10,15 +13,16 @@ using the simulation in `src/state/economy-sim.js`.
 
 | Activity | Coins |
 |---|---|
-| Correct answer (easy / medium / hard) | 3 / 4 / 5 |
+| Correct answer (easy / medium / hard) | 8 / 10 / 12 |
+| First try at a new question, even if wrong | 2 |
 | Same question answered correctly again | half each time; nothing after the 3rd repeat |
-| Lesson completed (first time) | 30 |
-| Lesson check all correct (first time) | +10 |
-| Mock paper finished | 40 + band bonus (Pass 30, Merit 60, Distinction 100) |
-| Mock personal best | +50 |
-| Daily streak bonus (first visit each day) | 10 × streak length, capped at 70 |
-| Daily challenge | 40 (+20 for 5/5) |
-| Clearing a question from Review mistakes | 5 |
+| Lesson completed (first time) | 60 |
+| Lesson check all correct (first time) | +25 |
+| Mock paper finished | 100 + band bonus (Pass 60, Merit 120, Distinction 200) |
+| Mock personal best | +80 |
+| Daily streak bonus (first visit each day) | 20 × streak length, capped at 140 |
+| Daily challenge | 80 (+40 for 5/5) |
+| Clearing a question from Review mistakes | 12 |
 | Flashcard you knew (due cards only) | 1 |
 | Beat the clock / matching pairs | up to 15 / 5 |
 
@@ -26,8 +30,8 @@ No coins in a mock until it is finished, so a mock cannot be farmed.
 
 ## Spending
 
-- **Avatar shop:** 45 items (plus free starters, including every skin tone),
-  20–295 coins each, 4,155 coins in total.
+- **Avatar shop:** 78 items (plus 28 free starters, including every skin tone
+  and the natural hair colours), 20–285 coins each, 6,490 coins in total.
 - **Blind bag:** 60 coins. One sticker per bag.
 
 ## Stickers
@@ -46,14 +50,14 @@ percentage points of the shown odds and that the pity rule never fails.
 
 ## The simulated "regular student"
 
-Six study days a week, about 35 questions a session at 70% correct, a lesson
+Six study days a week, about 35 questions a session at 60% correct, a lesson
 most days until all 33 are done, the daily challenge, a few flashcards, and a
 mock every 5 days (about 10 mocks in 7 weeks). Spending alternates between the
 cheapest avatar item and a bag, and uses notes for swaps whenever possible.
 
 Over 30 simulated students (different random seeds):
 
-- Everything is collected in **47–64 days, median about 54 days (~7.7 weeks)**.
-- The first purchase happens in the first session.
-- After one week most of the avatar shop and most stickers are still to win.
-- On average there is at least one purchase every study session.
+- Everything is collected in **29–35 days, median about 31 days (~4.5 weeks)**.
+- About 10 purchases happen in the very first session.
+- After one week most of the avatar shop and a good number of stickers are still to win.
+- On average there are several purchases every study session.
