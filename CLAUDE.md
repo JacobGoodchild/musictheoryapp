@@ -324,7 +324,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
   - review mistakes, a tricky set (key signatures, clefs, transposition) and a daily challenge
   - a mastery map, and listening practice (clearly labelled as a bonus)
   - all five real-exam answer types: multiple choice, tick/cross, drag a notehead with accidentals onto the stave, number entry, and drop-downs
-- **Mock exams:** 15 fixed papers plus "generate a new mock". Each has 7 sections and 75 marks (10/10/15/10/10/10/10) with a 2-hour countdown, a question navigator, flags and resume after a reload. Results show the band, section scores and a full review with explanations, and past mocks are kept in a history.
+- **Mock exams:** 20 fixed papers plus "generate a new mock". Each has 7 sections and 75 marks (10/10/15/10/10/10/10) with a 2-hour countdown, a question navigator, flags and resume after a reload. Results show the band, section scores and a full review with explanations, and past mocks are kept in a history.
 - **Memorise:** an interactive circle of fifths (in all four clefs), 7 flashcard decks with spaced repetition (the Grade 5 set can be drilled on its own), beat the clock, and matching pairs.
 - **Rewards:**
   - coins for real learning, with less for repeating the same question
@@ -337,7 +337,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 
 ## How the content was checked (numbers)
 - **Music logic** (`src/theory/`): hand-written reference tables for all 26 keys (scales, key signatures, relative keys, degrees, chromatic scales, key-signature positions in all four clefs). It was also cross-checked against the `tonal` library: 52 scales, 26 key signatures, over 5,000 intervals, over 8,000 transpositions, 104 triads and every MIDI number agree.
-- **Question bank:** 2,406 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 15 mocks.
+- **Question bank:** 2,707 questions in `data/questions/` (538 in the tricky set). Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 20 mocks.
 - **Engraving:** every stave (about 4,100: the whole bank, all options, all placed answers, all mocks, all lessons) is drawn and read back. The check covers the clef, key signature positions, each notehead's line or space, accidentals, rests, ornaments, nothing clipped and no overlaps. All are clean, and screenshots were looked at by eye.
 - **Tests:** 52 Node unit tests and 29 Playwright browser tests, all green, run in CI before every deploy. The browser tests cover:
   - every screen loads with no console errors, no outside requests and no stray "null" text
@@ -347,10 +347,11 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
   - the offline mode
   - blind-bag odds (200,000 openings) and the pity rule
   - economy pacing (30 simulated students: median about 54 days to collect everything)
-- **Independent reviews** (subagents that didn't write the content), 3 passes:
+- **Independent reviews** (subagents that didn't write the content), 4 passes:
   - Review 1 (bank): 6 errors and 14 warnings, all fixed.
   - Review 2 (lessons): 4 errors and 17 warnings; all errors and most warnings fixed.
   - Review 3 (whole bank and all mocks re-checked by script, 182 by hand): no wrong answers; 1 ambiguous statement and 12 warnings, the ambiguity and most warnings fixed.
+  - Review 4 (new grand-stave chords and piano extracts, ~1,400 questions by script): no wrong answers, no ambiguities; 6 style warnings, all fixed.
 - **Bugs I caught myself:**
   - bass notes losing their octave (`.map(toString)`)
   - wide staves clipped inside answer cards
@@ -364,16 +365,17 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - **Term meanings** follow ABRSM style, but only about 15 are confirmed word for word from ABRSM model answers (the official list gives terms without meanings). The term list itself is the official 2020 one.
 - **Grade 2 signs:** ABRSM's spec lists 8 and another ABRSM document says 9; the ninth is unidentified.
 - **Compound intervals** are named "compound major 3rd" by default (the lessons also teach "major 10th"); I'm not sure which style ABRSM's online multiple choice uses.
-- **Chord questions** use close, single-stave voicings, not four-part grand-stave voicings like some ABRSM papers.
+- **Chord questions** now use both close single-stave chords and four-part grand-stave chords (added on Monday); worth a teacher's glance at the voicing style.
 - **Cadence chord questions** accept every valid chord pair, rather than one fixed answer.
 - **Not finished from review 2:** a worked music-in-context example on the extract shown in that lesson, and chords with doubled notes.
 
 ## Top 5 things to improve next
-1. Four-part (grand stave) chord and cadence examples and questions, closer to real paper layout.
-2. More music-in-context extracts in piano style (two staves, with left-hand chords) and more varied questions about them.
-3. Have a human teacher check the term meanings and the rest-grouping conventions, then add irregular-time rest questions if they're confirmed.
-4. More fixed mocks (aim for 15–20) and a larger tricky set for alto/tenor key signatures and transposing without a key signature.
-5. A mobile-friendly layout pass for the drag-a-note stave (it works with touch, but small screens need bigger hit areas).
+Done on Monday from the original list: four-part grand-stave chords and cadences, piano-style context extracts, 20 fixed mocks, a bigger tricky set, and a phone layout pass. Next:
+1. Have a human teacher check the term meanings and the rest-grouping conventions, then add irregular-time rest questions if they're confirmed.
+2. Longer piano extracts (8 bars, with a mid-phrase imperfect cadence) and questions that mark two notes across the hands.
+3. "Choose the chords" cadence questions written on a grand stave with the melody in the top part.
+4. A second audio voice (e.g. strings) for listening practice, so cadences sound less piano-only.
+5. Another fresh review pass over a random 150-question sample of the whole bank.
 - 07:20 Fixed mocks increased from 10 to 15 (all pass the marks, validation and engraving checks).
 - Music-in-context extract melodies capped to about a 10th above the tonic (worked example revealed an F6 in treble); added a worked context example computed from the lesson's extract.
 - 07:45 Review pass 3 (bank re-check, fresh subagent, scripts over all 2,412 questions + 945 mock questions, 182 by hand): no wrong answers; 1 ambiguity (simple time vs 5/4), 12 warnings, 11 nits. Ambiguity and most warnings fixed (docs/review-3.md); a wording-guard unit test now covers them. Bank: 2,406 questions.
@@ -384,3 +386,4 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - 12:10 Tricky set 348 → 538: new 'place the tonic of this key signature' (any octave, alto/tenor mostly) and 'write the note marked X transposed, on a stave with the new key signature' questions, plus an extra tricky-only pass in the bank builder. Bank 2,707.
 - 12:25 Phone layout: no sideways scrolling on any screen at 390px (grid columns use minmax(0,1fr) and min(Npx,100%)), lesson tables wrap, and the drag-a-note stave doubles in size on small/touch screens (tap position uses the SVG screen matrix, so scaling is safe).
 - 12:45 Review 4 (fresh subagent; 140 grand-stave chord questions, 150 piano sets): 0 errors, 0 ambiguities, 6 style warnings, all fixed (parallels, leaps, augmented 2nds, IIa in minor, clashing long notes, interval question coverage) plus 3 nits; style guard test added (docs/review-4.md).
+- 12:55 Fixed mocks 15 → 20 (all pass marks, validation and engraving checks). Morning summary updated with Monday's work.
