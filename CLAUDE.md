@@ -375,3 +375,4 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 4. More fixed mocks (aim for 15–20) and a larger tricky set for alto/tenor key signatures and transposing without a key signature.
 5. A mobile-friendly layout pass for the drag-a-note stave (it works with touch, but small screens need bigger hit areas).
 - 07:20 Fixed mocks increased from 10 to 15 (all pass the marks, validation and engraving checks).
+- Music-in-context extract melodies capped to about a 10th above the tonic (worked example revealed an F6 in treble); added a worked context example computed from the lesson's extract.

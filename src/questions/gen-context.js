@@ -54,7 +54,8 @@ export function buildExtract(r, diff) {
       notes = buildBar(r, ts).notes;
       for (const n of notes) {
         if (n.rest) continue;
-        idx = Math.max(0, Math.min(sc.length - 2, idx + r.pick([-1, 1, 1, -1, 2, -2, 0])));
+        // Keep the tune within about a 10th of the tonic so it sits on the stave.
+        idx = Math.max(0, Math.min(9, idx + r.pick([-1, 1, 1, -1, 2, -2, 0])));
         n.keys = toString(sc[idx]);
       }
       if (b === nBars - 2) {

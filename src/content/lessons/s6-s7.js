@@ -5,6 +5,11 @@ import { key } from '../../theory/keys.js';
 import { parse } from '../../theory/pitch.js';
 import { buildExtract } from '../../questions/gen-context.js';
 import { rng } from '../../questions/util.js';
+import { keyName as kName, relative as rel } from '../../theory/keys.js';
+import { classifyTime } from '../../theory/rhythm.js';
+import { between, intervalName } from '../../theory/interval.js';
+import { triad as tr, chordLabel } from '../../theory/chords.js';
+import { parse as ps, name as nm, midi as md } from '../../theory/pitch.js';
 
 const termRows = (filter) => TERMS.filter(filter).map((t) => [`**${t.term}**`, t.meaning]);
 const C = key('C');
@@ -13,6 +18,14 @@ const ornRow = (id) => ({
   caption: `**${id}**: sign (bar 1) and how it is played (bar 2)`,
 });
 const extract = buildExtract(rng(424242), 2);
+// Facts about the extract, all computed from its data.
+const ex = (() => {
+  const notes = extract.measures.flatMap((m, b) => m.notes.filter((x) => !x.rest).map((x) => ({ p: ps(x.keys), bar: b + 1 })));
+  const hi = notes.reduce((a, b) => (md(b.p) > md(a.p) ? b : a));
+  let iv = null;
+  if (extract.xNote) { const a = ps(extract.xNote.keys), c = ps(extract.yNote.keys); const [lo, up] = md(a) <= md(c) ? [a, c] : [c, a]; iv = { a, c, name: intervalName(between(lo, up)) }; }
+  return { hi, iv, time: classifyTime(extract.ts).label, chord: chordLabel(extract.chordDeg, 'a'), chordNotes: tr(extract.k, extract.chordDeg).map((p) => nm(p)).join(', ') };
+})();
 
 export const TERMS_LESSONS = [
   {
@@ -95,6 +108,14 @@ export const CONTEXT_LESSONS = [
     blocks: [
       { type: 'intro', text: 'The last section shows a short piece of music and asks questions that combine everything: keys, intervals, chords, rhythm, terms, ornaments and instruments.' },
       { type: 'music', music: extract.music, caption: 'A practice extract (original music, made for this app).' },
+      { type: 'worked', title: 'Using the method on this extract', steps: [
+        { text: `**Key**: the key signature means ${kName(extract.k)} or ${kName(rel(extract.k))}. ${extract.k.mode === 'minor' ? `The ${nm(extract.sc[6])} accidental is the raised leading note, and the music ends on ${nm(extract.sc[7])}: **${kName(extract.k)}**.` : `There is no raised leading note for the minor key, and it ends on ${nm(extract.sc[7])}: **${kName(extract.k)}**.`}` },
+        { text: `**Time**: ${extract.ts} is ${ex.time}.` },
+        { text: `**Terms**: "${extract.measures[0].notes[0].text}" at the start means "${extract.tempo.meaning}". The ornament in bar ${extract.ornBar + 1} is a${/^[aeiou]/.test(extract.orn) ? 'n' : ''} ${extract.orn}.` },
+        ...(ex.iv ? [{ text: `**Interval X–Y** (bar ${extract.ivBar + 1}): with the key signature the notes are ${nm(ex.iv.a)} and ${nm(ex.iv.c)}: a **${ex.iv.name}**.` }] : []),
+        { text: `**Chord**: bar ${extract.arpBar + 1} uses only ${ex.chordNotes}, so it outlines chord **${ex.chord}**.` },
+        { text: `**Highest note**: ${nm(ex.hi.p, true)}, first in bar ${ex.hi.bar}.` },
+      ] },
       { type: 'worked', title: 'A method that works', steps: [
         { text: '**Key**: read the key signature, then look for a raised leading note to decide major or relative minor. Check the last note.' },
         { text: '**Time signature**: is it simple, compound or irregular? How many beats?' },
