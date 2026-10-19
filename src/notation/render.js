@@ -112,6 +112,7 @@ function beamGroupsFor(VF, time, override) {
  *         label (text under the note), color, showAcc: [bool], grace: [keys] }
  */
 export async function renderMusic(container, spec) {
+  if (spec.grand) return renderGrand(container, spec);
   const VF = await notationReady();
   const s = normaliseSpec(spec);
   const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Beam, Dot, Tuplet, StaveTie, Articulation, Ornament, Annotation, GraceNote, GraceNoteGroup } = VF;
@@ -390,4 +391,114 @@ export function inkBounds(svg) {
     grow(x - m.actualBoundingBoxLeft, x + m.actualBoundingBoxRight, y - m.actualBoundingBoxAscent, y + m.actualBoundingBoxDescent);
   }
   return b;
+}
+
+/**
+ * Grand stave (treble + bass joined by a brace), one line of music, as used for
+ * chords, cadences and piano-style examples. spec: { grand: true, key, time,
+ * upper: [{notes}], lower: [{notes}], scale } — upper and lower have the same
+ * number of bars and matching rhythms per bar.
+ */
+export async function renderGrand(container, spec) {
+  const VF = await notationReady();
+  const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Dot, StaveConnector, Beam } = VF;
+  const fifths = keyFifths(spec.key);
+  const scale = spec.scale || 1.15;
+  const parts = [{ clef: spec.upperClef || 'treble', measures: spec.upper, mOffset: 0 }, { clef: spec.lowerClef || 'bass', measures: spec.lower, mOffset: 100 }];
+  container.textContent = '';
+  container.classList.add('stave');
+  const renderer = new Renderer(container, Renderer.Backends.SVG);
+  const ctx = renderer.getContext();
+  const acc = {};
+  const built = parts.map((part) => {
+    const map = autoAccidentals(part.measures, fifths);
+    return part.measures.map((m, mi) => m.notes.map((n, ni) => {
+      const dur = VEX_DUR[n.dur || 'w'] || n.dur;
+      const keys = n.rest ? [REST_KEY[part.clef]] : toKeys(n).map(vexKey);
+      const sn = new StaveNote({ keys, duration: dur + (n.rest ? 'r' : ''), clef: part.clef, dots: n.dots || 0, autoStem: true, auto_stem: true });
+      if (n.stem === 'up') sn.setStemDirection(1);
+      if (n.stem === 'down') sn.setStemDirection(-1);
+      if (n.dots) Dot.buildAndAttach([sn], { all: true });
+      if (!n.rest) toKeys(n).forEach((p, ki) => { if (map[mi][ni][ki]) sn.addModifier(new Accidental(vexAcc(p.acc)), ki); });
+      if (n.color) sn.setStyle({ fillStyle: n.color, strokeStyle: n.color });
+      const m = mi + part.mOffset;
+      sn.setAttribute?.('id', `n${m}-${ni}`);
+      sn.__spec = n; sn.__m = m; sn.__n = ni; sn.__clef = part.clef;
+      (acc[m] = acc[m] || [])[ni] = map[mi][ni];
+      return sn;
+    }));
+  });
+  const nBars = spec.upper.length;
+  const x0 = 10;
+  const yTop = 30, gap = 110;
+  // Bar widths from the busier staff.
+  const widths = Array.from({ length: nBars }, (_, mi) => Math.max(110, Math.max(built[0][mi].length, built[1][mi].length) * (spec.noteWidth || 62) + 30));
+  const top = [], bot = [];
+  let x = x0;
+  for (let mi = 0; mi < nBars; mi++) {
+    const t = new Stave(x, yTop, 100), b = new Stave(x, yTop + gap, 100);
+    if (mi === 0) {
+      t.addClef(parts[0].clef); b.addClef(parts[1].clef);
+      if (fifths) { t.addKeySignature(vexKeySigName(fifths)); b.addKeySignature(vexKeySigName(fifths)); }
+      if (spec.time) { t.addTimeSignature(spec.time); b.addTimeSignature(spec.time); }
+    }
+    const mod = Math.max(t.getNoteStartX(), b.getNoteStartX()) - x;
+    t.setNoteStartX(x + mod); b.setNoteStartX(x + mod);
+    t.setWidth(mod + widths[mi]); b.setWidth(mod + widths[mi]);
+    if (mi === nBars - 1) { t.setEndBarType(spec.free ? VF.Barline.type.SINGLE : VF.Barline.type.END); b.setEndBarType(spec.free ? VF.Barline.type.SINGLE : VF.Barline.type.END); }
+    if (spec.free && mi < nBars - 1) { t.setEndBarType(VF.Barline.type.NONE); b.setEndBarType(VF.Barline.type.NONE); }
+    if (mi > 0) { t.setBegBarType(VF.Barline.type.NONE); b.setBegBarType(VF.Barline.type.NONE); }
+    top.push({ st: t, w: widths[mi] }); bot.push({ st: b, w: widths[mi] });
+    x += mod + widths[mi];
+  }
+  const totalW = x + 10;
+  const height = yTop + gap + 120;
+  renderer.resize(totalW * scale, height * scale);
+  ctx.scale(scale, scale);
+  top.forEach((o) => o.st.setContext(ctx).draw());
+  bot.forEach((o) => o.st.setContext(ctx).draw());
+  new StaveConnector(top[0].st, bot[0].st).setType(StaveConnector.type.BRACE).setContext(ctx).draw();
+  new StaveConnector(top[0].st, bot[0].st).setType(StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw();
+  const lastT = top[nBars - 1].st, lastB = bot[nBars - 1].st;
+  new StaveConnector(lastT, lastB).setType(spec.free ? StaveConnector.type.SINGLE_RIGHT : StaveConnector.type.BOLD_DOUBLE_RIGHT).setContext(ctx).draw();
+  const beams = [];
+  for (let mi = 0; mi < nBars; mi++) {
+    const vt = new Voice({ numBeats: 4, beatValue: 4, num_beats: 4, beat_value: 4 }).setMode(Voice.Mode.SOFT).addTickables(built[0][mi]);
+    const vb = new Voice({ numBeats: 4, beatValue: 4, num_beats: 4, beat_value: 4 }).setMode(Voice.Mode.SOFT).addTickables(built[1][mi]);
+    if (spec.time && !spec.free) for (const list of [built[0][mi], built[1][mi]]) beams.push(...Beam.generateBeams(list, { groups: beamGroupsFor(VF, spec.time, null) }));
+    new Formatter().joinVoices([vt]).joinVoices([vb]).format([vt, vb], widths[mi] - 24);
+    vt.draw(ctx, top[mi].st); vb.draw(ctx, bot[mi].st);
+  }
+  beams.forEach((bm) => bm.setContext(ctx).draw());
+  const svgEl = container.querySelector('svg');
+  svgEl.setAttribute('role', 'img');
+  if (spec.ariaLabel) svgEl.setAttribute('aria-label', spec.ariaLabel);
+  let vb2 = [0, 0, totalW, height];
+  if (spec.fit !== false) {
+    const bb = inkBounds(svgEl);
+    const vy = Math.floor(Math.min(bb.top - 6, top[0].st.getYForLine(0) - 14));
+    const bottom = Math.ceil(Math.max(bb.bottom + 6, bot[0].st.getYForLine(4) + 14));
+    const vx = Math.floor(Math.min(0, bb.left - 4));
+    const vw = Math.ceil(Math.max(totalW, bb.right + 4)) - vx;
+    vb2 = [vx, vy, vw, bottom - vy];
+    svgEl.setAttribute('viewBox', vb2.join(' '));
+    svgEl.setAttribute('width', vw * scale); svgEl.setAttribute('height', vb2[3] * scale);
+    svgEl.style.width = `${vw * scale}px`; svgEl.style.height = `${vb2[3] * scale}px`;
+  }
+  const t0 = top[0].st, b0 = bot[0].st;
+  const geometry = {
+    scale, topLineY: t0.getYForLine(0), bottomLineY: t0.getYForLine(4), spacing: t0.getSpacingBetweenLines(),
+    noteStartX: t0.getNoteStartX(), width: vb2[2], height: vb2[3], viewBox: vb2,
+    lines: [{ topLineY: t0.getYForLine(0), bottomLineY: t0.getYForLine(4), clef: parts[0].clef }, { topLineY: b0.getYForLine(0), bottomLineY: b0.getYForLine(4), clef: parts[1].clef }],
+  };
+  geometry.yForPos = (pos) => geometry.bottomLineY - pos * geometry.spacing / 2;
+  geometry.posForY = (y) => Math.round((geometry.bottomLineY - y) / (geometry.spacing / 2));
+  const all = [...built[0].flat(), ...built[1].flat()];
+  const info = {
+    clef: parts[0].clef, fifths, time: spec.time || null, geometry, svg: svgEl, grand: true,
+    notes: all.map((n) => ({ spec: n.__spec, m: n.__m, n: n.__n, line: n.__m >= 100 ? 1 : 0, x: n.getAbsoluteX(), positions: n.__spec.rest ? [] : toKeys(n.__spec).map((p) => staffPos(p, n.__clef)) })),
+    accidentals: acc,
+  };
+  container.__music = info;
+  return info;
 }

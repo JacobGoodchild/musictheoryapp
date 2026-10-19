@@ -78,6 +78,15 @@ export function musicalCheck(q) {
       exactlyOne([chordLabel(id.degree, id.inversion, { showA: true })], 'chord');
       break;
     }
+    case 'cadence-name': {
+      const k = keyFromFifths(c.fifths, c.mode);
+      const ids = c.chords.map((ch) => identifyChord(k, ch.map(parse)));
+      if (ids.some((x) => !x)) { p.push('cadence chord not identifiable'); break; }
+      const t = cadenceType(ids[0].degree, ids[1].degree);
+      if (!t) { p.push('chords do not form a cadence'); break; }
+      exactlyOne([`${t} cadence`], 'cadence');
+      break;
+    }
     case 'term': {
       const right = q.options[q.answer].label;
       q.options.forEach((o, i) => { if (i !== q.answer && meaningsClash(o.label, right)) p.push(`term options clash: "${o.label}" vs "${right}"`); });

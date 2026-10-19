@@ -1,7 +1,7 @@
 // Section 5: Chords and cadences.
 import { parse, name, toString, staffPos, pitch } from '../theory/pitch.js';
 import { GRADE5_KEYS, keyName, keyScale, key, ROMAN, DEGREE_NAMES } from '../theory/keys.js';
-import { triad, voiceChord, chordLabel, cadenceType, chordContains, cadenceOptions, triadQuality, INVERSION_NAMES } from '../theory/chords.js';
+import { triad, voiceChord, voiceFourPart, chordLabel, cadenceType, chordContains, cadenceOptions, triadQuality, INVERSION_NAMES } from '../theory/chords.js';
 import { mcq, trueFalse } from './util.js';
 
 const SEC = 5;
@@ -28,12 +28,31 @@ function chordMusic(k, d, inv, clef, useSig = true) {
   return { clef, key: useSig ? k.fifths : null, free: true, notes: [{ keys: v.map((p) => toString(p)), dur: 'w' }], scale: 1.15 };
 }
 
+/** Chords on a grand stave (one bass note, three upper notes), as on many real papers. */
+export function grandMusic(k, chords, scale = 1.05) {
+  const vs = [];
+  for (const [d, inv] of chords) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1].upper : null));
+  const dur = chords.length > 1 ? 'h' : 'w';
+  return {
+    voicings: vs,
+    music: {
+      grand: true, key: k.fifths, free: true, scale, noteWidth: 70,
+      upper: [{ notes: vs.map((v) => ({ keys: v.upper.map((p) => toString(p)), dur })) }],
+      lower: [{ notes: vs.map((v) => ({ keys: [toString(v.bass)], dur })) }],
+    },
+  };
+}
+const allNotes = (v) => [v.bass, ...v.upper].map((p) => toString(p));
+
 export function genChordIdentify(r, diff) {
   const k = r.pick(keysFor(diff));
   const d = r.pick(DEGS);
   const inv = diff === 1 ? r.pick(['a', 'a', 'b']) : r.pick(INVS);
-  const clef = r.pick(diff === 1 ? ['treble', 'bass'] : ['treble', 'bass', 'treble', 'bass', 'alto', 'tenor']);
+  const clef = r.pick(diff === 1 ? ['treble', 'bass', 'grand'] : ['treble', 'bass', 'grand', 'treble', 'bass', 'grand', 'alto', 'tenor']);
   const correct = chordLabel(d, inv, { showA: true });
+  const g = clef === 'grand' ? grandMusic(k, [[d, inv]], 1.1) : null;
+  const music = g ? g.music : chordMusic(k, d, inv, clef);
+  const keys = g ? allNotes(g.voicings[0]) : music.notes[0].keys;
   const tri = triad(k, d);
   const ds = [];
   for (const i2 of INVS) if (i2 !== inv) ds.push({ label: chordLabel(d, i2, { showA: true }), why: `${chordLabel(d, i2, { showA: true })} would have ${name(tri[INVS.indexOf(i2)])} in the bass.` });
@@ -47,10 +66,10 @@ export function genChordIdentify(r, diff) {
   return mcq(r, {
     section: SEC, topic: 'c-chords', difficulty: diff, sub: clef,
     prompt: `This chord is in ${keyName(k)}. Which chord is it?`,
-    check: { kind: 'chord', fifths: k.fifths, mode: k.mode, notes: chordMusic(k, d, inv, clef).notes[0].keys },
-    music: chordMusic(k, d, inv, clef),
-    listenAfter: { kind: 'chord', notes: chordMusic(k, d, inv, clef).notes[0].keys },
-    explanation: `In ${keyName(k)}, chord ${ROMAN[d - 1]} (on the ${DEGREE_NAMES[d - 1]}) is ${tri.map((p) => name(p)).join('–')}${k.mode === 'minor' && d === 5 ? ' (with the raised leading note)' : ''}. The lowest note is ${name(tri[INVS.indexOf(inv)])}, the ${['root', '3rd', '5th'][INVS.indexOf(inv)]}, so it is in ${INVERSION_NAMES[inv]}: ${correct}.`,
+    check: { kind: 'chord', fifths: k.fifths, mode: k.mode, notes: keys },
+    music,
+    listenAfter: { kind: 'chord', notes: keys },
+    explanation: `${g ? 'The chord is spread over two staves: read the lowest note on the bass stave first. ' : ''}In ${keyName(k)}, chord ${ROMAN[d - 1]} (on the ${DEGREE_NAMES[d - 1]}) is ${tri.map((p) => name(p)).join('–')}${k.mode === 'minor' && d === 5 ? ' (with the raised leading note)' : ''}. The lowest note is ${name(tri[INVS.indexOf(inv)])}, the ${['root', '3rd', '5th'][INVS.indexOf(inv)]}, so it is in ${INVERSION_NAMES[inv]}: ${correct}.`,
   }, { label: correct }, ds);
 }
 
@@ -111,15 +130,24 @@ export function genCadenceName(r, diff) {
   const pair = type === 'perfect' ? [5, 1] : type === 'plagal' ? [4, 1] : r.pick([[1, 5], [2, 5], [4, 5]]);
   // Perfect and plagal cadences use root-position chords; the first chord of an imperfect cadence may be inverted.
   const inv1 = type !== 'imperfect' ? 'a' : pair[0] === 1 && diff >= 2 && r.chance(0.3) ? 'c' : r.pick(['a', 'a', 'b']);
-  const v1 = fitChord(k, pair[0], inv1, 'bass');
-  const v2 = fitChord(k, pair[1], 'a', 'bass');
-  const music = { clef: 'bass', key: k.fifths, free: true, notes: [{ keys: v1.map((p) => toString(p)), dur: 'h' }, { keys: v2.map((p) => toString(p)), dur: 'h' }], scale: 1.2 };
+  // Mostly four-part chords on a grand stave (as on real papers), sometimes close chords on one stave.
+  let music, n1, n2;
+  if (r.chance(0.7)) {
+    const g = grandMusic(k, [[pair[0], inv1], [pair[1], 'a']]);
+    music = g.music; n1 = allNotes(g.voicings[0]); n2 = allNotes(g.voicings[1]);
+  } else {
+    const v1 = fitChord(k, pair[0], inv1, 'bass');
+    const v2 = fitChord(k, pair[1], 'a', 'bass');
+    n1 = v1.map((p) => toString(p)); n2 = v2.map((p) => toString(p));
+    music = { clef: 'bass', key: k.fifths, free: true, notes: [{ keys: n1, dur: 'h' }, { keys: n2, dur: 'h' }], scale: 1.2 };
+  }
   const why = { perfect: 'A perfect cadence is V–I.', plagal: 'A plagal cadence is IV–I.', imperfect: 'An imperfect cadence ends on V (for example I–V, II–V or IV–V).' };
   return mcq(r, {
     section: SEC, topic: 'c-cadences', difficulty: diff,
     prompt: `These two chords are in ${keyName(k)}. Name the cadence.`,
     music,
-    listenAfter: { kind: 'sequence', events: [{ notes: v1.map((p) => toString(p)), beats: 2 }, { notes: v2.map((p) => toString(p)), beats: 3 }], tempo: 70 },
+    check: { kind: 'cadence-name', fifths: k.fifths, mode: k.mode, chords: [n1, n2] },
+    listenAfter: { kind: 'sequence', events: [{ notes: n1, beats: 2 }, { notes: n2, beats: 3 }], tempo: 70 },
     explanation: `The chords are ${ROMAN[pair[0] - 1]} (${triad(k, pair[0]).map((p) => name(p)).join('–')}) then ${ROMAN[pair[1] - 1]} (${triad(k, pair[1]).map((p) => name(p)).join('–')}). ${why[type]}`,
   }, { label: `${type} cadence` }, ['perfect', 'plagal', 'imperfect'].filter((t) => t !== type).map((t) => ({ label: `${t} cadence`, why: why[t] })), 3);
 }

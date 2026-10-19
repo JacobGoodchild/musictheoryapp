@@ -113,3 +113,39 @@ export function chordNames(k, degree) {
 }
 
 export { pc };
+
+/**
+ * Four-part voicing for a grand stave: one bass note (bass clef) and three
+ * upper notes (treble clef), all four chord letters present between them.
+ * Doublings follow the usual habits: root position doubles the root, 1st
+ * inversion doubles the root or 5th (not the 3rd), 2nd inversion doubles the bass (5th).
+ * Pass the previous chord's upper notes as `near` for smooth voice leading.
+ */
+export function voiceFourPart(k, degree, inversion = 'a', near = null) {
+  const [r, t, f] = triad(k, degree);
+  const bassPc = { a: r, b: t, c: f }[inversion];
+  // 1st inversion: double the root or the 5th (never the 3rd), whichever sits lower.
+  const upperSets = inversion === 'b' ? [[r, f, r], [f, r, f]] : [[r, t, f]];
+  // Bass between G2 and B3.
+  let bass = { ...bassPc, octave: 2 };
+  while (midi(bass) < 43) bass = { ...bass, octave: bass.octave + 1 };
+  while (midi(bass) > 59) bass = { ...bass, octave: bass.octave - 1 };
+  // Upper voices in close position above middle C: try each rotation of the
+  // three notes and keep the one that sits lowest (but starts above C#4).
+  let out = null;
+  for (const upperPcs of upperSets) for (let rot = 0; rot < 3; rot++) {
+    const order = [...upperPcs.slice(rot), ...upperPcs.slice(0, rot)];
+    const cand = [];
+    let prev = 61;
+    for (const pc of order) {
+      let p = { ...pc, octave: 3 };
+      while (midi(p) <= prev) p = { ...p, octave: p.octave + 1 };
+      cand.push(p);
+      prev = midi(p);
+    }
+    // With `near` (the previous chord's upper notes), move as little as possible.
+    const score = (c) => (near ? c.reduce((a, p, i) => a + Math.abs(midi(p) - midi(near[i])), 0) : midi(c[2]));
+    if (cand.every((p, i) => i === 0 || midi(p) > midi(cand[i - 1])) && midi(cand[2]) <= 80 && (!out || score(cand) < score(out))) out = cand;
+  }
+  return { bass, upper: out };
+}

@@ -36,25 +36,29 @@ export function checkEngraving(container) {
     if (!lineGeo.some((lg) => Math.abs(ys[4] - lg.bottomLineY) <= 1 && Math.abs(ys[0] - lg.topLineY) <= 1)) problems.push('stave line geometry mismatch');
   }
   const posOnLine = (y, li) => (lineGeo[li].bottomLineY - y) / half;
+  const clefOf = (li) => lineGeo[li]?.clef || info.clef;
   const lineOfY = (y) => { let best = 0; lineGeo.forEach((lg, i) => { if (Math.abs((lg.topLineY + lg.bottomLineY) / 2 - y) < Math.abs((lineGeo[best].topLineY + lineGeo[best].bottomLineY) / 2 - y)) best = i; }); return best; };
 
   // Clef.
   for (const clefText of svg.querySelectorAll('g.vf-clef text')) {
-    if (cp(clefText) !== CLEF_GLYPH[info.clef]) problems.push(`wrong clef glyph for ${info.clef}`);
     const y = num(clefText, 'y');
-    const p = posOnLine(y, lineOfY(y));
-    if (Math.abs(p - CLEF_POS[info.clef]) > 0.1) problems.push(`${info.clef} clef sits on position ${p}, expected ${CLEF_POS[info.clef]}`);
+    const li = lineOfY(y);
+    const clef = clefOf(li);
+    if (cp(clefText) !== CLEF_GLYPH[clef]) problems.push(`wrong clef glyph for ${clef}`);
+    const p = posOnLine(y, li);
+    if (Math.abs(p - CLEF_POS[clef]) > 0.1) problems.push(`${clef} clef sits on position ${p}, expected ${CLEF_POS[clef]}`);
   }
 
   // Key signature.
   if (info.fifths) {
     const k = keyFromFifths(info.fifths, 'major');
-    const expected = signaturePositions(k, info.clef);
     const want = info.fifths > 0 ? 1 : -1;
     const groupsK = [...svg.querySelectorAll('g.vf-keysignature')];
     if (groupsK.length !== lineGeo.length) problems.push(`expected a key signature on each of ${lineGeo.length} lines, found ${groupsK.length}`);
     for (const gk of groupsK) {
       const texts = [...gk.querySelectorAll('text')];
+      const li0 = texts.length ? lineOfY(num(texts[0], 'y')) : 0;
+      const expected = signaturePositions(k, clefOf(li0));
       if (texts.length !== expected.length) problems.push(`key signature has ${texts.length} symbols, expected ${expected.length}`);
       const li = texts.length ? lineOfY(num(texts[0], 'y')) : 0;
       texts.forEach((t, i) => {
