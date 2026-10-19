@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { TOPICS, generate } from '../src/questions/topics.js';
-import { genContext } from '../src/questions/gen-context.js';
+import { genContext, genPianoContext } from '../src/questions/gen-context.js';
 import { rng } from '../src/questions/util.js';
 import { validateQuestion } from '../src/questions/validate.js';
 import { buildFixedMocks } from '../src/questions/mock-builder.js';
@@ -46,11 +46,12 @@ for (const t of TOPICS) {
 
 // Music in context: whole sets (one extract, several questions), stored by set.
 let ctxCount = 0;
-for (let i = 0; ctxCount < 260; i++) {
+for (let i = 0; ctxCount < 340; i++) {
   const r = rng(90000 + i);
   const diff = [1, 2, 3, 2][i % 4];
   let set;
-  try { set = genContext(r, diff, { all: true }); } catch { continue; }
+  // Every third set is a piano extract (tune over left-hand chords).
+  try { set = (i % 3 === 2 ? genPianoContext : genContext)(r, diff, { all: true }); } catch { continue; }
   set.forEach((q, j) => {
     q.id = `x-context-${String(i + 1).padStart(3, '0')}-${j + 1}`;
     q.topic = 'x-context';

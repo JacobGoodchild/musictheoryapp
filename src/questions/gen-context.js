@@ -3,7 +3,8 @@
 import { parse, name, toString, staffPos, midi, wordName } from '../theory/pitch.js';
 import { GRADE5_KEYS, keyName, scale, relative, keyScale, DEGREE_NAMES, signature, signatureMap } from '../theory/keys.js';
 import { between, intervalName } from '../theory/interval.js';
-import { triad, chordLabel } from '../theory/chords.js';
+import { triad, chordLabel, cadenceType, identifyChord, INVERSION_NAMES } from '../theory/chords.js';
+import { fitChord } from './gen-chords.js';
 import { toConcert, INSTRUMENT_KEYS } from '../theory/transpose.js';
 import * as R from '../theory/rhythm.js';
 import { TERMS, meaningsClash } from '../content/terms.js';
@@ -221,8 +222,183 @@ export function genContext(r, diff, { all = false } = {}) {
   return all ? built : r.pick(built);
 }
 
+// ---- Piano extracts: tune in the right hand, block chords in the left -------
+
+const WHOLE_BAR = { '2/4': ['h', 0], '3/4': ['h', 1], '4/4': ['w', 0], '6/8': ['h', 1] };
+const sameNote = (a, b) => a.letter === b.letter && a.acc === b.acc;
+
+/**
+ * A four-bar piano extract. Each bar has one left-hand chord (I, II, IV or V in
+ * any position, chosen so the phrase makes sense) and a right-hand tune whose
+ * first note in each bar belongs to that bar's chord. Ends with a perfect or
+ * plagal cadence in bars 3–4.
+ */
+export function buildPianoExtract(r, diff) {
+  const k = r.pick(GRADE5_KEYS.filter((x) => (diff === 1 ? Math.abs(x.fifths) <= 2 : diff === 2 ? Math.abs(x.fifths) <= 4 : true)));
+  const ts = r.pick(diff === 1 ? ['2/4', '3/4', '4/4'] : ['2/4', '3/4', '4/4', '6/8']);
+  // Minor keys always use V so the raised leading note appears.
+  const bar3 = k.mode === 'minor' || r.chance(0.7) ? [5, 'a'] : [4, 'a'];
+  const bar2 = bar3[0] === 5 ? r.pick([[4, 'a'], [4, 'b'], [2, 'b'], [2, 'a'], [1, 'c']]) : [1, 'b'];
+  const prog = [[1, 'a'], bar2, bar3, [1, 'a']];
+  const type = k.mode === 'major' ? 'major' : 'harmonic';
+  // Scale over three octaves; the tune only uses notes from D4 to G5 so it sits on the treble stave.
+  const sc = [3, 4, 5].flatMap((o) => scale(parse(k.tonic + o), type).slice(0, 7));
+  const ok = (i) => i >= 0 && i < sc.length && midi(sc[i]) >= 62 && midi(sc[i]) <= 79;
+  // Final tonic: one with the leading note and submediant below it also in range.
+  const T = sc.map((p, i) => i).filter((i) => i % 7 === 0 && ok(i) && ok(i - 2)).pop();
+  const [wd, wdots] = WHOLE_BAR[ts];
+  const lower = prog.map(([d, inv]) => ({ notes: [{ keys: fitChord(k, d, inv, 'bass').map((p) => toString(p)), dur: wd, dots: wdots }] }));
+  const upper = [];
+  let idx = r.pick([T - 7, T - 5, T - 3, T].filter(ok));
+  prog.forEach(([d], b) => {
+    const tri = triad(k, d);
+    const chordIdx = sc.map((p, i) => (tri.some((t) => sameNote(t, p)) && ok(i) ? i : -1)).filter((i) => i >= 0);
+    const nearest = (from) => chordIdx.reduce((a, c) => (Math.abs(c - from) < Math.abs(a - from) ? c : a));
+    if (b === 3) { upper.push({ notes: [{ keys: toString(sc[T]), dur: wd, dots: wdots }] }); return; }
+    let notes;
+    for (let t = 0; t < 20; t++) { notes = buildBar(r, ts).notes; if (notes.length >= 2 && notes.length <= 6) break; }
+    notes.forEach((n, i) => {
+      if (i === 0) idx = nearest(idx + r.pick([-1, 0, 1]));
+      else { const next = idx + r.pick([-1, 1, 1, -1, 2, -2]); if (ok(next)) idx = next; else if (ok(idx - (next - idx))) idx -= next - idx; }
+      n.keys = toString(sc[idx]);
+      delete n.beam;
+    });
+    // Lead into the cadence: the last note of bar 3 belongs to its chord and sits just below the final tonic.
+    if (b === 2) {
+      idx = bar3[0] === 5 ? T - 1 : T - 2; // leading note (in V) or submediant (in IV)
+      notes[notes.length - 1].keys = toString(sc[idx]);
+    }
+    upper.push({ notes });
+  });
+  upper[0].notes[0].text = shownTerm(r.pick(TEMPO_TERMS).term);
+  const tempoText = upper[0].notes[0].text;
+  const tempo = TEMPO_TERMS.find((t) => shownTerm(t.term) === tempoText);
+  const art = r.pick(['staccato', 'accent', 'tenuto']);
+  const artBar = r.int(0, 2);
+  upper[artBar].notes.slice(-2).forEach((n) => { n.art = [art]; });
+  // An ornament on a right-hand note away from the articulation.
+  const orn = r.pick(['trill', 'turn', 'upper mordent', 'lower mordent']);
+  const ornBar = [0, 1, 2].find((b) => b !== artBar && upper[b].notes.length >= 2 && !upper[b].notes[0].text);
+  if (ornBar !== undefined) upper[ornBar].notes[0].orn = orn;
+  const music = { grand: true, key: k.fifths, time: ts, upper, lower, scale: 0.95, noteWidth: 52 };
+  return { k, ts, prog, upper, lower, tempo, art, artBar, orn, ornBar: ornBar ?? -1, sc, music };
+}
+
+export function genPianoContext(r, diff, { all = false } = {}) {
+  const ex = buildPianoExtract(r, diff);
+  const base = { section: SEC, topic: 'x-context', difficulty: diff, music: ex.music, contextId: `ctx-${Math.floor(r() * 1e9)}` };
+  const intro = 'Look at this piano extract, then answer the question.';
+  const qs = [];
+  const rh = ex.upper.flatMap((m, b) => m.notes.map((n) => ({ ...n, bar: b + 1, p: parse(n.keys) })));
+  const lhKeys = (b) => ex.lower[b].notes[0].keys;
+  const chordQ = (b) => {
+    const [d, inv] = ex.prog[b];
+    const keys = lhKeys(b);
+    const right = chordLabel(d, inv, { showA: true });
+    const ds = [];
+    for (const i2 of ['a', 'b', 'c']) if (i2 !== inv) ds.push({ label: chordLabel(d, i2, { showA: true }) });
+    for (const d2 of [1, 2, 4, 5]) if (d2 !== d) ds.push({ label: chordLabel(d2, inv, { showA: true }) });
+    const tri = triad(ex.k, d);
+    return mcq(r, { ...base, check: { kind: 'chord', fifths: ex.k.fifths, mode: ex.k.mode, notes: keys }, listenAfter: { kind: 'chord', notes: keys },
+      prompt: `${intro}\nName the chord played by the left hand in bar ${b + 1}. Use I, II, IV or V, with a, b or c for the position.`,
+      explanation: `The left hand plays ${keys.map((x) => name(parse(x))).join(', ')} (lowest first). In ${keyName(ex.k)} these are the notes of chord ${ROMAN_OF(d)} (${tri.map((p) => name(p)).join('–')}). The lowest note is ${name(parse(keys[0]))}, the ${['root', '3rd', '5th'][['a', 'b', 'c'].indexOf(inv)]}, so it is ${INVERSION_NAMES[inv]}: ${right}.` },
+    { label: right }, ds);
+  };
+
+  // 1. Key
+  qs.push(() => mcq(r, { ...base, check: { kind: 'key', fifths: ex.k.fifths, mode: ex.k.mode }, prompt: `${intro}\nIn which key is this extract?`, explanation: `The key signature gives ${keyName(ex.k)} or ${keyName(relative(ex.k))}. ${ex.k.mode === 'minor' ? `The ${name(ex.sc[6])} is the raised leading note of ${keyName(ex.k)}` : 'There is no raised leading note for the relative minor'}, and both hands end on ${keyName(ex.k).split(' ')[0]} (chord I).` },
+    { label: keyName(ex.k) }, [{ label: keyName(relative(ex.k)) }, ...GRADE5_KEYS.filter((k2) => Math.abs(k2.fifths - ex.k.fifths) === 1).map((k2) => ({ label: keyName(k2) }))]));
+  // 2–3. Chords in bars 2 and 3
+  qs.push(() => chordQ(1));
+  qs.push(() => chordQ(2));
+  // 4. Cadence (only in the cadence keys of the syllabus: C, G, D, F major)
+  if (ex.k.mode === 'major' && ['C', 'G', 'D', 'F'].includes(ex.k.tonic)) {
+    qs.push(() => {
+      const t = cadenceType(ex.prog[2][0], ex.prog[3][0]);
+      const why = { perfect: 'A perfect cadence is V–I.', plagal: 'A plagal cadence is IV–I.', imperfect: 'An imperfect cadence ends on V.' };
+      return mcq(r, { ...base, check: { kind: 'cadence-name', fifths: ex.k.fifths, mode: ex.k.mode, chords: [lhKeys(2), lhKeys(3)] },
+        prompt: `${intro}\nThe left-hand chords in bars 3 and 4 form a cadence. Which one?`,
+        explanation: `Bar 3 is chord ${ROMAN_OF(ex.prog[2][0])} and bar 4 is chord I. ${why[t]}` },
+      { label: `${t} cadence` }, ['perfect', 'plagal', 'imperfect'].filter((x) => x !== t).map((x) => ({ label: `${x} cadence`, why: why[x] })), 3);
+    });
+  }
+  // 5. Interval between the hands at the start of a bar (often compound)
+  qs.push(() => {
+    const b = r.int(0, 3);
+    const lo = parse(lhKeys(b)[0]), hi = parse(ex.upper[b].notes[0].keys);
+    const iv = between(lo, hi);
+    if (!iv.valid || iv.number >= 15 || !qualitiesFor(iv.number).includes(iv.quality)) return null;
+    const ds = qualitiesFor(iv.number).filter((q) => q !== iv.quality).map((q) => ({ label: intervalName({ number: iv.number, quality: q }) }));
+    for (const n of [iv.number - 1, iv.number + 1, iv.number - 7]) if (n >= 2 && n <= 15) ds.push({ label: intervalName({ number: n, quality: qualitiesFor(n)[0] }) });
+    return mcq(r, { ...base, check: { kind: 'interval', low: toString(lo), high: toString(hi) }, listenAfter: { kind: 'interval', notes: [toString(lo), toString(hi)] },
+      prompt: `${intro}\nName the interval between the lowest left-hand note and the right-hand note at the start of bar ${b + 1}.`,
+      explanation: `The lowest left-hand note is ${name(lo, true)} and the right-hand note is ${name(hi, true)}. Count the letters from ${name(lo)} up to ${name(hi)} across both staves: ${intervalName(iv)}.` },
+    { label: intervalName(iv) }, ds);
+  });
+  // 6. Tempo term
+  if (ex.tempo) {
+    qs.push(() => mcq(r, { ...base, check: { kind: 'term' }, prompt: `${intro}\nWhat does "${shownTerm(ex.tempo.term)}" (at the start) mean?`, explanation: `${ex.tempo.term} means "${ex.tempo.meaning}".` },
+      { label: ex.tempo.meaning }, TERMS.filter((t) => !meaningsClash(t.meaning, ex.tempo.meaning)).map((t) => ({ label: t.meaning }))));
+  }
+  // 7. Time signature
+  qs.push(() => {
+    const label = R.classifyTime(ex.ts).label;
+    return mcq(r, { ...base, prompt: `${intro}\nDescribe the time signature.`, explanation: explainTime(ex.ts) },
+      { label }, ['simple duple', 'simple triple', 'simple quadruple', 'compound duple', 'compound triple', 'compound quadruple'].filter((l) => l !== label).map((l) => ({ label: l })));
+  });
+  // 8. Ornament
+  if (ex.ornBar >= 0) {
+    qs.push(() => mcq(r, { ...base, prompt: `${intro}\nWhat is the name of the ornament in bar ${ex.ornBar + 1}?`, explanation: `The sign in bar ${ex.ornBar + 1} is a${ex.orn.startsWith('u') ? 'n' : ''} ${ex.orn}.` },
+      { label: ex.orn }, ['trill', 'turn', 'upper mordent', 'lower mordent', 'appoggiatura', 'acciaccatura'].filter((o) => o !== ex.orn).map((o) => ({ label: o }))));
+  }
+  // 9. Count notes in the right hand
+  qs.push(() => {
+    const b = r.int(0, 2);
+    const n = ex.upper[b].notes.length;
+    return { ...base, type: 'number', prompt: `${intro}\nHow many notes does the right hand play in bar ${b + 1}?`, numbers: [{ answer: n }], explanation: `Bar ${b + 1} of the right hand has ${n} note${n === 1 ? '' : 's'}.` };
+  });
+  // 10. True/false
+  qs.push(() => {
+    const chordName = (b) => chordLabel(ex.prog[b][0], ex.prog[b][1], { showA: true });
+    const b1 = r.int(1, 2);
+    const wrongChord = r.pick([1, 2, 4, 5].filter((d) => d !== ex.prog[b1][0]));
+    const artWord = { staccato: 'staccato (detached)', accent: 'accented', tenuto: 'held (tenuto)' }[ex.art];
+    const otherArt = r.pick(['staccato (detached)', 'accented', 'held (tenuto)'].filter((w) => w !== artWord));
+    const lead = ex.sc[6];
+    const bassBar = r.int(0, 3);
+    const bassNote = parse(lhKeys(bassBar)[0]);
+    const otherBass = r.pick(ex.sc.slice(0, 7).filter((p) => !sameNote(p, bassNote)));
+    const anyInv = ex.prog.some(([, inv]) => inv !== 'a');
+    const st = [
+      r.chance(0.5) ? { text: `The left-hand chord in bar ${b1 + 1} is ${chordName(b1)}.`, answer: true } : { text: `The left-hand chord in bar ${b1 + 1} is ${ROMAN_OF(wrongChord)}${ex.prog[b1][1]}.`, answer: false },
+      r.chance(0.5) ? { text: `The lowest note in bar ${bassBar + 1} is ${name(bassNote)}.`, answer: true } : { text: `The lowest note in bar ${bassBar + 1} is ${name(otherBass)}.`, answer: false },
+      { text: 'Every left-hand chord is in root position.', answer: !anyInv },
+      r.chance(0.5) ? { text: `Some right-hand notes in bar ${ex.artBar + 1} are to be played ${artWord}.`, answer: true } : { text: `Some right-hand notes in bar ${ex.artBar + 1} are to be played ${otherArt}.`, answer: false },
+      { text: `The right hand plays the leading note (${name(lead)}).`, answer: rh.some((n) => sameNote(n.p, lead)) },
+      { text: 'The right hand contains a dotted note.', answer: rh.some((n) => n.dots) },
+      r.chance(0.5) ? { text: 'Both hands end on the tonic.', answer: true } : { text: `The right hand ends on the ${r.pick(['dominant', 'subdominant', 'mediant'])}.`, answer: false },
+    ];
+    return trueFalse(r, { ...base, prompt: `${intro}\nAre these statements true or false?`, explanation: `The left-hand chords are ${ex.prog.map((_, b) => chordName(b)).join(', ')} in ${keyName(ex.k)}.` }, st, 4);
+  });
+
+  const built = qs.map((f) => { try { return f(); } catch { return null; } }).filter(Boolean);
+  // Sanity: every left-hand chord is what the progression says.
+  ex.prog.forEach(([d, inv], b) => {
+    const id = identifyChord(ex.k, lhKeys(b).map(parse));
+    if (!id || id.degree !== d || id.inversion !== inv) throw new Error('piano extract chord mismatch');
+  });
+  return all ? built : r.pick(built);
+}
+
+const ROMAN_OF = (d) => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][d - 1];
+
+/** Either kind of extract: single-line melody (most) or piano (about 40%). */
+export function genAnyContext(r, diff, opts) {
+  return r.chance(0.4) ? genPianoContext(r, diff, opts) : genContext(r, diff, opts);
+}
+
 export const CONTEXT_TOPICS = [
-  { id: 'x-context', section: 7, title: 'Music in context', gens: [genContext] },
+  { id: 'x-context', section: 7, title: 'Music in context', gens: [genContext, genContext, genPianoContext] },
 ];
 
 void staffPos; void wordName; void keyScale;

@@ -1,6 +1,6 @@
 // Builds full mock papers: 7 sections, 10/10/15/10/10/10/10 = 75 marks.
 import { topicsForSection, generate } from './topics.js';
-import { genContext } from './gen-context.js';
+import { genAnyContext } from './gen-context.js';
 import { marksFor } from './mark.js';
 import { rng, hashString } from './util.js';
 import { SECTIONS } from '../content/sections.js';
@@ -10,7 +10,7 @@ function buildSection(sec, seed) {
   const r = rng(hashString(`mock:${seed}:s${sec}`));
   if (sec === 7) {
     for (let attempt = 0; attempt < 30; attempt++) {
-      const set = genContext(rng(hashString(`mock:${seed}:ctx:${attempt}`)), r.pick([2, 2, 3]), { all: true });
+      const set = genAnyContext(rng(hashString(`mock:${seed}:ctx:${attempt}`)), r.pick([2, 2, 3]), { all: true });
       const tf = set.find((q) => q.type === 'truefalse');
       const singles = r.shuffle(set.filter((q) => q !== tf));
       const chosen = tf ? [tf] : [];

@@ -119,10 +119,12 @@ export function checkEngraving(container) {
   if (ink.left < X - 1 || ink.right > W + 1) problems.push(`music runs off the side of the drawing (${ink.left.toFixed(0)}..${ink.right.toFixed(0)} of ${W.toFixed(0)})`);
   if (ink.top < Y - 1 || ink.bottom > H + 1) problems.push(`music runs off the top or bottom of the drawing (${ink.top.toFixed(0)}..${ink.bottom.toFixed(0)} of ${H.toFixed(0)})`);
   // Noteheads of successive notes do not overlap.
-  const xs = groups.map((el, i) => {
+  // Grand staves draw bar by bar (upper then lower), so match each group to its note by id.
+  const byId = new Map(info.notes.map((n) => [`vf-n${n.m}-${n.n}`, n]));
+  const xs = groups.map((el) => {
     const h = [...el.querySelectorAll('text')].find((t) => NOTEHEADS.has(cp(t)));
-    return h ? { x: num(h, 'x'), line: info.notes[i]?.line || 0 } : null;
-  });
+    return h ? { x: num(h, 'x'), line: byId.get(el.id)?.line || 0 } : null;
+  }).filter(Boolean).sort((a, b) => a.line - b.line);
   for (let i = 1; i < xs.length; i++) {
     if (xs[i] && xs[i - 1] && xs[i].line === xs[i - 1].line && xs[i].x - xs[i - 1].x < 8) problems.push(`notes ${i} and ${i + 1} overlap`);
   }

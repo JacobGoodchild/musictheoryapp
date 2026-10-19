@@ -3,7 +3,7 @@ import { TERMS, SIGNS, DIRECTIONS, ORNAMENTS, INSTRUMENTS, VOICES } from '../ter
 import { writtenOut, signVersion } from '../../questions/gen-terms.js';
 import { key } from '../../theory/keys.js';
 import { parse } from '../../theory/pitch.js';
-import { buildExtract } from '../../questions/gen-context.js';
+import { buildExtract, buildPianoExtract } from '../../questions/gen-context.js';
 import { rng } from '../../questions/util.js';
 import { keyName as kName, relative as rel } from '../../theory/keys.js';
 import { classifyTime } from '../../theory/rhythm.js';
@@ -26,6 +26,16 @@ const ex = (() => {
   if (extract.xNote) { const a = ps(extract.xNote.keys), c = ps(extract.yNote.keys); const [lo, up] = md(a) <= md(c) ? [a, c] : [c, a]; iv = { a, c, name: intervalName(between(lo, up)) }; }
   return { hi, iv, time: classifyTime(extract.ts).label, chord: chordLabel(extract.chordDeg, 'a'), chordNotes: tr(extract.k, extract.chordDeg).map((p) => nm(p)).join(', ') };
 })();
+
+// A piano extract for the second worked example (C, G, D or F major so the cadence can be named).
+const piano = (() => {
+  for (let seed = 5150; ; seed++) {
+    const p = buildPianoExtract(rng(seed), 2);
+    if (p.k.mode === 'major' && ['C', 'G', 'D', 'F'].includes(p.k.tonic) && p.prog.some(([, inv]) => inv !== 'a')) return p;
+  }
+})();
+const pianoChord = (b) => chordLabel(piano.prog[b][0], piano.prog[b][1], { showA: true });
+const pianoNotes = (b) => piano.lower[b].notes[0].keys.map((x) => nm(ps(x))).join(', ');
 
 export const TERMS_LESSONS = [
   {
@@ -115,6 +125,13 @@ export const CONTEXT_LESSONS = [
         ...(ex.iv ? [{ text: `**Interval X–Y** (bar ${extract.ivBar + 1}): with the key signature the notes are ${nm(ex.iv.a)} and ${nm(ex.iv.c)}: a **${ex.iv.name}**.` }] : []),
         { text: `**Chord**: bar ${extract.arpBar + 1} uses only ${ex.chordNotes}, so it outlines chord **${ex.chord}**.` },
         { text: `**Highest note**: ${nm(ex.hi.p, true)}, first in bar ${ex.hi.bar}.` },
+      ] },
+      { type: 'text', text: 'Some extracts are for **piano**: two staves joined by a brace, the right hand on the treble stave and the left hand on the bass stave. Questions often ask about the **left-hand chords** (with their position, a, b or c), the **cadence** at the end, or an **interval between the hands**.' },
+      { type: 'music', music: piano.music, caption: 'A practice piano extract (original music, made for this app).' },
+      { type: 'worked', title: 'Reading the piano extract', steps: [
+        { text: `**Key**: the key signature and the final chord give **${kName(piano.k)}**.` },
+        ...[1, 2].map((b) => ({ text: `**Bar ${b + 1} left hand**: ${pianoNotes(b)} (lowest first). These are the notes of chord ${pianoChord(b).replace(/[abc]$/, '')}, and the lowest note is the ${['root', '3rd', '5th'][['a', 'b', 'c'].indexOf(piano.prog[b][1])]}: **${pianoChord(b)}**.` })),
+        { text: `**Cadence**: bars 3–4 are ${pianoChord(2).replace(/a$/, '')} then I: a **${piano.prog[2][0] === 5 ? 'perfect' : 'plagal'} cadence**.` },
       ] },
       { type: 'worked', title: 'A method that works', steps: [
         { text: '**Key**: read the key signature, then look for a raised leading note to decide major or relative minor. Check the last note.' },

@@ -420,6 +420,9 @@ export async function renderGrand(container, spec) {
       if (n.stem === 'down') sn.setStemDirection(-1);
       if (n.dots) Dot.buildAndAttach([sn], { all: true });
       if (!n.rest) toKeys(n).forEach((p, ki) => { if (map[mi][ni][ki]) sn.addModifier(new Accidental(vexAcc(p.acc)), ki); });
+      for (const a of n.art || []) if (ART[a]) sn.addModifier(new VF.Articulation(ART[a]), 0);
+      if (n.orn && ORN[n.orn]) sn.addModifier(new VF.Ornament(ORN[n.orn]), 0);
+      if (n.text) sn.addModifier(new VF.Annotation(n.text).setVerticalJustification(VF.Annotation.VerticalJustify?.TOP ?? 1), 0);
       if (n.color) sn.setStyle({ fillStyle: n.color, strokeStyle: n.color });
       const m = mi + part.mOffset;
       sn.setAttribute?.('id', `n${m}-${ni}`);
