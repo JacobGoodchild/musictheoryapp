@@ -136,4 +136,4 @@ No British/American terminology slips were found. A search of every rendered blo
 - **W** octave-transposing instruments added to the instruments keypoints; rough voice ranges added.
 - **W** "second-to-last flat" tip now mentions the F major exception.
 - **Bank** new topic "Adding bar lines" (r-barlines) covers the missing syllabus point; wrong options are checked to have a bar with the wrong number of beats.
-- Not yet done (logged for later): beaming/rests in irregular time, a stave for the irregular worked example, worked context example on the shown extract, tenor-clef octave-transposition example, cancelling double accidentals, doubled-note chords, interval method for D♯/G♯ lower notes (the question explanations already handle this).
+- Later in the same session: added grouping text for irregular time, a stave for the 7/8 worked example, a treble→tenor octave-transposition worked example, a transposing-instrument example without key signature, and cancelling a double sharp. Still not done: worked context example on the shown extract, chords with doubled notes, interval method for D♯/G♯ lower notes in the lesson (question explanations already handle it).

@@ -287,7 +287,8 @@ export async function renderMusic(container, spec) {
     voice.addTickables(f.vexNotes);
     // Beams: explicit groups by beam id, else auto.
     const explicit = {};
-    f.vexNotes.forEach((n) => { const b = n.__spec.beam; if (b !== undefined && b !== null && b !== false) (explicit[b] = explicit[b] || []).push(n); });
+    // Only quavers and shorter can be beamed; a beam id on a longer note is ignored.
+    f.vexNotes.forEach((n) => { const b = n.__spec.beam; if (b !== undefined && b !== null && b !== false && ['8', '16', '32'].includes(n.__spec.dur)) (explicit[b] = explicit[b] || []).push(n); });
     if (Object.keys(explicit).length) {
       for (const list of Object.values(explicit)) if (list.length > 1) beams.push(new Beam(list));
     } else if (!s.free && !f.m.noBeams) {

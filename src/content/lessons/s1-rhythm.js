@@ -82,10 +82,11 @@ export const RHYTHM_LESSONS = [
         { music: { clef: 'treble', time: '5/4', measures: [{ notes: [n('E5', 'h', { dots: 1 }), n('D5', 'q'), n('C5', 'q')] }] }, caption: '5/4 felt as 3 + 2 crotchets' },
       ] },
       { type: 'worked', title: 'Which time signature?', steps: [
-        { text: 'Count the notes in the bar in quavers: 3 + 2 + 2 = 7 quavers.' },
+        { text: 'Count the notes in the bar in quavers: 3 + 2 + 2 = 7 quavers.', music: { clef: 'treble', measures: [{ notes: [n('E5', 'q'), n('D5', '8'), n('C5', '8', { beam: 2 }), n('B4', '8', { beam: 2 }), n('A4', '8', { beam: 3 }), n('G4', '8', { beam: 3 })] }], endBar: 'single' } },
         { text: 'Seven quavers in a bar = **7/8**.' },
         { text: 'If the notes were crotchets (3 + 2 = 5 crotchets), it would be **5/4**.' },
       ] },
+      { type: 'text', text: 'Group notes so the 2s and 3s are easy to see: beam quavers within each group, never across from one group into the next. Rests are written to show the groups too, so a player can count "1-2-3, 1-2".' },
       { type: 'keypoints', items: ['Irregular times at Grade 5: 5/4, 7/4, 5/8, 7/8.', 'Groups are always made of 2s and 3s.', 'Beaming shows the grouping.'] },
       { type: 'mistakes', items: ['Calling 5/8 "compound": it is irregular.', 'Beaming across the groups (e.g. all five quavers of 5/8 in one beam).'] },
       { type: 'memorise', items: ['5 = 3+2 or 2+3. 7 = 2+2+3, 3+2+2 or 2+3+2.'] },

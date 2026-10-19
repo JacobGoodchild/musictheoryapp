@@ -96,7 +96,7 @@ export const PITCH_LESSONS = [
         { music: { clef: 'treble', free: true, notes: [w('Fx4', { label: 'F𝄪' }), w('G4', { label: 'G' })] }, caption: 'F double sharp = G' },
         { music: { clef: 'treble', free: true, notes: [w('B#3', { label: 'B♯' }), w('C4', { label: 'C' })] }, caption: 'B sharp = C' },
       ] },
-      { type: 'keypoints', items: ['An accidental lasts for the rest of the bar, on that line or space.', 'Double sharp 𝄪 raises by a tone; double flat 𝄫 lowers by a tone.', 'E♯ = F, B♯ = C, F♭ = E, C♭ = B.'] },
+      { type: 'keypoints', items: ['An accidental lasts for the rest of the bar, on that line or space.', 'To go back from a double sharp to a single sharp, write a ♯; to remove it completely, write a ♮.', 'Double sharp 𝄪 raises by a tone; double flat 𝄫 lowers by a tone.', 'E♯ = F, B♯ = C, F♭ = E, C♭ = B.'] },
       { type: 'mistakes', items: ['Forgetting that E–F and B–C are only a semitone apart, so E♯ is F, not F♯.'] },
       { type: 'memorise', items: ['Every note has up to three names, e.g. C = B♯ = D𝄫.'] },
     ],
@@ -111,6 +111,11 @@ export const PITCH_LESSONS = [
         { text: 'Here is a melody in the treble clef.', music: melody('treble', null, ['C5', 'D5', 'E5', 'G5', 'F5', 'E5', 'C5'].map(parse), DURS) },
         { text: 'An octave lower, the first note C5 becomes C4 (middle C), which is one ledger line **above** the bass stave.' },
         { text: 'Write every note an octave lower in the bass clef, keeping the rhythm and any accidentals.', music: melody('bass', null, ['C4', 'D4', 'E4', 'G4', 'F4', 'E4', 'C4'].map(parse), DURS) },
+      ] },
+      { type: 'worked', title: 'Treble clef → tenor clef, an octave lower', steps: [
+        { text: 'A treble-clef melody:', music: melody('treble', null, ['E4', 'F4', 'G4', 'A4', 'G4', 'F4', 'E4'].map(parse), DURS) },
+        { text: 'An octave lower, E4 becomes E3, which is the first space of the tenor clef (tenor lines D F A C E, spaces E G B D).' },
+        { text: 'Every note moves down an octave and keeps its letter name:', music: melody('tenor', null, ['E3', 'F3', 'G3', 'A3', 'G3', 'F3', 'E3'].map(parse), DURS) },
       ] },
       { type: 'worked', title: 'Bass clef → alto clef, at the same pitch', steps: [
         { text: 'A bass-clef melody:', music: melody('bass', -1, ['F3', 'A3', 'G3', 'Bb3', 'A3', 'G3', 'F3'].map(parse), DURS) },
@@ -139,6 +144,10 @@ export const PITCH_LESSONS = [
         { text: 'This is a horn part (written):', music: melody('treble', 0, inst('F'), DURS) },
         { text: 'The horn sounds a perfect 5th lower, so go **down a perfect 5th**. C major becomes **F major**.' },
         { text: `Concert pitch: ${inst('F').map((p) => name(toConcert(p, 'F'))).join(' ')} — the original melody.`, music: melody('treble', -1, inst('F').map((p) => toConcert(p, 'F')), DURS) },
+      ] },
+      { type: 'worked', title: 'Without a key signature', steps: [
+        { text: 'Sometimes there is no key signature, only accidentals. Transpose each note on its own and spell it carefully. Concert pitch:', music: melody('treble', null, CONCERT, DURS) },
+        { text: 'For clarinet in B♭, every note goes up a major 2nd. B♭ becomes C, F becomes G, and the A becomes B:', music: melody('treble', null, inst('Bb'), DURS) },
       ] },
       { type: 'worked', title: 'Clarinet in A', steps: [
         { text: 'Concert F major written for clarinet in A goes **up a minor 3rd**: F major → **A♭ major** (4 flats).', music: melody('treble', -4, inst('A'), DURS) },
