@@ -31,7 +31,7 @@ function chordMusic(k, d, inv, clef, useSig = true) {
 /** Chords on a grand stave (one bass note, three upper notes), as on many real papers. */
 export function grandMusic(k, chords, scale = 1.05) {
   const vs = [];
-  for (const [d, inv] of chords) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1].upper : null));
+  for (const [d, inv] of chords) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1] : null));
   const dur = chords.length > 1 ? 'h' : 'w';
   return {
     voicings: vs,

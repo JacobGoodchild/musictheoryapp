@@ -44,7 +44,7 @@ export const chordAudio = (tonic, mode, d, inv, bassOct = 4) => ({ kind: 'chord'
 function fourPart(tonic, mode, list) {
   const k = key(tonic, mode);
   const vs = [];
-  for (const [d, inv] of list) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1].upper : null));
+  for (const [d, inv] of list) vs.push(voiceFourPart(k, d, inv, vs.length ? vs[vs.length - 1] : null));
   return { k, vs };
 }
 export function grandChordsMusic(tonic, mode, list) {

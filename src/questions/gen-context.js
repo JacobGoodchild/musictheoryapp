@@ -238,14 +238,20 @@ export function buildPianoExtract(r, diff) {
   const ts = r.pick(diff === 1 ? ['2/4', '3/4', '4/4'] : ['2/4', '3/4', '4/4', '6/8']);
   // Minor keys always use V so the raised leading note appears.
   const bar3 = k.mode === 'minor' || r.chance(0.7) ? [5, 'a'] : [4, 'a'];
-  const bar2 = bar3[0] === 5 ? r.pick([[4, 'a'], [4, 'b'], [2, 'b'], [2, 'a'], [1, 'c']]) : [1, 'b'];
+  // Chord II is diminished in a minor key, so it is only used in 1st inversion there.
+  const bar2 = bar3[0] === 5 ? r.pick(k.mode === 'minor' ? [[4, 'a'], [4, 'b'], [2, 'b'], [1, 'c']] : [[4, 'a'], [4, 'b'], [2, 'b'], [2, 'a'], [1, 'c']]) : [1, 'b'];
   const prog = [[1, 'a'], bar2, bar3, [1, 'a']];
   const type = k.mode === 'major' ? 'major' : 'harmonic';
   // Scale over three octaves; the tune only uses notes from D4 to G5 so it sits on the treble stave.
   const sc = [3, 4, 5].flatMap((o) => scale(parse(k.tonic + o), type).slice(0, 7));
   const ok = (i) => i >= 0 && i < sc.length && midi(sc[i]) >= 62 && midi(sc[i]) <= 79;
-  // Final tonic: one with the leading note and submediant below it also in range.
-  const T = sc.map((p, i) => i).filter((i) => i % 7 === 0 && ok(i) && ok(i - 2)).pop();
+  // Possible final tonics: ones with the leading note and submediant below them also in range.
+  const Ts = sc.map((p, i) => i).filter((i) => i % 7 === 0 && ok(i) && ok(i - 2));
+  let T = Ts[Ts.length - 1];
+  // No augmented 2nds (6th to raised 7th) in minor-key tunes.
+  const aug2 = (x, y) => k.mode === 'minor' && Math.abs(x - y) === 1 && [x % 7, y % 7].sort().join() === '5,6';
+  // Notes of a crotchet or longer belong to the chord (passing notes are short).
+  const isLong = (n) => ['q', 'h', 'w'].includes(n.dur);
   const [wd, wdots] = WHOLE_BAR[ts];
   const lower = prog.map(([d, inv]) => ({ notes: [{ keys: fitChord(k, d, inv, 'bass').map((p) => toString(p)), dur: wd, dots: wdots }] }));
   const upper = [];
@@ -253,20 +259,39 @@ export function buildPianoExtract(r, diff) {
   prog.forEach(([d], b) => {
     const tri = triad(k, d);
     const chordIdx = sc.map((p, i) => (tri.some((t) => sameNote(t, p)) && ok(i) ? i : -1)).filter((i) => i >= 0);
-    const nearest = (from) => chordIdx.reduce((a, c) => (Math.abs(c - from) < Math.abs(a - from) ? c : a));
+    const nearest = (from, prev) => chordIdx.filter((c) => !aug2(prev, c)).reduce((x, c) => (Math.abs(c - from) < Math.abs(x - from) ? c : x));
     if (b === 3) { upper.push({ notes: [{ keys: toString(sc[T]), dur: wd, dots: wdots }] }); return; }
     let notes;
     for (let t = 0; t < 20; t++) { notes = buildBar(r, ts).notes; if (notes.length >= 2 && notes.length <= 6) break; }
+    // Bar 3 heads for the cadence: pick the final tonic nearest the tune's register.
+    let target = null;
+    if (b === 2) {
+      T = Ts.reduce((x, c) => (Math.abs(c - idx) < Math.abs(x - idx) ? c : x));
+      target = bar3[0] === 5 ? T - 1 : T - 2; // leading note (in V) or submediant (in IV)
+    }
     notes.forEach((n, i) => {
-      if (i === 0) idx = nearest(idx + r.pick([-1, 0, 1]));
-      else { const next = idx + r.pick([-1, 1, 1, -1, 2, -2]); if (ok(next)) idx = next; else if (ok(idx - (next - idx))) idx -= next - idx; }
+      const prev = idx;
+      const last = i === notes.length - 1;
+      if (i === 0) idx = nearest(target === null ? idx + r.pick([-1, 0, 1]) : Math.round((idx + target) / 2), prev);
+      else if (target !== null && last) idx = target;
+      else if (target !== null) {
+        const dist = target - idx;
+        idx = Math.abs(dist) > 1 ? idx + Math.sign(dist) * Math.min(2, Math.abs(dist)) : idx + r.pick([-1, 1]);
+        if (!ok(idx)) idx = prev;
+        if (isLong(n)) idx = nearest(idx, prev);
+      } else {
+        const next = idx + r.pick([-1, 1, 1, -1, 2, -2]);
+        if (ok(next)) idx = next; else if (ok(idx - (next - idx))) idx -= next - idx;
+        if (isLong(n)) idx = nearest(idx, prev);
+      }
+      if (i > 0 && aug2(prev, idx) && !(target !== null && last)) idx = prev;
       n.keys = toString(sc[idx]);
       delete n.beam;
     });
-    // Lead into the cadence: the last note of bar 3 belongs to its chord and sits just below the final tonic.
-    if (b === 2) {
-      idx = bar3[0] === 5 ? T - 1 : T - 2; // leading note (in V) or submediant (in IV)
-      notes[notes.length - 1].keys = toString(sc[idx]);
+    // Never step from the 6th up to the raised 7th at the cadence: go via the tonic instead.
+    const penult = notes.length >= 2 ? sc.findIndex((p) => toString(p) === notes[notes.length - 2].keys) : -1;
+    if (target !== null && penult >= 0 && aug2(penult, target)) {
+      notes[notes.length - 2].keys = toString(sc[T]);
     }
     upper.push({ notes });
   });
@@ -274,12 +299,15 @@ export function buildPianoExtract(r, diff) {
   const tempoText = upper[0].notes[0].text;
   const tempo = TEMPO_TERMS.find((t) => shownTerm(t.term) === tempoText);
   const art = r.pick(['staccato', 'accent', 'tenuto']);
-  const artBar = r.int(0, 2);
-  upper[artBar].notes.slice(-2).forEach((n) => { n.art = [art]; });
-  // An ornament on a right-hand note away from the articulation.
+  // Articulation on short notes only (no staccato minims); ornaments on a quaver or longer.
+  const shortNotes = (b) => upper[b].notes.filter((n) => ['q', '8', '16'].includes(n.dur));
+  const artBars = [0, 1, 2].filter((b) => shortNotes(b).length);
+  const artBar = artBars.length ? r.pick(artBars) : 0;
+  shortNotes(artBar).slice(-2).forEach((n) => { n.art = [art]; });
   const orn = r.pick(['trill', 'turn', 'upper mordent', 'lower mordent']);
-  const ornBar = [0, 1, 2].find((b) => b !== artBar && upper[b].notes.length >= 2 && !upper[b].notes[0].text);
-  if (ornBar !== undefined) upper[ornBar].notes[0].orn = orn;
+  const ornable = (n) => !['16', '32'].includes(n.dur) && !n.text && !n.art;
+  const ornBar = [0, 1, 2].find((b) => b !== artBar && upper[b].notes.some(ornable));
+  if (ornBar !== undefined) upper[ornBar].notes.find(ornable).orn = orn;
   const music = { grand: true, key: k.fifths, time: ts, upper, lower, scale: 0.95, noteWidth: 52 };
   return { k, ts, prog, upper, lower, tempo, art, artBar, orn, ornBar: ornBar ?? -1, sc, music };
 }
@@ -325,14 +353,16 @@ export function genPianoContext(r, diff, { all = false } = {}) {
   // 5. Interval between the hands at the start of a bar (often compound)
   qs.push(() => {
     const b = r.int(0, 3);
-    const lo = parse(lhKeys(b)[0]), hi = parse(ex.upper[b].notes[0].keys);
+    const lh = lhKeys(b);
+    const lo = parse(lh[lh.length - 1]), hi = parse(ex.upper[b].notes[0].keys);
+    if (midi(hi) <= midi(lo)) return null;
     const iv = between(lo, hi);
     if (!iv.valid || iv.number >= 15 || !qualitiesFor(iv.number).includes(iv.quality)) return null;
     const ds = qualitiesFor(iv.number).filter((q) => q !== iv.quality).map((q) => ({ label: intervalName({ number: iv.number, quality: q }) }));
     for (const n of [iv.number - 1, iv.number + 1, iv.number - 7]) if (n >= 2 && n <= 15) ds.push({ label: intervalName({ number: n, quality: qualitiesFor(n)[0] }) });
     return mcq(r, { ...base, check: { kind: 'interval', low: toString(lo), high: toString(hi) }, listenAfter: { kind: 'interval', notes: [toString(lo), toString(hi)] },
-      prompt: `${intro}\nName the interval between the lowest left-hand note and the right-hand note at the start of bar ${b + 1}.`,
-      explanation: `The lowest left-hand note is ${name(lo, true)} and the right-hand note is ${name(hi, true)}. Count the letters from ${name(lo)} up to ${name(hi)} across both staves: ${intervalName(iv)}.` },
+      prompt: `${intro}\nName the interval between the highest left-hand note and the right-hand note at the start of bar ${b + 1}.`,
+      explanation: `The highest left-hand note is ${name(lo, true)} and the right-hand note is ${name(hi, true)}. Count the letters from ${name(lo)} up to ${name(hi)} across both staves: ${intervalName(iv)}.` },
     { label: intervalName(iv) }, ds);
   });
   // 6. Tempo term

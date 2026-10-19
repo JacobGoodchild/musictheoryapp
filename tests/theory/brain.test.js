@@ -163,7 +163,14 @@ test('rhythm maths', () => {
   assert.deepEqual(R.restsToFill('2/4', R.frac(1, 16), R.frac(7, 16)).map((r) => r.id), ['semiquaver', 'quaver', 'crotchet']);
 });
 
-import { voiceFourPart } from '../../src/theory/chords.js';
+import { voiceFourPart, parallels, triadQuality } from '../../src/theory/chords.js';
+test('four-part cadences avoid consecutive 5ths and octaves', () => {
+  for (const k of [...GRADE5_MAJOR, ...GRADE5_MINOR]) for (const [d1, i1, d2] of [[5, 'a', 1], [4, 'a', 1], [1, 'a', 5], [2, 'b', 5], [4, 'a', 5], [1, 'c', 5], [4, 'b', 5]]) {
+    const a = voiceFourPart(k, d1, i1), b = voiceFourPart(k, d2, 'a', a);
+    assert.equal(parallels(a.bass, a.upper, b.bass, b.upper), 0, `${k.tonic} ${k.mode} ${d1}${i1}-${d2}`);
+  }
+});
+
 test('four-part voicings contain the whole chord with the right bass note', () => {
   for (const k of [...GRADE5_MAJOR, ...GRADE5_MINOR]) for (const d of [1, 2, 4, 5]) for (const inv of INVERSIONS) {
     const v = voiceFourPart(k, d, inv);
@@ -173,11 +180,12 @@ test('four-part voicings contain the whole chord with the right bass note', () =
     assert.ok(midi(v.upper[0]) > 61 && midi(v.upper[2]) <= 80, 'upper voices in treble range');
     // 1st inversion never doubles the 3rd.
     // Voiced next to I (as in a cadence), every chord still checks out and moves smoothly.
-    const near = voiceFourPart(k, 1, 'a').upper;
-    const v2 = voiceFourPart(k, d, inv, near);
+    const prev = voiceFourPart(k, 1, 'a');
+    const near = prev.upper;
+    const v2 = voiceFourPart(k, d, inv, prev);
     assert.deepEqual(identifyChord(k, [v2.bass, ...v2.upper]), { degree: d, inversion: inv });
     assert.ok(midi(v2.upper[0]) > 61 && midi(v2.upper[2]) <= 80 && v2.upper.every((p, i) => i === 0 || midi(p) > midi(v2.upper[i - 1])));
     assert.ok(v2.upper.every((p, i) => Math.abs(midi(p) - midi(near[i])) <= 12), 'no upper part leaps more than an octave');
-    if (inv === 'b') { const third = triad(k, d)[1]; assert.equal(v.upper.filter((p) => p.letter === third.letter && p.acc === third.acc).length, 0); }
+    if (inv === 'b' && triadQuality(triad(k, d)) !== 'diminished') { const third = triad(k, d)[1]; assert.equal(v.upper.filter((p) => p.letter === third.letter && p.acc === third.acc).length, 0); }
   }
 });

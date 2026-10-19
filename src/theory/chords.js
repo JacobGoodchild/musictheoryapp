@@ -119,13 +119,19 @@ export { pc };
  * upper notes (treble clef), all four chord letters present between them.
  * Doublings follow the usual habits: root position doubles the root, 1st
  * inversion doubles the root or 5th (not the 3rd), 2nd inversion doubles the bass (5th).
- * Pass the previous chord's upper notes as `near` for smooth voice leading.
+ * The diminished chord (II in a minor key) doubles its 3rd, not a note of the
+ * diminished 5th.
+ * Pass the previous chord (`{ bass, upper }`, or just its upper notes) as `near`
+ * for smooth voice leading without consecutive 5ths or octaves.
  */
 export function voiceFourPart(k, degree, inversion = 'a', near = null) {
   const [r, t, f] = triad(k, degree);
   const bassPc = { a: r, b: t, c: f }[inversion];
+  const dim = triadQuality([r, t, f]) === 'diminished';
   // 1st inversion: double the root or the 5th (never the 3rd), whichever sits lower.
-  const upperSets = inversion === 'b' ? [[r, f, r], [f, r, f]] : [[r, t, f]];
+  const upperSets = dim ? [[r, t, f]] : inversion === 'b' ? [[r, f, r], [f, r, f]] : [[r, t, f]];
+  const nearUpper = Array.isArray(near) ? near : near?.upper;
+  const nearBass = Array.isArray(near) ? null : near?.bass;
   // Bass between G2 and B3.
   let bass = { ...bassPc, octave: 2 };
   while (midi(bass) < 43) bass = { ...bass, octave: bass.octave + 1 };
@@ -143,9 +149,23 @@ export function voiceFourPart(k, degree, inversion = 'a', near = null) {
       cand.push(p);
       prev = midi(p);
     }
-    // With `near` (the previous chord's upper notes), move as little as possible.
-    const score = (c) => (near ? c.reduce((a, p, i) => a + Math.abs(midi(p) - midi(near[i])), 0) : midi(c[2]));
+    // With `near`, move as little as possible and avoid consecutive 5ths/octaves.
+    const score = (c) => (nearUpper ? c.reduce((a, p, i) => a + Math.abs(midi(p) - midi(nearUpper[i])), 0) + 100 * parallels(nearBass, nearUpper, bass, c) : midi(c[2]));
     if (cand.every((p, i) => i === 0 || midi(p) > midi(cand[i - 1])) && midi(cand[2]) <= 80 && (!out || score(cand) < score(out))) out = cand;
   }
   return { bass, upper: out };
+}
+
+/** Number of pairs of parts moving in consecutive perfect 5ths or octaves. */
+export function parallels(prevBass, prevUpper, bass, upper) {
+  const a = [prevBass, ...prevUpper].map((p) => (p ? midi(p) : null));
+  const b = [bass, ...upper].map(midi);
+  let n = 0;
+  for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+    if (a[i] === null || a[j] === null) continue;
+    const i1 = Math.abs(a[j] - a[i]) % 12, i2 = Math.abs(b[j] - b[i]) % 12;
+    const moved = b[i] !== a[i] && b[j] !== a[j] && Math.sign(b[i] - a[i]) === Math.sign(b[j] - a[j]);
+    if (moved && i1 === i2 && (i1 === 0 || i1 === 7)) n++;
+  }
+  return n;
 }
