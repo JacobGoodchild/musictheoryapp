@@ -2,10 +2,10 @@
 // proven by tests/unit/economy.test.js.
 
 export const ECONOMY = {
-  correct: { 1: 2, 2: 3, 3: 4 },     // coins per correct answer by difficulty
+  correct: { 1: 3, 2: 4, 3: 5 },     // coins per correct answer by difficulty
   repeatDecay: 0.5,                   // each repeat of the same question earns half
   repeatFloor: 3,                     // after 3 correct repeats a question earns nothing
-  lessonComplete: 25,
+  lessonComplete: 30,
   lessonPerfect: 10,
   mockBase: 40,
   mockBand: { Pass: 30, Merit: 60, Distinction: 100 },
@@ -13,9 +13,9 @@ export const ECONOMY = {
   streakPerDay: 10,                   // × streak length, capped
   streakCap: 7,
   mistakeCleared: 5,
-  dailyChallenge: 30,
+  dailyChallenge: 40,
   dailyChallengePerfect: 20,
-  bagCost: 120,
+  bagCost: 60,
 };
 
 /** Coins for a correct answer, with diminishing returns for repeats. */

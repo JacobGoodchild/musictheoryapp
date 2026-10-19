@@ -1,5 +1,5 @@
 // App entry: theme, navigation, hash router.
-import { h, clear } from './dom.js';
+import { h, clear, toast } from './dom.js';
 import { icon, coinIcon } from './ui/icons.js';
 import { getState, subscribe, update } from './state/store.js';
 import { applyTheme } from './ui/theme.js';
@@ -77,7 +77,13 @@ async function boot() {
   subscribe(() => renderFoot());
   // Daily streak bookkeeping happens on load.
   const { touchStreak } = await import('./state/progress.js');
-  update(touchStreak);
+  const { addCoins, streakBonus } = await import('./state/rewards.js');
+  let bonus = 0;
+  update((st) => {
+    touchStreak(st);
+    if (st.streak.pendingBonus && st.profile.name) { bonus = addCoins(st, streakBonus(st.streak.count), 'streak'); st.streak.pendingBonus = false; }
+  });
+  if (bonus) setTimeout(() => toast(`Day ${getState().streak.count} streak: +${bonus} coins`, { icon: icon('flame', 'coin-icon') }), 800);
   window.addEventListener('hashchange', router);
   await router();
   const { registerSW } = await import('./ui/pwa.js');

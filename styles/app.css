@@ -402,3 +402,48 @@ label { font-weight: 600; }
 .match-tile.nope { border-color: var(--bad); background: var(--bad-soft); animation: shake .3s; }
 .match-tile.done { border-color: var(--good); background: var(--good-soft); opacity: .6; cursor: default; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+/* ---------- Rewards ---------- */
+.big-chip { font-size: .95rem; padding: 6px 12px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; text-decoration: none; color: var(--text-2); font-weight: 650; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tab.active { color: var(--accent-text); border-color: var(--accent); }
+.avatar-layout { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .avatar-layout, .bags-layout { grid-template-columns: 1fr !important; } }
+.avatar-card { position: sticky; top: 20px; text-align: center; }
+.avatar-preview { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.avatar-preview svg { border-radius: 24px; box-shadow: var(--shadow-2); }
+.slot-tabs { margin-bottom: 14px; gap: 6px; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.shop-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; text-align: center; }
+.shop-item.equipped { border-color: var(--good); }
+.shop-thumb { border: 0; background: none; padding: 0; cursor: pointer; border-radius: 16px; overflow: hidden; transition: transform .15s var(--ease); }
+.shop-thumb:hover { transform: scale(1.05); }
+.shop-thumb svg { display: block; }
+.shop-name { font-weight: 650; font-size: .92rem; }
+.bags-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+.bag-stage { min-height: 420px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.blind-bag { border: 0; background: none; cursor: pointer; transition: transform .2s var(--ease); filter: drop-shadow(0 12px 20px rgba(80, 60, 200, .25)); }
+.blind-bag:hover:not([disabled]) { transform: translateY(-6px) rotate(-2deg); }
+.blind-bag[disabled] { opacity: .6; cursor: not-allowed; }
+.blind-bag.shaking { animation: bag-shake .9s ease-in-out; }
+.blind-bag.tearing { animation: bag-tear .45s ease-in forwards; }
+@keyframes bag-shake { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-8deg) scale(1.03); } 30% { transform: rotate(8deg); } 45% { transform: rotate(-10deg) scale(1.05); } 60% { transform: rotate(10deg); } 75% { transform: rotate(-6deg) scale(1.08); } }
+@keyframes bag-tear { to { transform: scale(1.4) translateY(-20px); opacity: 0; filter: blur(4px); } }
+.reveal { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; animation: pop .5s var(--ease); text-align: center; }
+.reveal-glow { position: absolute; top: -10px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, var(--glow) 0%, transparent 65%); opacity: .55; animation: glow 1.8s ease-in-out infinite; }
+.rarity-legendary .reveal-glow, .rarity-mythic .reveal-glow { opacity: .85; }
+@keyframes glow { 50% { transform: scale(1.12); opacity: .35; } }
+.reveal-sticker { position: relative; animation: spin-in .7s var(--ease); }
+@keyframes spin-in { from { transform: rotateY(180deg) scale(.4); } }
+.reveal-text h2 { margin: 6px 0; }
+.rarity-pill { display: inline-block; color: #fff; font-weight: 800; font-size: .78rem; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+.rarity-pill.small { font-size: .65rem; padding: 2px 7px; }
+.rarity-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.odds-list { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 6px; }
+.odds-list li { display: flex; justify-content: space-between; align-items: center; }
+.album-stats { margin-bottom: 16px; }
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.album-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); text-align: center; }
+.album-cell.locked svg { filter: grayscale(1); }
+.album-name { font-weight: 650; font-size: .85rem; }

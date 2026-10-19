@@ -260,7 +260,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - [x] 8. Learn: 33 lessons (all 7 sections, refresh lessons for G1–4) with engraved examples, worked examples, checks
 - [x] 9. Memorise: circle of fifths, 7 flashcard decks with spaced repetition, beat the clock, matching pairs
 - [ ] 10. Audio
-- [ ] 11. Rewards
+- [x] 11. Rewards: coins economy (simulated + tested), avatar (8 slots, 45 paid items + free starters), blind bags with shown odds and pity, 60-sticker album with swaps
 - [ ] 12. Settings, export/import, migration, PWA
 - [ ] 13. Polish + screenshots
 - [ ] 14. Backlog
@@ -296,3 +296,7 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 - Lessons: every stave computed from the brain via helpers (scales, key signatures, intervals, chords, transposed melodies). End-of-lesson checks are generated from the same validated generators with fixed seeds. I caught and fixed two of my own lesson errors while re-reading (tenor vs alto is a 3rd apart, not a 2nd; chord II in F major does not contain F).
 - Renderer now sizes each note's slot to fit its label text, so labelled examples never spill past the stave.
 - Flashcards: Leitner boxes (0,1,2,4,8,16 days); 1 coin per known due card (none for extra practice).
+- 2026-10-19 06:53 UTC: the session stopped at ~20:30 UTC when the usage limit hit and was not woken; ~10 hours lost. Added an hourly scheduled check-in that resumes the build if it has stopped.
+- Economy tuned with a deterministic simulation of a "regular student" (6 days/week, ~35 questions, lessons, daily challenge, mock every 5 days): median ~54 days to collect everything (47–64 over 30 seeds). Numbers in docs/economy.md; tests/unit/economy.test.js enforces median 42–58 days, a purchase in session 1, and most things still locked after week 1.
+- Stickers use Bravura glyphs (OFL, bundled with VexFlow) on original die-cut sticker art; a test checks every glyph exists in the bundled font. 200,000-bag test: each rarity within 2 points of the shown odds; pity never fails.
+- Skin tones are all free (everyone can look like themselves from the start). Streak bonus awarded on the first visit each day.
