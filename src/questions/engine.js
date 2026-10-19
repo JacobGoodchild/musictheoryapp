@@ -18,7 +18,9 @@ const ACC_BUTTONS = [
 
 function musicBlock(spec, cls = '') {
   const div = h('div', { class: `q-music ${cls}` });
-  div.ready = renderMusic(div, spec).catch((e) => { div.textContent = 'Could not draw music.'; console.error(e); });
+  // Draw question music large (it shrinks to fit on small screens via CSS max-width).
+  const big = { ...spec, scale: (spec.scale || (spec.grand ? 1.15 : 1.25)) * (cls === 'small' ? 1.35 : 1.55) };
+  div.ready = renderMusic(div, big).catch((e) => { div.textContent = 'Could not draw music.'; console.error(e); });
   return div;
 }
 
@@ -205,7 +207,7 @@ export function questionView(q, opts = {}) {
       }
       const extraNotes = extra.correct ? [{ keys: extra.correct, dur: place.dur || 'w', color: 'var(--good)', showAcc: [true] }] : [];
       const measures = place.measures ? place.measures(placed) : [{ notes: [...notes, placed, ...after, ...extraNotes] }];
-      info = await renderMusic(staveHost, { clef: place.clef, key: place.fifths, time: place.time, measures, free: !place.time, range, fit: false, scale: 1.45, endBar: place.endBar || 'single' });
+      info = await renderMusic(staveHost, { clef: place.clef, key: place.fifths, time: place.time, measures, free: !place.time, range, fit: false, scale: 1.9, endBar: place.endBar || 'single' });
       // Hide the placeholder rest when nothing is placed.
       if (!Number.isInteger(pos)) {
         const idx = notes.length;

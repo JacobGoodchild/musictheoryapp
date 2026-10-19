@@ -529,3 +529,27 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
   :root:not([data-theme="light"]) .hint-card.level-2 { background: #33240f; border-color: #8a5a1c; }
   :root:not([data-theme="light"]) .hint-card.level-3 { background: #3a1c26; border-color: #8a3a58; color: #ffd6e4; }
 }
+/* Bigger questions on laptop/desktop screens (student feedback: options were too small). */
+@media (min-width: 861px) {
+  .question { gap: 18px; font-size: 1.08rem; }
+  .q-prompt p { font-size: 1.32rem; line-height: 1.45; }
+  .q-head .chip { font-size: .95rem; }
+  .q-options { gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+  .q-options.with-music { grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); }
+  .q-option { padding: 18px 20px; min-height: 72px; border-radius: 16px; gap: 16px; }
+  .q-option-label { font-size: 1.22rem; }
+  .q-letter { width: 40px; height: 40px; font-size: 1.1rem; border-radius: 11px; }
+  .tf-row { padding: 14px 18px; }
+  .tf-text { font-size: 1.15rem; }
+  .tf-btn { width: 56px; height: 50px; }
+  .tf-btn svg { width: 24px; height: 24px; }
+  .num-input { width: 110px; font-size: 1.6rem; padding: 10px; }
+  .q-dropdowns select { min-width: 120px; font-size: 1.25rem; padding: 10px 12px; }
+  .num-label, .dd-label { font-size: 1.1rem; }
+  .acc-btn { min-width: 54px; height: 50px; font-size: 1.5rem; }
+  .notehead-chip { width: 60px; height: 50px; }
+  .feedback-box { font-size: 1.08rem; }
+  .feedback-title { font-size: 1.3rem; }
+  .hint-text p { font-size: 1.08rem; }
+  .q-actions .btn.big { font-size: 1.15rem; padding: 14px 30px; }
+}
