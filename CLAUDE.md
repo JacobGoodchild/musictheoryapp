@@ -337,9 +337,9 @@ At the bottom of CLAUDE.md, write a dated summary in plain English:
 
 ## How the content was checked (numbers)
 - **Music logic** (`src/theory/`): hand-written reference tables for all 26 keys (scales, key signatures, relative keys, degrees, chromatic scales, key-signature positions in all four clefs). It was also cross-checked against the `tonal` library: 52 scales, 26 key signatures, over 5,000 intervals, over 8,000 transpositions, 104 triads and every MIDI number agree.
-- **Question bank:** 2,406 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 10 mocks.
+- **Question bank:** 2,406 questions in `data/questions/`. Every one is re-checked by `validateQuestion`, which works the answer out again from the music logic for intervals, note names, keys, chords, cadence combinations, placed notes and same-pitch questions. A test also confirms that the right answer always gets full marks and a wrong one never does, across the bank and all 15 mocks.
 - **Engraving:** every stave (about 4,100: the whole bank, all options, all placed answers, all mocks, all lessons) is drawn and read back. The check covers the clef, key signature positions, each notehead's line or space, accidentals, rests, ornaments, nothing clipped and no overlaps. All are clean, and screenshots were looked at by eye.
-- **Tests:** 51 Node unit tests and 29 Playwright browser tests, all green, run in CI before every deploy. The browser tests cover:
+- **Tests:** 52 Node unit tests and 29 Playwright browser tests, all green, run in CI before every deploy. The browser tests cover:
   - every screen loads with no console errors, no outside requests and no stray "null" text
   - every question type answered through the real UI
   - a full mock taken through the UI with an exact score
