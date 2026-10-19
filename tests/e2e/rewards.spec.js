@@ -33,3 +33,21 @@ test('album shows unlocked stickers (screenshot for review)', async ({ page }) =
   await page.waitForTimeout(400);
   await page.screenshot({ path: 'screenshots/album-unlocked.png', fullPage: true });
 });
+
+test('every sticker glyph exists in the bundled Bravura font', async ({ page }) => {
+  await page.goto('/dev/gallery.html?group=none');
+  const missing = await page.evaluate(async () => {
+    const { STICKERS } = await import('/src/state/stickers.js');
+    await document.fonts.load('40px Bravura');
+    const c = document.createElement('canvas').getContext('2d');
+    const out = [];
+    for (const s of STICKERS) for (const g of [].concat(s.glyph)) {
+      const ch = String.fromCodePoint(g);
+      c.font = '40px Bravura'; const a = c.measureText(ch);
+      c.font = '40px monospace'; const m = c.measureText(ch);
+      if (!(a.actualBoundingBoxAscent + a.actualBoundingBoxDescent) || Math.abs(a.width - m.width) < 0.01) out.push(`${s.id}:${g.toString(16)}`);
+    }
+    return out;
+  });
+  expect(missing).toEqual([]);
+});

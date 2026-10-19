@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const SCREENS = ['#/home', '#/learn', '#/learn/pitch-tenor', '#/learn/terms-signs-ornaments', '#/practice', '#/practice/k-signatures', '#/practice/map', '#/practice/listening', '#/mock', '#/mock/paper-3', '#/memorise', '#/memorise/circle', '#/memorise/cards:keys', '#/memorise/match', '#/memorise/clock', '#/rewards', '#/settings'];
+const SCREENS = ['#/home', '#/learn', '#/learn/pitch-tenor', '#/learn/terms-signs-ornaments', '#/practice', '#/practice/k-signatures', '#/practice/map', '#/practice/listening', '#/mock', '#/mock/paper-3', '#/memorise', '#/memorise/circle', '#/memorise/cards:keys', '#/memorise/match', '#/memorise/clock', '#/rewards', '#/settings', '#/exam-day', '#/rewards/bags', '#/rewards/album'];
 
 async function withProfile(page) {
   await page.addInitScript(() => {

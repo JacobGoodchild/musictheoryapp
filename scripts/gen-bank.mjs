@@ -70,6 +70,9 @@ for (const [sec, list] of Object.entries(bySection)) {
 index.total = total;
 fs.writeFileSync(path.join(outDir, 'index.json'), JSON.stringify(index, null, 1));
 
+// Keep the offline file list in step with the data.
+import("./gen-sw.mjs").then(({ swSource }) => fs.writeFileSync(path.join(root, "sw.js"), swSource()));
+
 // Fixed mock papers.
 const mocks = buildFixedMocks(10);
 fs.writeFileSync(path.join(root, 'data', 'mocks.json'), JSON.stringify(mocks));

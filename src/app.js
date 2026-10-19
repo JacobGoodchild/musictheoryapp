@@ -5,7 +5,7 @@ import { getState, subscribe, update } from './state/store.js';
 import { applyTheme } from './ui/theme.js';
 import { routes, resolve } from './routes.js';
 
-export const APP_VERSION = '0.1.0';
+export { APP_VERSION } from './version.js';
 
 const NAV = [
   { href: '#/home', label: 'Home', icon: 'home' },
@@ -72,6 +72,9 @@ async function router() {
 async function boot() {
   const s = getState();
   applyTheme(s.settings);
+  const { setAudioSettings } = await import('./audio/synth.js');
+  setAudioSettings(s.settings);
+  window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(getState().settings));
   buildNav();
   renderFoot();
   subscribe(() => renderFoot());

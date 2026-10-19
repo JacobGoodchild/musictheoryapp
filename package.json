@@ -9,7 +9,7 @@
     "test:unit": "node --test \"tests/theory/**/*.test.js\" \"tests/unit/**/*.test.js\"",
     "test:e2e": "playwright test",
     "serve": "node scripts/serve.mjs",
-    "gen": "node scripts/gen-bank.mjs"
+    "gen": "node scripts/gen-bank.mjs && node scripts/gen-sw.mjs"
   },
   "license": "MIT",
   "devDependencies": {
