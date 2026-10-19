@@ -15,6 +15,7 @@ export const routes = [
   ['/rewards/:tab', lazy('./views/rewards.js')],
   ['/settings', lazy('./views/settings.js')],
   ['/exam-day', lazy('./views/exam-day.js')],
+  ['/summary/:id', lazy('./views/summary.js')],
 ];
 
 export function resolve(path) {

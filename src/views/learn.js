@@ -18,7 +18,7 @@ export default async function learn() {
         next ? h('a', { class: 'btn primary', href: `#/learn/${next.id}` }, 'Next lesson: ', next.title) : null)));
   for (const sec of SECTIONS) {
     const list = LESSONS.filter((l) => l.section === sec.id);
-    root.append(h('h2', { class: 'section-title' }, h('span', { class: 'sec-dot', style: { background: sec.colour } }), `${sec.id}. ${sec.title}`),
+    root.append(h('div', { class: 'row between section-title' }, h('h2', { style: { margin: 0 } }, h('span', { class: 'sec-dot', style: { background: sec.colour } }), `${sec.id}. ${sec.title}`), h('a', { class: 'btn small ghost', href: `#/summary/${sec.id}` }, icon('print', 'coin-icon'), 'One-page summary')),
       h('div', { class: 'grid cols-3' }, list.map((l) => {
         const st = s.lessons[l.id];
         return h('a', { class: `card lift lesson-card${st?.done ? ' done' : ''}`, href: `#/learn/${l.id}` },

@@ -480,3 +480,18 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 @media (max-width: 600px) { .welcome-steps { grid-template-columns: 1fr; } .welcome-art { float: none; } }
 .welcome-step { display: flex; gap: 10px; align-items: flex-start; }
 .quick-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+/* ---------- Printable summaries ---------- */
+.sum-card { max-width: 900px; margin-top: 12px; }
+.sum-card ul { padding-left: 20px; line-height: 1.6; }
+.sum-table { margin: 10px 0; font-size: .88rem; }
+.sum-table td, .sum-table th { padding: 5px 10px; }
+.sum-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.sum-music .stave { border: 0; }
+@media print {
+  .sidebar, .no-print, .toasts, .update-banner { display: none !important; }
+  .app { display: block; }
+  .main { padding: 0; max-width: none; }
+  body, .card { background: #fff !important; color: #000 !important; box-shadow: none !important; border: 0 !important; }
+  .sum-card { font-size: 11pt; }
+}
