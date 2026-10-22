@@ -5,12 +5,12 @@ import { marksFor } from './mark.js';
 import { rng, hashString } from './util.js';
 import { SECTIONS } from '../content/sections.js';
 
-function buildSection(sec, seed) {
+function buildSection(sec, seed, easy = false) {
   const target = SECTIONS.find((s) => s.id === sec).marks;
   const r = rng(hashString(`mock:${seed}:s${sec}`));
   if (sec === 7) {
     for (let attempt = 0; attempt < 30; attempt++) {
-      const set = genAnyContext(rng(hashString(`mock:${seed}:ctx:${attempt}`)), r.pick([2, 2, 3]), { all: true });
+      const set = genAnyContext(rng(hashString(`mock:${seed}:ctx:${attempt}`)), easy ? 1 : r.pick([2, 2, 3]), { all: true });
       const tf = set.find((q) => q.type === 'truefalse');
       const singles = r.shuffle(set.filter((q) => q !== tf));
       const chosen = tf ? [tf] : [];
@@ -30,7 +30,7 @@ function buildSection(sec, seed) {
     const fresh = topics.filter((t) => !usedTopics[t.id]);
     const pool = fresh.length ? fresh : topics;
     const t = r.weighted(pool.map((x) => [x, x.weight || 1]));
-    const diff = r.weighted([[1, 1], [2, 2], [3, 1]]);
+    const diff = easy ? 1 : r.weighted([[1, 1], [2, 2], [3, 1]]);
     let q;
     try { q = generate(t.id, `mock:${seed}:${sec}:${i}`, diff); } catch { continue; }
     const fp = JSON.stringify([q.prompt, q.music, q.place && q.place.accept]);
@@ -50,8 +50,9 @@ function buildSection(sec, seed) {
 }
 
 /** A full mock paper. */
-export function buildMock(seed, title = null) {
-  const sections = SECTIONS.map((s) => ({ id: s.id, title: s.title, marks: s.marks, questions: buildSection(s.id, seed) }));
+export function buildMock(seed, title = null, { easy = false } = {}) {
+  // easy: every question at difficulty 1 (same sections and marks as the real paper).
+  const sections = SECTIONS.map((s) => ({ id: s.id, title: s.title, marks: s.marks, questions: buildSection(s.id, seed, easy) }));
   sections.forEach((s) => s.questions.forEach((q, i) => { q.id = `mock-${seed}-s${s.id}-q${i + 1}`; }));
   return { id: String(seed), title: title || `Mock paper`, seed, sections };
 }

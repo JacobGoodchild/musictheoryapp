@@ -121,3 +121,14 @@ test('wording guards: articles, spacing, statement counts, no ambiguous simple-t
     assert.equal(new Set(fps).size, fps.length, `${m.title} repeats a question`);
   }
 });
+
+import { buildMock as buildMockEasy } from '../../src/questions/mock-builder.js';
+import { marksFor as marksForEasy } from '../../src/questions/mark.js';
+import { validateQuestion as validateEasy } from '../../src/questions/validate.js';
+test('easy practice mocks keep the real paper layout (10/10/15/10/10/10/10) with valid questions', () => {
+  for (const seed of ['easy-a', 'easy-b']) {
+    const p = buildMockEasy(seed, 'Easy', { easy: true });
+    assert.deepEqual(p.sections.map((s) => s.questions.reduce((a, q) => a + marksForEasy(q), 0)), [10, 10, 15, 10, 10, 10, 10]);
+    for (const s of p.sections) for (const q of s.questions) assert.deepEqual(validateEasy(q), [], q.id);
+  }
+});

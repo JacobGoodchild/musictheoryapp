@@ -14,9 +14,10 @@ import { sfx } from '../audio/synth.js';
 const EXAM_SECONDS = 2 * 60 * 60;
 
 async function loadPaper(id) {
-  if (id.startsWith('new-')) {
+  if (id.startsWith('new-') || id.startsWith('easy-')) {
     const { buildMock } = await import('../questions/mock-builder.js');
-    return buildMock(id, 'Generated mock');
+    const easy = id.startsWith('easy-');
+    return buildMock(id, easy ? 'Easy practice mock' : 'Generated mock', { easy });
   }
   const papers = await loadMocks();
   return papers.find((p) => p.id === id) || null;
