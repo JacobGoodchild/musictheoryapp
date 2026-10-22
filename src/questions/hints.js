@@ -171,3 +171,22 @@ export function hintsFor(q) {
   }
   return [h1, h2, h3];
 }
+
+/**
+ * Beginner version of a question: multiple choice keeps only 3 options (the
+ * answer plus the two wrong ones the hints would rule out last) and true/false
+ * keeps 2 statements. Returns a copy.
+ */
+export function easyVersion(q) {
+  // True/false: just two statements (one true and one false where possible).
+  if (q.type === 'truefalse' && q.statements.length > 2) {
+    const t = q.statements.find((x) => x.answer), f = q.statements.find((x) => !x.answer);
+    return { ...q, statements: t && f ? q.statements.filter((x) => x === t || x === f) : q.statements.slice(0, 2) };
+  }
+  if (q.type !== 'mcq' || q.options.length <= 3) return q;
+  const keepWrong = wrongOrder(q).slice(-2);
+  const keep = q.options.map((_, i) => i).filter((i) => i === q.answer || keepWrong.includes(i));
+  const whyWrong = {};
+  keep.forEach((oldI, newI) => { if (q.whyWrong?.[oldI]) whyWrong[newI] = q.whyWrong[oldI]; });
+  return { ...q, options: keep.map((i) => q.options[i]), answer: keep.indexOf(q.answer), whyWrong: Object.keys(whyWrong).length ? whyWrong : undefined };
+}

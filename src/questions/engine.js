@@ -5,7 +5,7 @@ import { mark, isComplete, marksFor, answerText, placedPitch } from './mark.js';
 import { icon } from '../ui/icons.js';
 import { pitchAtStaffPos, toString as pitchStr, describeStaffPos } from '../theory/pitch.js';
 import { playQuestionAudio } from '../audio/synth.js';
-import { hintsFor } from './hints.js';
+import { hintsFor, easyVersion } from './hints.js';
 
 const ACC_BUTTONS = [
   { acc: null, label: 'None', aria: 'no accidental' },
@@ -29,8 +29,10 @@ function musicBlock(spec, cls = '') {
  * opts.mode: 'practice' (feedback straight away) | 'mock' (no feedback; answer saved) | 'review' (show response + feedback)
  * opts.onAnswer(result, response) is called when Answer is pressed.
  */
-export function questionView(q, opts = {}) {
+export function questionView(q0, opts = {}) {
   const mode = opts.mode || 'practice';
+  // Beginner: fewer options to choose from (practice and lessons only, never mocks).
+  const q = opts.easy && mode === 'practice' ? easyVersion(q0) : q0;
   let response = opts.response !== undefined ? structuredClone(opts.response) : initialResponse(q);
   let locked = mode === 'review';
   const root = h('div', { class: `question q-${q.type}`, 'data-qid': q.id, 'data-type': q.type });
@@ -86,6 +88,8 @@ export function questionView(q, opts = {}) {
       if (hintsUsed >= hints.length) hintBtn.remove();
       else { clear(hintBtn); hintBtn.append(icon('bulb', 'coin-icon'), `${labels[hintsUsed]} (${hintsUsed + 1} of 3)`); }
     };
+    // Beginner: the first (free) nudge is shown straight away.
+    if (opts.easy) queueMicrotask(showHint);
   }
   function applyHint(hint) {
     if (hint.eliminate && q.type === 'mcq') {

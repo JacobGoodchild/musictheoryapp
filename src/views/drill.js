@@ -139,6 +139,7 @@ export default async function drill({ topic: mode }) {
     const nextBtn = h('button', { class: 'btn primary big', 'data-action': 'next', onclick: () => nextQ() }, (src.size && answered >= src.size) ? 'See results' : 'Next question', icon('arrow', 'coin-icon'));
     const qv = questionView(q, {
       mode: 'practice',
+      easy: levelOf(getState()) === 'beginner',
       number: answered + 1,
       onAnswer: (result) => {
         answered++;

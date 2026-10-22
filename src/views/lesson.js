@@ -69,7 +69,8 @@ export function lessonCheckQuestions(lesson) {
   const qs = [];
   for (let i = 0; i < n && topics.length; i++) {
     const t = topics[i % topics.length];
-    try { qs.push(generate(t, `lesson-${lesson.id}-${i}`, lesson.check.difficulty || (i < 2 ? 1 : 2))); } catch (e) { console.error(e); }
+    // Lesson checks always use the easiest (difficulty 1) questions.
+    try { qs.push(generate(t, `lesson-${lesson.id}-${i}`, 1)); } catch (e) { console.error(e); }
   }
   return qs;
 }
@@ -115,7 +116,7 @@ export default async function lessonView({ id }) {
       }
       const q = qs[i];
       const nextBtn = h('button', { class: 'btn primary', 'data-action': 'next', onclick: () => { i++; showQ(); } }, i === qs.length - 1 ? 'Finish' : 'Next question', icon('arrow', 'coin-icon'));
-      const qv = questionView(q, { mode: 'practice', number: i + 1, onAnswer: (res) => {
+      const qv = questionView(q, { mode: 'practice', easy: (getState().settings?.level || 'beginner') === 'beginner', number: i + 1, onAnswer: (res) => {
         if (res.correct) { right++; sfx('correct'); } else sfx('wrong');
         let c = 0;
         update((s) => { c = recordAnswer(s, q, res, 'lesson'); });

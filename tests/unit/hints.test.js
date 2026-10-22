@@ -44,3 +44,18 @@ test('the first hint explains tricky words, such as cadence', () => {
   const q = bank.find((x) => x.topic === 'x-context' && /cadence/i.test(x.prompt));
   if (q) assert.match(hintsFor(q)[0].text, /cadence/i);
 });
+
+import { easyVersion } from '../../src/questions/hints.js';
+test('beginner versions keep the right answer and stay consistent', () => {
+  for (const q of bank) {
+    const e = easyVersion(q);
+    if (q.type === 'mcq') {
+      assert.ok(e.options.length <= 3, q.id);
+      assert.equal(e.options[e.answer].label, q.options[q.answer].label, q.id);
+      assert.deepEqual(e.options[e.answer], q.options[q.answer]);
+      const h = hintsFor(e);
+      assert.ok(!h[1].eliminate.includes(e.answer) && !h[2].eliminate.includes(e.answer), q.id);
+    }
+    if (q.type === 'truefalse') assert.ok(e.statements.length <= 2 && e.statements.every((s) => q.statements.includes(s)), q.id);
+  }
+});
