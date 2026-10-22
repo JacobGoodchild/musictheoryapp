@@ -38,10 +38,13 @@ async function makeSource(mode) {
     return () => { if (i >= queue.length) { queue = leastSeenFirst(list); i = 0; } return queue[i++]; };
   };
   if (mode === 'random') {
-    const all = byLevel(await loadAll(), level);
+    // Beginner: leave out the long music-in-context extracts (they have their own topic).
+    const skip = (t) => level === 'beginner' && t === 'x-context';
+    const all = byLevel(await loadAll(), level).filter((q) => !skip(q.topic));
     const bank = fromList(all);
+    const liveTopic = () => { let t; do t = pickTopic(r).id; while (skip(t)); return t; };
     let n = 0;
-    return { title: 'Random mode', sub: 'Questions from the whole syllabus, mixing the bank with freshly generated ones.', levels: true, next: () => (n++ % 2 === 0 ? bank() : live(pickTopic(r).id, `live-${Date.now()}-${n}`)) };
+    return { title: 'Random mode', sub: 'Questions from the whole syllabus, mixing the bank with freshly generated ones.', levels: true, next: () => (n++ % 2 === 0 ? bank() : live(liveTopic(), `live-${Date.now()}-${n}`)) };
   }
   if (mode === 'mistakes') {
     const list = Object.values(s.mistakes).map((m) => m.q);
