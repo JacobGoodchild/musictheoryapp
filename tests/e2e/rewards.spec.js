@@ -17,7 +17,7 @@ test('buy an avatar item, open a blind bag, see the sticker in the album', async
   await expect(page.locator('.reveal h2')).toBeVisible({ timeout: 5000 });
   const name = await page.locator('.reveal h2').innerText();
   await page.goto('/index.html#/rewards/album');
-  await expect(page.locator('.album-stats h3')).toContainText('1 / 60');
+  await expect(page.locator('.album-stats h3')).toContainText(`1 / ${await page.evaluate(async () => (await import('/src/state/stickers.js')).STICKERS.length)}`);
   await expect(page.locator('.album-cell:not(.locked)')).toContainText(name);
   expect(errors).toEqual([]);
 });
@@ -60,4 +60,15 @@ test('every sticker has its own drawing, and it draws inside the sticker', async
     return out;
   });
   expect(problems).toEqual([]);
+});
+
+test('3 for 2: three bags for the price of two', async ({ page }) => {
+  await withProfile(page, { coins: 130 });
+  await page.goto('/index.html#/rewards/bags');
+  await page.click('[data-action=bundle]');
+  await expect(page.locator('.reveal')).toHaveCount(3, { timeout: 5000 });
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('g5theory.save')).coins);
+  expect(before).toBe(130 + 20 - 120); // starting coins + first-visit streak bonus - the 3-for-2 price
+  await page.goto('/index.html#/rewards/album');
+  await expect(page.locator('.album-stats')).toContainText('3 bags opened');
 });

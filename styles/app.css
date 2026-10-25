@@ -559,3 +559,13 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .hear-btn:hover { background: #e7e0ff; }
 :root[data-theme="dark"] .hear-btn { background: #2a2350; color: #d9d0ff; border-color: #5a4bb0; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hear-btn { background: #2a2350; color: #d9d0ff; border-color: #5a4bb0; } }
+/* 3-for-2 bag deal and multi-sticker reveal */
+.bag-buttons { justify-content: center; gap: 10px; flex-wrap: wrap; }
+.deal-btn { position: relative; border: 2px solid #ff7eb6; background: linear-gradient(135deg, #fff0f7, #f3ecff); color: #a0306a; font-weight: 750; }
+.deal-btn:disabled { opacity: .55; }
+.deal-tag { position: absolute; top: -12px; right: -8px; background: #ff4f8b; color: #fff; font-size: .78rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; transform: rotate(6deg); box-shadow: 0 2px 6px #ff4f8b55; }
+.reveal-row { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+.reveal-row .reveal { animation-fill-mode: both; }
+.reveal-row.count-3 .reveal { flex: 1 1 180px; max-width: 220px; }
+.reveal-row.count-3 .reveal-glow { width: 200px; height: 200px; }
+.reveal-row.count-3 .reveal-text h2 { font-size: 1.15rem; }

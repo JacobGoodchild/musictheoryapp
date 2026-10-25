@@ -3,12 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STICKERS, RARITIES, PITY, openBag, collectionStats } from '../../src/state/stickers.js';
 
-test('about 60 stickers, unique ids, every rarity present, shown odds add to 100', () => {
-  assert.ok(STICKERS.length >= 55 && STICKERS.length <= 70);
+test('about 100 stickers, unique ids, every rarity present, shown odds add to 100', () => {
+  assert.ok(STICKERS.length >= 90 && STICKERS.length <= 120);
   assert.equal(new Set(STICKERS.map((s) => s.id)).size, STICKERS.length);
   for (const r of RARITIES) assert.ok(STICKERS.some((s) => s.rarity === r.id), r.id);
   assert.equal(RARITIES.reduce((a, r) => a + r.odds, 0), 100);
-  assert.equal(STICKERS.filter((s) => s.rarity === 'mythic').length, 3);
+  assert.equal(STICKERS.filter((s) => s.rarity === 'mythic').length, 5);
   assert.equal(STICKERS.find((s) => s.id === 'golden-teapot').rarity, 'mythic');
 });
 

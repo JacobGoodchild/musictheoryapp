@@ -1,5 +1,5 @@
 import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
-import { getState, update } from '../state/store.js';
+import { getState, update, subscribe } from '../state/store.js';
 import { icon, coinIcon, noteIcon } from '../ui/icons.js';
 import { FOOD } from '../art/food.js';
 import { avatarSVG, ITEMS, SLOTS, DEFAULT_EQUIPPED, itemById, FREE_ITEMS } from '../art/avatar.js';
@@ -19,7 +19,14 @@ const owns = (s, id) => FREE_ITEMS.includes(id) || s.avatar.owned.includes(id);
 
 export default async function rewards({ tab = 'avatar' } = {}) {
   const s = getState();
-  const wallet = h('div', { class: 'row' }, h('span', { class: 'chip coin-chip big-chip' }, coinIcon(), `${s.coins} coins`), h('span', { class: 'chip big-chip', title: 'Notes come from duplicate stickers' }, noteIcon(), `${s.dupeNotes} notes`));
+  const coinText = h('span', {}, `${s.coins} coins`), noteText = h('span', {}, `${s.dupeNotes} notes`);
+  const wallet = h('div', { class: 'row' }, h('span', { class: 'chip coin-chip big-chip' }, coinIcon(), coinText), h('span', { class: 'chip big-chip', title: 'Notes come from duplicate stickers' }, noteIcon(), noteText));
+  // Keep the wallet up to date after buying (stop listening once the page is gone).
+  const off = subscribe((st) => {
+    if (!wallet.isConnected && wallet.__shown) { off(); return; }
+    if (wallet.isConnected) wallet.__shown = true;
+    coinText.textContent = `${st.coins} coins`; noteText.textContent = `${st.dupeNotes} notes`;
+  });
   const root = h('div', {},
     h('div', { class: 'page-head' }, h('div', {}, h('div', { class: 'eyebrow' }, 'Rewards'), h('h1', {}, 'Rewards'), h('p', {}, 'Earn coins by learning, then spend them on your avatar and sticker bags.')), wallet),
     h('div', { class: 'tabs', role: 'tablist' }, TABS.map((t) => h('a', { class: `tab${t.id === tab ? ' active' : ''}`, role: 'tab', 'aria-selected': String(t.id === tab), href: `#/rewards/${t.id}` }, icon(t.icon, 'coin-icon'), t.label))));
@@ -81,35 +88,44 @@ function avatarTab() {
 function bagsTab() {
   const s = getState();
   const stage = h('div', { class: 'bag-stage' });
+  const bundle = ECONOMY.bagBundle; // 3 bags for the price of 2
   const showBag = () => {
     clear(stage);
-    const bag = h('button', { class: 'blind-bag', 'aria-label': `Open a blind bag for ${ECONOMY.bagCost} coins`, disabled: getState().coins < ECONOMY.bagCost, onclick: () => open(bag) }, svgFromString(bagArt()));
-    append(stage, [bag, h('button', { class: 'btn primary big', disabled: getState().coins < ECONOMY.bagCost, onclick: () => open(bag) }, 'Open a bag · ', coinIcon(), String(ECONOMY.bagCost)),
-      getState().coins < ECONOMY.bagCost ? h('p', { class: 'muted small' }, `You need ${ECONOMY.bagCost - getState().coins} more coins. Answer some questions to earn them!`) : null]);
+    const coins = getState().coins;
+    const bag = h('button', { class: 'blind-bag', 'aria-label': `Open a blind bag for ${ECONOMY.bagCost} coins`, disabled: coins < ECONOMY.bagCost, onclick: () => open(bag, 1) }, svgFromString(bagArt()));
+    append(stage, [bag,
+      h('div', { class: 'row bag-buttons' },
+        h('button', { class: 'btn primary big', disabled: coins < ECONOMY.bagCost, onclick: () => open(bag, 1) }, 'Open a bag · ', coinIcon(), String(ECONOMY.bagCost)),
+        h('button', { class: 'btn big deal-btn', 'data-action': 'bundle', disabled: coins < bundle.price, onclick: () => open(bag, bundle.count) },
+          h('span', { class: 'deal-tag' }, '3 for 2!'), `Open ${bundle.count} bags · `, coinIcon(), String(bundle.price))),
+      coins < ECONOMY.bagCost ? h('p', { class: 'muted small' }, `You need ${ECONOMY.bagCost - coins} more coins. Answer some questions to earn them!`) : null]);
   };
-  const open = async (bagEl) => {
-    let res = null;
+  const open = async (bagEl, n) => {
+    const price = n === 1 ? ECONOMY.bagCost : bundle.price;
+    const results = [];
     update((x) => {
-      if (!spendCoins(x, ECONOMY.bagCost)) return;
+      if (!spendCoins(x, price)) return;
       if (!x.stickers.seed) x.stickers.seed = (Date.now() % 100000) + 1;
-      res = openBag(x.stickers);
-      x.dupeNotes += res.notes;
+      for (let i = 0; i < n; i++) { const r = openBag(x.stickers); x.dupeNotes += r.notes; results.push(r); }
     });
-    if (!res) return;
+    if (!results.length) return;
     bagEl.classList.add('shaking');
     sfx('coin');
     await new Promise((r) => setTimeout(r, 900));
     bagEl.classList.add('tearing');
     await new Promise((r) => setTimeout(r, 450));
     clear(stage);
-    const ra = rarityById(res.rarity);
-    const card = h('div', { class: `reveal rarity-${res.rarity}`, style: { '--glow': ra.colour } },
-      h('div', { class: 'reveal-glow' }), h('div', { class: 'reveal-sticker' }, svgFromString(stickerSVG(res.sticker, { size: 200 }))),
-      h('div', { class: 'reveal-text' }, h('span', { class: 'rarity-pill', style: { background: ra.colour } }, ra.name), h('h2', {}, res.sticker.name),
-        res.duplicate ? h('p', {}, 'Duplicate! Turned into ', h('strong', {}, `${res.notes} notes`), ' to swap for a sticker you choose.') : h('p', {}, 'New sticker for your album!')));
-    stage.append(card, h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn', onclick: () => refresh() }, 'Done'), h('button', { class: 'btn primary', disabled: getState().coins < ECONOMY.bagCost, onclick: () => showBag() }, 'Open another')));
+    const cards = h('div', { class: `reveal-row count-${results.length}` });
+    results.forEach((res, i) => {
+      const ra = rarityById(res.rarity);
+      cards.append(h('div', { class: `reveal rarity-${res.rarity}`, style: { '--glow': ra.colour, animationDelay: `${i * 0.35}s` } },
+        h('div', { class: 'reveal-glow' }), h('div', { class: 'reveal-sticker' }, svgFromString(stickerSVG(res.sticker, { size: results.length > 1 ? 150 : 200 }))),
+        h('div', { class: 'reveal-text' }, h('span', { class: 'rarity-pill', style: { background: ra.colour } }, ra.name), h('h2', {}, res.sticker.name),
+          res.duplicate ? h('p', {}, 'Duplicate! Turned into ', h('strong', {}, `${res.notes} notes`), '.') : h('p', {}, 'New sticker for your album!'))));
+    });
+    stage.append(cards, h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn', onclick: () => refresh() }, 'Done'), h('button', { class: 'btn primary', disabled: getState().coins < ECONOMY.bagCost, onclick: () => showBag() }, 'Open more')));
     sfx('reveal');
-    if (['legendary', 'mythic'].includes(res.rarity)) confetti();
+    if (results.some((res) => ['legendary', 'mythic'].includes(res.rarity))) confetti();
   };
   showBag();
   const since = s.stickers.sinceEpic;
@@ -117,7 +133,7 @@ function bagsTab() {
     h('div', { class: 'card' }, stage),
     h('div', { class: 'card odds-card' },
       h('h3', {}, 'What\'s inside?'),
-      h('p', { class: 'small muted' }, 'Each bag holds one cute food or sweet sticker. The odds are always:'),
+      h('p', { class: 'small muted' }, `Each bag holds one cute food or sweet sticker (${STICKERS.length} to collect). Special offer: 3 bags for the price of 2! The odds are always:`),
       h('ul', { class: 'odds-list' }, RARITIES.map((r) => h('li', {}, h('span', { class: 'rarity-pill', style: { background: r.colour } }, r.name), h('strong', {}, `${r.odds}%`)))),
       h('p', { class: 'small' }, h('strong', {}, 'Lucky dip guarantee: '), `at least one Epic or better every ${PITY} bags. `, since >= PITY - 1 ? h('strong', {}, 'Your next bag is guaranteed Epic or better!') : `${PITY - since} bag${PITY - since === 1 ? '' : 's'} to go at most.`),
       h('p', { class: 'small' }, h('strong', {}, 'Duplicates '), 'turn into notes. Spend notes in the album to pick any sticker you\'re missing.')));

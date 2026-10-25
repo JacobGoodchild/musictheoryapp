@@ -17,6 +17,7 @@ export const ECONOMY = {
   dailyChallenge: 80,
   dailyChallengePerfect: 40,
   bagCost: 60,
+  bagBundle: { count: 3, price: 120 }, // '3 for 2' offer
 };
 
 /** Coins for a correct answer, with diminishing returns for repeats. */

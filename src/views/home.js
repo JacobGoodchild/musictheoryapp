@@ -1,3 +1,4 @@
+import { STICKERS } from '../state/stickers.js';
 import { h, svgFromString } from '../dom.js';
 import { getState, update } from '../state/store.js';
 import { cleanName } from '../state/save.js';
@@ -87,7 +88,7 @@ export default async function home() {
     tile('#/mock', 'mock', 'Mock exam', best === null ? 'Try your first paper' : `Best so far: ${best}/75`),
     tile('#/memorise/cards:terms-g5', 'memorise', 'Flashcards', 'Grade 5 terms and more'),
     tile('#/memorise/circle', 'refresh', 'Circle of fifths', 'Keys at a glance'),
-    tile('#/rewards/bags', 'bag', 'Blind bags', 'Collect all 60 stickers'),
+    tile('#/rewards/bags', 'bag', 'Blind bags', `Collect all ${STICKERS.length} stickers`),
     tile('#/exam-day', 'calendar', 'Exam-day guide', 'Format, timing, checklist'));
 
   const sections = h('div', { class: 'grid cols-3' }, SECTIONS.map((sec) => {

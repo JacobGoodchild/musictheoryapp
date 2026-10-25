@@ -24,6 +24,11 @@ export const STICKERS = [
   S('egg', 'Fried Egg', 'common'), S('milk', 'Milk Carton', 'common'), S('juice-box', 'Juice Box', 'common'),
   S('cheese', 'Cheese', 'common'), S('orange', 'Orange', 'common'), S('mushroom', 'Mushroom', 'common'),
   S('peach', 'Peach', 'common'),
+  S('kiwi', 'Kiwi', 'common'), S('pineapple', 'Pineapple', 'common'), S('corn', 'Sweetcorn', 'common'),
+  S('tomato', 'Tomato', 'common'), S('broccoli', 'Broccoli', 'common'), S('blueberries', 'Blueberries', 'common'),
+  S('coconut', 'Coconut', 'common'), S('pretzel', 'Pretzel', 'common'), S('popcorn', 'Popcorn', 'common'),
+  S('wrapped-sweet', 'Wrapped Sweet', 'common'), S('gummy-bear', 'Gummy Bear', 'common'), S('marshmallow', 'Marshmallow', 'common'),
+  S('jam-jar', 'Jam Jar', 'common'), S('tea-bag', 'Cup of Tea', 'common'), S('lemonade', 'Lemonade', 'common'),
   // Rare (16)
   S('pancakes', 'Pancake Stack', 'rare'), S('waffle', 'Waffle', 'rare'), S('sushi', 'Sushi', 'rare'),
   S('onigiri', 'Onigiri', 'rare'), S('macaron', 'Macaron', 'rare'), S('ice-cream', 'Ice Cream Cone', 'rare'),
@@ -31,18 +36,27 @@ export const STICKERS = [
   S('bubble-tea', 'Bubble Tea', 'rare'), S('burger', 'Burger', 'rare'), S('fries', 'Chips', 'rare'),
   S('pizza', 'Pizza Slice', 'rare'), S('chocolate', 'Chocolate Bar', 'rare'), S('honey', 'Honey Pot', 'rare'),
   S('hot-choc', 'Hot Chocolate', 'rare'),
+  S('ramen', 'Ramen', 'rare'), S('dumpling', 'Dumpling', 'rare'), S('taco', 'Taco', 'rare'),
+  S('hot-dog', 'Hot Dog', 'rare'), S('sandwich', 'Sandwich', 'rare'), S('cinnamon-roll', 'Cinnamon Roll', 'rare'),
+  S('swiss-roll', 'Swiss Roll', 'rare'), S('ice-cream-sandwich', 'Ice Cream Sandwich', 'rare'), S('smoothie', 'Strawberry Smoothie', 'rare'),
+  S('mochi-ice-cream', 'Mochi Friends', 'rare'), S('cream-puff', 'Cream Puff', 'rare'),
   // Epic (10)
   S('sundae', 'Sundae', 'epic'), S('birthday-cake', 'Birthday Cake', 'epic'), S('dango', 'Dango', 'epic'),
   S('strawberry-milk', 'Strawberry Milk', 'epic'), S('jelly', 'Wobbly Jelly', 'epic'), S('rainbow-donut', 'Rainbow Donut', 'epic'),
   S('gingerbread', 'Gingerbread Friend', 'epic'), S('boba-star', 'Starry Boba', 'epic'), S('fruit-tart', 'Fruit Tart', 'epic'),
   S('pumpkin', 'Pumpkin', 'epic'),
+  S('bento', 'Bento Box', 'epic'), S('macaron-tower', 'Macaron Tower', 'epic'), S('sweet-jar', 'Sweet Jar', 'epic'),
+  S('gingerbread-house', 'Gingerbread House', 'epic'), S('bunny-pancakes', 'Bunny Pancakes', 'epic'), S('parfait', 'Parfait', 'epic'),
+  S('cherry-pie', 'Cherry Pie', 'epic'), S('picnic-basket', 'Picnic Basket', 'epic'),
   // Legendary (6)
   S('golden-apple', 'Golden Apple', 'legendary'), S('galaxy-donut', 'Galaxy Donut', 'legendary'),
   S('unicorn-ice-cream', 'Unicorn Ice Cream', 'legendary'), S('crown-cupcake', 'Royal Cupcake', 'legendary'),
   S('rainbow-lollipop', 'Rainbow Lollipop', 'legendary'), S('sparkle-strawberry', 'Sparkle Strawberry', 'legendary'),
+  S('rainbow-cake-slice', 'Rainbow Cake', 'legendary'), S('crystal-candy', 'Crystal Candy', 'legendary'),
+  S('golden-croissant', 'Golden Croissant', 'legendary'), S('starry-macaron', 'Starry Macaron', 'legendary'),
   // Mythic (3)
   S('cosmic-cake', 'Cosmic Cake', 'mythic'), S('rainbow-dragonfruit', 'Rainbow Dragon Fruit', 'mythic'),
-  S('golden-teapot', 'Golden Teapot', 'mythic'),
+  S('golden-teapot', 'Golden Teapot', 'mythic'), S('unicorn-cake', 'Unicorn Cake', 'mythic'), S('galaxy-boba', 'Galaxy Boba', 'mythic'),
 ];
 
 export const stickerById = (id) => STICKERS.find((s) => s.id === id);

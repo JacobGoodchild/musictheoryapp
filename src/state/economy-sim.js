@@ -52,7 +52,9 @@ export function simulate({ days = 70, seed = 1, sessionsPerWeek = 6 } = {}) {
       const swappable = missing.find((s) => RARITIES.find((x) => x.id === s.rarity).swapCost <= notes);
       if (swappable) { notes -= RARITIES.find((x) => x.id === swappable.rarity).swapCost; st.owned[swappable.id] = 1; bought = true; purchases++; continue; }
       const preferBag = purchases % 2 === 1 || !avatarLeft.length;
-      if (preferBag && missing.length && coins >= ECONOMY.bagCost) { coins -= ECONOMY.bagCost; notes += openBag(st).notes; bought = true; purchases++; }
+      const B = ECONOMY.bagBundle;
+      if (preferBag && missing.length >= B.count && coins >= B.price) { coins -= B.price; for (let i = 0; i < B.count; i++) notes += openBag(st).notes; bought = true; purchases++; }
+      else if (preferBag && missing.length && coins >= ECONOMY.bagCost) { coins -= ECONOMY.bagCost; notes += openBag(st).notes; bought = true; purchases++; }
       else if (avatarLeft.length && coins >= avatarLeft[0].price) { coins -= avatarLeft.shift().price; bought = true; purchases++; }
       else if (missing.length && coins >= ECONOMY.bagCost) { coins -= ECONOMY.bagCost; notes += openBag(st).notes; bought = true; purchases++; }
       if (bought && firstPurchaseDay === null) firstPurchaseDay = day;
