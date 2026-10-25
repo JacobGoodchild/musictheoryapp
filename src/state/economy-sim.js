@@ -2,6 +2,7 @@
 // economy test and quoted in docs/economy.md). Pure, deterministic.
 import { ECONOMY, streakBonus, mockReward, coinsForCorrect } from './rewards.js';
 import { ITEMS } from '../art/avatar.js';
+import { PETS } from '../art/pets.js';
 import { STICKERS, RARITIES, openBag } from './stickers.js';
 import { rng } from '../questions/util.js';
 
@@ -13,7 +14,8 @@ import { rng } from '../questions/util.js';
  */
 export function simulate({ days = 70, seed = 1, sessionsPerWeek = 6 } = {}) {
   const r = rng(seed);
-  const avatarLeft = ITEMS.filter((i) => i.price > 0).sort((a, b) => a.price - b.price);
+  // Avatar items and pets are bought the same way (cheapest first).
+  const avatarLeft = [...ITEMS.filter((i) => i.price > 0), ...PETS].sort((a, b) => a.price - b.price);
   const st = { owned: {}, bagsOpened: 0, sinceEpic: 0, seed };
   let coins = 0, notes = 0, lessonsDone = 0, mocks = 0, streak = 0, best = null;
   const timeline = [];

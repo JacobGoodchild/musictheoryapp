@@ -72,3 +72,20 @@ test('3 for 2: three bags for the price of two', async ({ page }) => {
   await page.goto('/index.html#/rewards/album');
   await expect(page.locator('.album-stats')).toContainText('3 bags opened');
 });
+
+test('pet tab: adopt a pet, it appears in the room and on the avatar, and moves', async ({ page }) => {
+  await withProfile(page, { coins: 300 });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto('/index.html#/rewards/pet');
+  await page.locator('.pet-card', { hasText: 'Kitten' }).locator('[data-action=pet-buy]').click();
+  await page.locator('.modal button', { hasText: 'Adopt' }).click();
+  await expect(page.locator('.pet-room .pet')).toHaveCount(1);
+  await expect(page.locator('.pet-room .pet')).toHaveClass(/idle|walking|playing|sleeping/);
+  await page.fill('.pet-name-input', 'Mochi');
+  await page.locator('button', { hasText: 'Save name' }).click();
+  await expect(page.locator('.pet-layout h2')).toHaveText('Mochi');
+  await page.goto('/index.html#/home');
+  await expect(page.locator('.home-avatar .pet')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

@@ -10,6 +10,7 @@ const P = {
   rewards: '<path d="M4 9h16v3H4z"/><path d="M5.5 12v8h13v-8"/><path d="M12 9v11"/><path d="M12 9c-1.5-3-6-4-6-1.5S9 9 12 9zM12 9c1.5-3 6-4 6-1.5S15 9 12 9z"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3"/>',
   check: '<path d="M5 12.5 10 17.5 19.5 7"/>',
+  paw: '<ellipse cx="12" cy="16" rx="4.6" ry="3.8"/><circle cx="6.5" cy="10.5" r="1.9"/><circle cx="10" cy="7" r="1.9"/><circle cx="14" cy="7" r="1.9"/><circle cx="17.5" cy="10.5" r="1.9"/>',
   bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
   cross: '<path d="M6 6l12 12M18 6 6 18"/>',
   play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',

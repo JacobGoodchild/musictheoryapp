@@ -1,3 +1,6 @@
+import { PETS, petById, petSVG } from '../art/pets.js';
+import { petStage } from '../ui/pet-widget.js';
+import { cleanName } from '../state/save.js';
 import { promoBox } from '../ui/promo.js';
 import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
 import { getState, update, subscribe } from '../state/store.js';
@@ -12,6 +15,7 @@ import { confetti } from '../ui/confetti.js';
 
 const TABS = [
   { id: 'avatar', label: 'Avatar & shop', icon: 'star' },
+  { id: 'pet', label: 'Pet', icon: 'paw' },
   { id: 'bags', label: 'Blind bags', icon: 'bag' },
   { id: 'album', label: 'Sticker album', icon: 'memorise' },
 ];
@@ -33,6 +37,7 @@ export default async function rewards({ tab = 'avatar' } = {}) {
     h('div', { class: 'tabs', role: 'tablist' }, TABS.map((t) => h('a', { class: `tab${t.id === tab ? ' active' : ''}`, role: 'tab', 'aria-selected': String(t.id === tab), href: `#/rewards/${t.id}` }, icon(t.icon, 'coin-icon'), t.label))));
   if (tab === 'bags') root.append(bagsTab());
   else if (tab === 'album') root.append(albumTab());
+  else if (tab === 'pet') root.append(petTab());
   else root.append(avatarTab());
   root.append(promoBox());
   return root;
@@ -50,7 +55,7 @@ function avatarTab() {
   const drawPreview = () => {
     clear(preview);
     const eq = { ...DEFAULT_EQUIPPED, ...getState().avatar.equipped, ...(trying ? { [trying.slot]: trying.id } : {}) };
-    preview.append(svgFromString(avatarSVG(eq, { size: 240 })));
+    preview.append(h('div', { class: 'pet-frame' }, svgFromString(avatarSVG(eq, { size: 240 })), petStage(getState().pet?.active, { size: 0.38 })));
     if (trying && !owns(getState(), trying.id)) preview.append(h('div', { class: 'chip accent' }, `Trying on: ${trying.name}`));
   };
   const drawShop = () => {
@@ -181,3 +186,40 @@ function albumTab() {
 }
 
 void itemById;
+
+// ---------------------------------------------------------------- Pet
+function petTab() {
+  const wrap = h('div', {});
+  const draw = () => {
+    clear(wrap);
+    const st = getState();
+    const p = st.pet || { owned: [], active: null, name: '' };
+    const active = p.active && petById(p.active);
+    const nameInput = h('input', { type: 'text', maxlength: 16, class: 'pet-name-input', 'aria-label': 'Pet name', placeholder: 'Give your pet a name', value: p.name || '' });
+    const nameEl = h('h2', {});
+    nameEl.textContent = active ? (p.name || active.name) : 'No pet yet';
+    const room = h('div', { class: 'pet-room', 'data-mood': 'room' }, active ? petStage(active.id, { size: 0.36 }) : null);
+    const left = h('div', { class: 'card stack' }, room, nameEl,
+      active ? h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); update((x) => { x.pet.name = cleanName(nameInput.value).slice(0, 16); }); toast('Name saved'); draw(); } }, nameInput, h('button', { class: 'btn', type: 'submit' }, 'Save name'))
+        : h('p', { class: 'muted' }, 'Adopt a pet friend below. It will live here and on your avatar picture: wandering about, playing with its ball, and sometimes having a nap.'));
+    const shop = h('div', { class: 'pet-shop' }, PETS.map((pt) => {
+      const owned = p.owned.includes(pt.id);
+      const isActive = p.active === pt.id;
+      const btn = isActive ? h('span', { class: 'chip good' }, icon('check', 'coin-icon'), 'Out to play')
+        : owned ? h('button', { class: 'btn small', 'data-action': 'pet-choose', onclick: () => { update((x) => { x.pet.active = pt.id; }); draw(); } }, 'Play with')
+          : h('button', { class: 'btn small primary', 'data-action': 'pet-buy', disabled: st.coins < pt.price, onclick: async () => {
+            const ok = await confirmDialog(`Adopt the ${pt.name}?`, `This costs ${pt.price} coins.`, { ok: 'Adopt' });
+            if (!ok) return;
+            let done = false;
+            update((x) => { if (spendCoins(x, pt.price)) { x.pet.owned.push(pt.id); x.pet.active = pt.id; done = true; } });
+            if (done) { sfx('reveal'); confetti(); toast(`Welcome home, little ${pt.name.toLowerCase()}!`); draw(); }
+          } }, coinIcon(), String(pt.price));
+      return h('div', { class: `card pet-card${isActive ? ' current' : ''}` }, svgFromString(petSVG(pt.id, { size: 110 })), h('strong', {}, pt.name), btn);
+    }));
+    const right = h('div', { class: 'stack' }, h('h3', {}, 'Pet shop'), shop,
+      p.active ? h('button', { class: 'btn small', onclick: () => { update((x) => { x.pet.active = null; }); draw(); } }, 'Put my pet to bed (hide it)') : null);
+    wrap.append(h('div', { class: 'pet-layout' }, left, right));
+  };
+  draw();
+  return wrap;
+}

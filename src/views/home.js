@@ -1,3 +1,4 @@
+import { petStage } from '../ui/pet-widget.js';
 import { STICKERS } from '../state/stickers.js';
 import { h, svgFromString } from '../dom.js';
 import { getState, update } from '../state/store.js';
@@ -66,7 +67,7 @@ export default async function home() {
   const lessonsDone = LESSONS.filter((l) => s.lessons[l.id]?.done).length;
 
   const hero = h('div', { class: 'home-hero card' },
-    h('a', { class: 'home-avatar', href: '#/rewards/avatar', 'aria-label': 'Change your avatar' }, svgFromString(avatarSVG(s.avatar.equipped, { size: 128 }))),
+    h('a', { class: 'home-avatar pet-frame', href: '#/rewards/avatar', 'aria-label': 'Change your avatar' }, svgFromString(avatarSVG(s.avatar.equipped, { size: 128 })), petStage(s.pet?.active, { size: 0.42 })),
     h('div', { class: 'home-hello' },
       h('div', { class: 'eyebrow' }, greeting()),
       h('h1', {}, 'Hi, ', nameEl, '!'),

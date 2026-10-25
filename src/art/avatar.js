@@ -11,7 +11,6 @@ export const SLOTS = [
   { id: 'face', name: 'Face' },
   { id: 'accessory', name: 'Accessory' },
   { id: 'hat', name: 'Headwear' },
-  { id: 'pet', name: 'Pet friend' },
   { id: 'background', name: 'Background' },
   { id: 'skin', name: 'Skin' },
 ];
@@ -78,15 +77,6 @@ export const ITEMS = [
   I('eye-violet', 'eyes', 'Violet', 120, { colour: '#8a5be0' }),
   I('eye-pink', 'eyes', 'Pink', 140, { colour: '#f0609a' }),
   I('eye-gold', 'eyes', 'Gold sparkle', 220, { colour: '#e0a800', sparkle: true }),
-  // Pet friends
-  I('pet-none', 'pet', 'No pet', 0),
-  I('pet-kitten', 'pet', 'Kitten', 120),
-  I('pet-bunny', 'pet', 'Bunny', 120),
-  I('pet-chick', 'pet', 'Chick', 100),
-  I('pet-puppy', 'pet', 'Puppy', 140),
-  I('pet-hamster', 'pet', 'Hamster', 140),
-  I('pet-panda', 'pet', 'Panda', 200),
-  I('pet-unicorn', 'pet', 'Baby unicorn', 360),
   // Hair accessories
   I('ha-none', 'hairAcc', 'None', 0),
   I('ha-bow-pink', 'hairAcc', 'Pink bow', 50, { colour: '#ff7eb6' }),
@@ -163,7 +153,7 @@ export const ITEMS = [
 ];
 
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
-export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', eyes: 'eye-brown', pet: 'pet-none', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
+export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', eyes: 'eye-brown', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
 export const FREE_ITEMS = ITEMS.filter((i) => i.price === 0).map((i) => i.id);
 
 // ---- Hair ------------------------------------------------------------------
@@ -171,11 +161,14 @@ export const FREE_ITEMS = ITEMS.filter((i) => i.price === 0).map((i) => i.id);
 // (fringe/top, drawn over the head).
 const FRINGE = 'M57 92C57 60 77 42 100 42S143 60 143 92Q137 79 130 74Q100 84 70 74Q63 79 57 92Z';
 const SIDE = 'M57 94C55 60 76 41 101 41S145 60 143 94Q140 80 132 72Q116 66 104 70Q84 84 62 84Q59 88 57 94Z';
-const MIDDLE = 'M57 98C55 60 76 41 100 41S145 60 143 98Q140 74 104 62L100 56L96 62Q60 74 57 98Z';
+const MIDDLE = 'M57 98C55 60 76 41 100 41S145 60 143 98Q140 72 100 61Q60 72 57 98Z';
+const PARTING = '<path d="M100 43Q99.4 52 100 59" fill="none" stroke="#0003" stroke-width="1.6" stroke-linecap="round"/>';
 const PIXIE = 'M55 104C50 60 76 39 100 39S150 60 145 104Q143 86 136 78Q114 70 92 80Q74 86 62 80Q57 92 55 104Z';
 const LONG_BACK = 'M54 92C50 58 74 38 100 38S150 58 146 92L152 172Q100 186 48 172Z';
 const curls = (pts, r, c) => `<g fill="${c}">${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
 const braid = (x0, y0, x1, y1, n, c) => `<g fill="${c}" stroke="#0002" stroke-width="1.5">${Array.from({ length: n }, (_, i) => { const t = i / (n - 1); return `<ellipse cx="${x0 + (x1 - x0) * t}" cy="${y0 + (y1 - y0) * t}" rx="${8 - t * 2}" ry="7"/>`; }).join('')}</g>`;
+// A braid that follows the curve of the head, ear to ear over the top.
+const crownBraid = (c) => `<g fill="${c}" stroke="#0002" stroke-width="1.5">${Array.from({ length: 11 }, (_, i) => { const a = Math.PI * (1.12 + (0.76 * i) / 10); return `<ellipse cx="${(100 + Math.cos(a) * 41).toFixed(1)}" cy="${(92 + Math.sin(a) * 41).toFixed(1)}" rx="7" ry="5.5" transform="rotate(${((a * 180) / Math.PI + 90).toFixed(0)} ${(100 + Math.cos(a) * 41).toFixed(1)} ${(92 + Math.sin(a) * 41).toFixed(1)})"/>`; }).join('')}</g>`;
 const tie = (x, y) => `<circle cx="${x}" cy="${y}" r="4.5" fill="#ff7eb6"/>`;
 
 function hairParts(style, c) {
@@ -183,33 +176,33 @@ function hairParts(style, c) {
   switch (style) {
     case 'hair-bob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L148 130Q138 138 128 132L72 132Q62 138 52 130Z'), front: P(FRINGE) };
     case 'hair-wavybob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C150 104 144 114 150 126Q140 140 128 132Q100 138 72 132Q60 140 50 126C56 114 50 104 54 92Z'), front: P(SIDE) };
-    case 'hair-shoulder': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 150Q100 160 50 150Z'), front: P(MIDDLE) };
+    case 'hair-shoulder': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 150Q100 160 50 150Z'), front: P(MIDDLE) + PARTING };
     case 'hair-wavy': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C152 110 144 124 152 140S146 166 154 176Q100 190 46 176C54 166 44 154 48 140S48 110 54 92Z'), front: P(SIDE) };
     case 'hair-pixie': return { back: '', front: P(PIXIE) };
     case 'hair-ponytail': return { back: P('M136 70C170 64 176 108 160 146C156 124 150 102 134 90Z'), front: P(FRINGE) + tie(138, 72) };
     case 'hair-highpony': return { back: P('M108 40C150 16 176 60 162 116C152 88 138 66 112 54Z'), front: P(SIDE) + tie(112, 42) };
-    case 'hair-pigtails': return { back: P('M64 104C40 110 34 142 44 166C52 148 58 130 72 120Z') + P('M136 104C160 110 166 142 156 166C148 148 142 130 128 120Z'), front: P(MIDDLE) + tie(64, 108) + tie(136, 108) };
+    case 'hair-pigtails': return { back: P('M56 96C52 60 76 40 100 40S148 60 144 96L140 112L60 112Z') + P('M62 96C38 100 30 138 40 166C48 148 54 128 68 116Z') + P('M138 96C162 100 170 138 160 166C152 148 146 128 132 116Z') + tie(56, 98) + tie(144, 98), mid: '', front: P(MIDDLE) + PARTING };
     case 'hair-twintails': return { back: P('M66 58C34 50 22 104 32 148C42 120 50 94 72 76Z') + P('M134 58C166 50 178 104 168 148C158 120 150 94 128 76Z'), front: P(FRINGE) + tie(68, 60) + tie(132, 60) };
-    case 'hair-topbun': return { back: '', front: `<circle cx="100" cy="36" r="17" fill="${c}"/>` + P(MIDDLE) };
-    case 'hair-buns': return { back: '', front: `<circle cx="64" cy="50" r="17" fill="${c}"/><circle cx="136" cy="50" r="17" fill="${c}"/>` + P(MIDDLE) };
+    case 'hair-topbun': return { back: '', front: `<circle cx="100" cy="36" r="17" fill="${c}"/>` + P(MIDDLE) + PARTING };
+    case 'hair-buns': return { back: '', front: `<circle cx="64" cy="50" r="17" fill="${c}"/><circle cx="136" cy="50" r="17" fill="${c}"/>` + P(MIDDLE) + PARTING };
     case 'hair-halfup': return { back: P(LONG_BACK), front: `<circle cx="100" cy="38" r="12" fill="${c}"/>` + P(SIDE) };
-    case 'hair-braids': return { back: '', front: P(MIDDLE) + braid(60, 104, 60, 164, 6, c) + braid(140, 104, 140, 164, 6, c) + tie(60, 170) + tie(140, 170) };
-    case 'hair-sidebraid': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L140 110L60 110Z'), front: P(SIDE) + braid(62, 108, 72, 172, 7, c) + tie(72, 178) };
+    case 'hair-braids': return { back: P('M56 96C52 60 76 40 100 40S148 60 144 96L140 112L60 112Z'), mid: braid(66, 108, 62, 166, 7, c) + braid(134, 108, 138, 166, 7, c) + tie(62, 172) + tie(138, 172), front: P(MIDDLE) + PARTING };
+    case 'hair-sidebraid': return { back: P('M56 96C52 60 76 40 100 40S148 60 144 96L140 112L60 112Z'), mid: braid(68, 110, 74, 174, 8, c) + tie(74, 180), front: P(SIDE) };
     case 'hair-curly': return { back: curls([[56, 78], [52, 100], [54, 122], [56, 144], [62, 166], [144, 78], [148, 100], [146, 122], [144, 144], [138, 166], [100, 170], [80, 172], [120, 172]], 15, c) + P(LONG_BACK), front: curls([[66, 66], [80, 52], [100, 46], [120, 52], [134, 66]], 14, c) + P(FRINGE) };
     case 'hair-shortcurls': return { back: curls([[58, 84], [56, 106], [60, 124], [142, 84], [144, 106], [140, 124]], 13, c), front: curls([[62, 72], [72, 56], [90, 46], [110, 46], [128, 56], [138, 72]], 14, c) + P(PIXIE) };
-    case 'hair-puffs': return { back: '', front: curls([[50, 48], [62, 36], [72, 50], [56, 60]], 15, c) + curls([[150, 48], [138, 36], [128, 50], [144, 60]], 15, c) + P(MIDDLE) };
+    case 'hair-puffs': return { back: '', front: curls([[50, 48], [62, 36], [72, 50], [56, 60]], 15, c) + curls([[150, 48], [138, 36], [128, 50], [144, 60]], 15, c) + P(MIDDLE) + PARTING };
     case 'hair-curtain': return { back: P(LONG_BACK), front: P('M57 98C55 60 76 41 100 41S145 60 143 98Q138 80 120 74Q106 72 100 62Q94 72 80 74Q62 80 57 98Z') };
-    case 'hair-layered': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 140L142 158L152 168Q100 184 48 168L58 158L50 140Z'), front: P(FRINGE) };
-    case 'hair-sideswept': return { back: P(LONG_BACK), front: P(SIDE) + P('M58 88q-8 40 2 74q10-32 8-70z') };
-    case 'hair-lob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L154 146Q100 156 46 146Z'), front: P(SIDE) };
+    case 'hair-layered': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 166Q142 174 134 166Q126 176 118 168Q110 178 100 170Q90 178 82 168Q74 176 66 166Q58 174 50 166Z'), front: P(FRINGE) };
+    case 'hair-sideswept': return { back: P(LONG_BACK), front: P(SIDE) };
+    case 'hair-lob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 146Q100 156 50 146Z'), front: P(SIDE) };
     case 'hair-wavyfringe': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C152 110 144 124 152 140S146 166 154 176Q100 190 46 176C54 166 44 154 48 140S48 110 54 92Z'), front: P(FRINGE) };
-    case 'hair-lowpony': return { back: '', front: P(MIDDLE) + P('M130 116c18 8 24 34 12 56-2-18-10-34-20-42z') + tie(128, 118) };
-    case 'hair-sidepony': return { back: '', front: P(SIDE) + P('M62 72C30 78 24 122 34 156C40 128 48 104 66 90Z') + tie(62, 74) };
-    case 'hair-hime': return { back: P(LONG_BACK), front: P(FRINGE) + P('M55 88h14v46q-6 4-14 0z') + P('M131 88h14v46q-8 4-14 0z') };
+    case 'hair-lowpony': return { back: P('M56 96C52 60 76 40 100 40S148 60 144 96L140 112L60 112Z'), mid: P('M128 112C150 116 156 138 150 158C146 170 140 178 134 184C138 164 138 142 124 124Z') + tie(130, 116), front: P(MIDDLE) + PARTING };
+    case 'hair-sidepony': return { back: P('M70 64C34 66 22 116 32 160C40 130 50 104 74 86Z') + tie(64, 70), front: P(SIDE) };
+    case 'hair-hime': return { back: P(LONG_BACK), front: P(FRINGE) + P('M56 84Q53 112 58 138Q65 133 69 124Q66 104 69 84Z') + P('M144 84Q147 112 142 138Q135 133 131 124Q134 104 131 84Z') };
     case 'hair-minibuns': return { back: P(LONG_BACK), front: `<circle cx="70" cy="44" r="11" fill="${c}"/><circle cx="130" cy="44" r="11" fill="${c}"/>` + P(FRINGE) };
-    case 'hair-princess': return { back: P(LONG_BACK) + curls([[50, 168], [64, 176], [80, 180], [120, 180], [136, 176], [150, 168]], 11, c), front: P(SIDE) };
-    case 'hair-crownbraid': return { back: P(LONG_BACK), front: P(MIDDLE) + braid(62, 66, 138, 66, 10, c) };
-    case 'hair-mermaid': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C154 112 142 128 154 146S144 176 158 198H42C56 176 46 162 46 146S46 112 54 92Z'), front: P(MIDDLE) };
+    case 'hair-princess': return { back: P(LONG_BACK) + curls([[49, 146], [48, 158], [52, 169], [62, 176], [138, 176], [148, 169], [152, 158], [151, 146]], 9, c), front: P(SIDE) };
+    case 'hair-crownbraid': return { back: P(LONG_BACK), front: P(MIDDLE) + PARTING + crownBraid(c) };
+    case 'hair-mermaid': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C154 112 142 128 154 146S144 176 158 198H42C56 176 46 162 46 146S46 112 54 92Z'), front: P(MIDDLE) + PARTING };
     default: return { back: P(LONG_BACK), front: P(FRINGE) }; // hair-long
   }
 }
@@ -306,22 +299,6 @@ function hatSVG(h) {
   }
 }
 
-// ---- Pet friends (sit in the bottom-right corner) ---------------------------
-function petSVG(p) {
-  const f = (x, y) => `<circle cx="${x - 4}" cy="${y}" r="1.6" fill="#2a2230"/><circle cx="${x + 4}" cy="${y}" r="1.6" fill="#2a2230"/><path d="M${x - 2} ${y + 3}q2 2 4 0" stroke="#2a2230" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="${x - 8}" cy="${y + 3}" r="2" fill="#ff8fa3" opacity=".6"/><circle cx="${x + 8}" cy="${y + 3}" r="2" fill="#ff8fa3" opacity=".6"/>`;
-  const L = 'stroke="#4f3747" stroke-width="2" stroke-linejoin="round"';
-  switch (p.id) {
-    case 'pet-kitten': return `<path d="M152 166l-2-14 10 8zM180 166l2-14-10 8z" fill="#ffb36b" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#ffb36b" ${L}/>${f(166, 176)}`;
-    case 'pet-bunny': return `<ellipse cx="158" cy="152" rx="5" ry="13" fill="#fff" ${L}/><ellipse cx="174" cy="152" rx="5" ry="13" fill="#fff" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/>${f(166, 176)}`;
-    case 'pet-chick': return `<ellipse cx="166" cy="178" rx="18" ry="17" fill="#ffe066" ${L}/><path d="M163 180l3 4 3-4z" fill="#ff9a3c"/><path d="M162 162q4-8 8 0" fill="none" ${L}/>${f(166, 175)}`;
-    case 'pet-puppy': return `<ellipse cx="166" cy="178" rx="20" ry="16" fill="#e8c39a" ${L}/><ellipse cx="148" cy="174" rx="6" ry="11" fill="#9b6a42" ${L}/><ellipse cx="184" cy="174" rx="6" ry="11" fill="#9b6a42" ${L}/>${f(166, 176)}<ellipse cx="166" cy="181" rx="2.4" ry="1.6" fill="#2a2230"/>`;
-    case 'pet-hamster': return `<circle cx="154" cy="164" r="5" fill="#f2b257" ${L}/><circle cx="178" cy="164" r="5" fill="#f2b257" ${L}/><ellipse cx="166" cy="179" rx="21" ry="16" fill="#f2b257" ${L}/><ellipse cx="166" cy="184" rx="12" ry="8" fill="#fff4e0"/>${f(166, 175)}`;
-    case 'pet-panda': return `<circle cx="152" cy="164" r="6" fill="#2a2230"/><circle cx="180" cy="164" r="6" fill="#2a2230"/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/><ellipse cx="160" cy="176" rx="4" ry="5" fill="#2a2230"/><ellipse cx="172" cy="176" rx="4" ry="5" fill="#2a2230"/><circle cx="160" cy="175" r="1.2" fill="#fff"/><circle cx="172" cy="175" r="1.2" fill="#fff"/><path d="M164 181q2 2 4 0" stroke="#2a2230" stroke-width="1.2" fill="none"/>`;
-    case 'pet-unicorn': return `<path d="M166 160l-3-14 7 2z" fill="#f5c542" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/><path d="M150 168q-6 8 0 16M152 166q-2 10 4 16" stroke="#ff9cc4" stroke-width="4" fill="none" stroke-linecap="round"/>${f(168, 176)}`;
-    default: return '';
-  }
-}
-
 function bgSVG(b) {
   let s = `<defs><linearGradient id="bg§" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b.a}"/><stop offset="1" stop-color="${b.b}"/></linearGradient><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs><rect width="200" height="200" fill="url(#bg§)"/>`;
   if (b.dots) s += [[20, 24], [60, 14], [176, 30], [16, 90], [184, 100], [30, 160], [172, 168], [140, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${b.dots}" opacity=".6"/>`).join('');
@@ -346,5 +323,5 @@ export function avatarSVG(equipped = {}, { size = 160, label = 'Your avatar' } =
   const skin = get('skin').colour;
   const hc = get('hairColour').colour;
   const hair = hairParts(get('hair').id, hc);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}<g transform="translate(166 178) scale(1.25) translate(-166 -178)">${petSVG(get('pet'))}</g></svg>`.replace(/§/g, uid);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}${hair.mid || ''}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}</svg>`.replace(/§/g, uid);
 }

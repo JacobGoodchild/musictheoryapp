@@ -134,12 +134,37 @@ export function playQuestionAudio(spec) {
   }
 }
 
+/**
+ * A soft bell/chime note: a pure fundamental with quiet, slightly inharmonic
+ * upper partials, a fast attack and a long smooth decay (no harsh edges).
+ */
+function bell(m, t, vel = 0.3, decay = 1.1) {
+  const c = ctx;
+  const f = freq(m);
+  const out = c.createGain();
+  out.connect(currentBus());
+  for (const [mult, amp, d] of [[1, 1, 1], [2.0, 0.28, 0.55], [3.01, 0.1, 0.35], [4.16, 0.05, 0.22]]) {
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f * mult;
+    const g = c.createGain();
+    const a = vel * amp;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(a, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + decay * d + 0.05);
+    o.connect(g).connect(out);
+    o.start(t);
+    o.stop(t + decay + 0.2);
+  }
+}
+
 export function sfx(kind) {
   if (!settings.sound) return;
   const c = audio();
   if (!c) return;
   const t = c.currentTime + 0.02;
-  if (kind === 'correct') { tone(76, t, 0.12, 0.25); tone(83, t + 0.09, 0.25, 0.25); }
+  // "Da-ding!": a rising perfect 4th, B flat then E flat, on a soft bell.
+  if (kind === 'correct') { bell(82, t, 0.22, 0.7); bell(87, t + 0.13, 0.3, 1.3); }
   else if (kind === 'wrong') { tone(52, t, 0.18, 0.2); tone(51, t + 0.12, 0.25, 0.18); }
   else if (kind === 'coin') { tone(88, t, 0.08, 0.18); tone(93, t + 0.07, 0.2, 0.18); }
   else if (kind === 'reveal') { [72, 76, 79, 84].forEach((m, i) => tone(m, t + i * 0.08, 0.35, 0.25)); }
