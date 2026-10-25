@@ -22,6 +22,7 @@ export function freshSave() {
     cards: {},
     avatar: { owned: [], equipped: {} },
     stickers: { owned: {}, bagsOpened: 0, sinceEpic: 0, seed: 0 },
+    promos: [],
     last: null,
     daily: { day: null, done: false, best: 0 },
     badges: {},

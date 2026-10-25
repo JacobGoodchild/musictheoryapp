@@ -1,3 +1,4 @@
+import { promoBox } from '../ui/promo.js';
 import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
 import { getState, update, subscribe } from '../state/store.js';
 import { icon, coinIcon, noteIcon } from '../ui/icons.js';
@@ -33,6 +34,7 @@ export default async function rewards({ tab = 'avatar' } = {}) {
   if (tab === 'bags') root.append(bagsTab());
   else if (tab === 'album') root.append(albumTab());
   else root.append(avatarTab());
+  root.append(promoBox());
   return root;
 }
 

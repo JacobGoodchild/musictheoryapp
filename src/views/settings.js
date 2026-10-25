@@ -1,3 +1,4 @@
+import { promoBox } from '../ui/promo.js';
 import { h, toast, confirmDialog } from '../dom.js';
 import { getState, update, setState, flush } from '../state/store.js';
 import { exportSave, importSave, freshSave, cleanName } from '../state/save.js';
@@ -39,6 +40,7 @@ export default async function settings() {
     h('div', { class: 'card stack' },
       h('h2', {}, 'Profile'),
       row('Name', h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); const n = cleanName(nameInput.value); if (!n) return; update((x) => { x.profile.name = n; }); toast('Name saved'); } }, nameInput, h('button', { class: 'btn', type: 'submit' }, 'Save')), 'Stored only on this computer.')),
+    promoBox(),
     h('div', { class: 'card stack' },
       h('h2', {}, 'Practice'),
       row('Question level', select('set-level', s.settings.level || 'beginner', [['beginner', 'Beginner (easiest)'], ['standard', 'Standard'], ['exam', 'Exam (full mix)']], (v) => { update((x) => { x.settings.level = v; }); toast('Level saved'); }), 'Beginner gives the easiest questions. Mock exams always use the real exam mix. Hints are always there if you get stuck.')),

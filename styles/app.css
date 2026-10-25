@@ -569,3 +569,10 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .reveal-row.count-3 .reveal { flex: 1 1 180px; max-width: 220px; }
 .reveal-row.count-3 .reveal-glow { width: 200px; height: 200px; }
 .reveal-row.count-3 .reveal-text h2 { font-size: 1.15rem; }
+/* Promo codes */
+.promo-card { margin-top: 18px; }
+.promo-card h3 { margin: 0 0 10px; }
+.promo-form { gap: 10px; flex-wrap: wrap; }
+.promo-input { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; max-width: 220px; }
+.promo-msg.good { color: var(--good); font-weight: 650; }
+.promo-msg.bad { color: var(--bad); }

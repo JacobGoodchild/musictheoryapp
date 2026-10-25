@@ -71,3 +71,15 @@ test('installable and works offline after the first visit', async ({ browser }) 
   await expect(page.locator('.question')).toBeVisible();
   await ctx.close();
 });
+
+test('promo code box on the Rewards page', async ({ page }) => {
+  await withProfile(page, { coins: 0 });
+  await page.goto('/index.html#/rewards/avatar');
+  await page.fill('.promo-input', 'snerd');
+  await page.click('[data-action=redeem]');
+  await expect(page.locator('.promo-msg')).toContainText('Code accepted');
+  await page.waitForTimeout(1200); // the page redraws itself after a code
+  await page.fill('.promo-input', 'SNERD');
+  await page.click('[data-action=redeem]');
+  await expect(page.locator('.promo-msg')).toContainText('already used');
+});
