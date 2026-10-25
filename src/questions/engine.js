@@ -5,6 +5,7 @@ import { mark, isComplete, marksFor, answerText, placedPitch } from './mark.js';
 import { icon } from '../ui/icons.js';
 import { pitchAtStaffPos, toString as pitchStr, describeStaffPos } from '../theory/pitch.js';
 import { playQuestionAudio } from '../audio/synth.js';
+import { musicToAudio } from '../audio/from-music.js';
 import { hintsFor, easyVersion } from './hints.js';
 
 const ACC_BUTTONS = [
@@ -59,6 +60,11 @@ export function questionView(q0, opts = {}) {
     root.append(h('div', { class: 'row' }, h('button', { class: 'btn', 'data-action': 'play', onclick: () => playQuestionAudio(q.audio) }, icon('play', 'coin-icon'), 'Play')));
   }
   if (q.music) root.append(musicBlock(q.music));
+  // Practice extra: hear the music in the question (never in mocks, as in the real exam).
+  const canHear = mode === 'practice' && opts.hear !== false;
+  const qAudio = !canHear ? null : q.music ? musicToAudio(q.music)
+    : q.type === 'place' ? musicToAudio({ clef: q.place.clef, free: true, notes: [...(q.place.notes || []), ...(q.place.after || [])] }) : null;
+  if (qAudio) root.append(h('div', { class: 'row hear-row' }, h('button', { class: 'btn small hear-btn', 'data-action': 'hear', onclick: () => playQuestionAudio(qAudio) }, icon('speaker', 'coin-icon'), 'Hear it')));
 
   // Body by type
   const body = h('div', { class: 'q-body' });
@@ -119,6 +125,15 @@ export function questionView(q0, opts = {}) {
       if (opt.music && !opt.label) btn.setAttribute('aria-label', opt.aria || `Option ${String.fromCharCode(65 + i)}`);
       list.append(btn);
     });
+    // Hear each music option (practice only).
+    if (canHear && q.options.some((o) => o.music)) {
+      const row = h('div', { class: 'row hear-row' }, h('span', { class: 'small muted' }, 'Hear:'));
+      q.options.forEach((opt, i) => {
+        const a = opt.music ? musicToAudio(opt.music) : null;
+        if (a) row.append(h('button', { class: 'btn small hear-btn', 'data-action': 'hear-option', 'aria-label': `Hear option ${String.fromCharCode(65 + i)}`, onclick: () => playQuestionAudio(a) }, icon('speaker', 'coin-icon'), String.fromCharCode(65 + i)));
+      });
+      if (row.children.length > 1) queueMicrotask(() => list.after(row));
+    }
     // Arrow-key navigation within the radio group.
     list.addEventListener('keydown', (e) => {
       if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key) || locked) return;

@@ -27,6 +27,22 @@ function audio() {
 
 const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
+// Each playback goes through its own bus, so pressing "Hear it" again stops
+// the previous sound instead of playing on top of it.
+let bus = null;
+export function stopAll() {
+  if (!ctx || !bus) return;
+  const old = bus;
+  old.gain.setValueAtTime(old.gain.value, ctx.currentTime);
+  old.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.08);
+  setTimeout(() => old.disconnect(), 200);
+  bus = null;
+}
+function currentBus() {
+  if (!bus) { bus = ctx.createGain(); bus.connect(master); }
+  return bus;
+}
+
 /** Play one note (MIDI number) at time t for dur seconds. */
 function tone(m, t, dur, vel = 0.5) {
   const c = ctx;
@@ -36,7 +52,7 @@ function tone(m, t, dur, vel = 0.5) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(Math.min(9000, f * 9), t);
   filter.frequency.exponentialRampToValueAtTime(Math.max(300, f * 2), t + dur);
-  out.connect(filter).connect(master);
+  out.connect(filter).connect(currentBus());
   // Brightness and decay depend a little on pitch, like a real piano.
   const decay = Math.max(0.6, 2.6 - (m - 48) * 0.025);
   const partials = [[1, 1], [2, 0.45], [3, 0.22], [4, 0.12], [5, 0.06], [6, 0.03]];
@@ -69,6 +85,7 @@ export function playSequence(events, { tempo = 80 } = {}) {
   if (!settings.sound) return 0;
   const c = audio();
   if (!c) return 0;
+  stopAll();
   const beat = 60 / tempo;
   let t = c.currentTime + 0.05;
   for (const ev of events) {
@@ -78,6 +95,22 @@ export function playSequence(events, { tempo = 80 } = {}) {
     t += d;
   }
   return t - c.currentTime;
+}
+
+/** Play overlapping notes: items [{ at, dur, notes }] with times in crotchet beats. */
+export function playTimeline(items, { tempo = 84 } = {}) {
+  if (!settings.sound) return 0;
+  const c = audio();
+  if (!c) return 0;
+  stopAll();
+  const beat = 60 / tempo;
+  const t0 = c.currentTime + 0.05;
+  let end = 0;
+  for (const it of items) {
+    for (const n of it.notes) tone(toMidi(n), t0 + it.at * beat, it.dur * beat * 0.95, it.notes.length > 2 ? 0.4 : 0.55);
+    end = Math.max(end, (it.at + it.dur) * beat);
+  }
+  return end;
 }
 
 export const playChord = (notes, beats = 2) => playSequence([{ notes, beats }]);
@@ -96,6 +129,7 @@ export function playQuestionAudio(spec) {
     case 'chord': return playChord(spec.notes, spec.beats || 2);
     case 'melody': return playMelodic(spec.notes, spec.beats || 1, spec.tempo || 90);
     case 'sequence': return playSequence(spec.events, { tempo: spec.tempo || 80 });
+    case 'timeline': return playTimeline(spec.items, { tempo: spec.tempo || 84 });
     default: return 0;
   }
 }

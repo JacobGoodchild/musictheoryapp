@@ -553,3 +553,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
   .hint-text p { font-size: 1.08rem; }
   .q-actions .btn.big { font-size: 1.15rem; padding: 14px 30px; }
 }
+/* Hear buttons on practice questions */
+.hear-row { gap: 8px; align-items: center; flex-wrap: wrap; }
+.hear-btn { border-color: #b9a6ff; background: #f3efff; color: #4b3ab0; }
+.hear-btn:hover { background: #e7e0ff; }
+:root[data-theme="dark"] .hear-btn { background: #2a2350; color: #d9d0ff; border-color: #5a4bb0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .hear-btn { background: #2a2350; color: #d9d0ff; border-color: #5a4bb0; } }
