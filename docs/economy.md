@@ -32,7 +32,7 @@ No coins in a mock until it is finished, so a mock cannot be farmed.
 
 - **Avatar shop:** 78 items (plus 28 free starters, including every skin tone
   and the natural hair colours), 20–285 coins each, 6,490 coins in total.
-- **Blind bag:** 60 coins. One sticker per bag.
+- **Blind bag:** 60 coins. One sticker per bag. **3 for 2:** three bags for 120 coins.
 
 ## Stickers
 
@@ -57,7 +57,7 @@ cheapest avatar item and a bag, and uses notes for swaps whenever possible.
 
 Over 30 simulated students (different random seeds):
 
-- Everything is collected in **29–35 days, median about 31 days (~4.5 weeks)**.
+- Everything is collected in **33–39 days, median about 37 days (~5 weeks)** (after the 25 Oct update: 100 stickers, 30 hairstyles, eye colours, pets, and the 3-for-2 bag deal).
 - About 10 purchases happen in the very first session.
 - After one week most of the avatar shop and a good number of stickers are still to win.
 - On average there are several purchases every study session.

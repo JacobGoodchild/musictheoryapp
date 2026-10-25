@@ -6,16 +6,18 @@ export const SLOTS = [
   { id: 'hair', name: 'Hairstyle' },
   { id: 'hairColour', name: 'Hair colour' },
   { id: 'hairAcc', name: 'Hair bits' },
+  { id: 'eyes', name: 'Eye colour' },
   { id: 'outfit', name: 'Outfit' },
   { id: 'face', name: 'Face' },
   { id: 'accessory', name: 'Accessory' },
   { id: 'hat', name: 'Headwear' },
+  { id: 'pet', name: 'Pet friend' },
   { id: 'background', name: 'Background' },
   { id: 'skin', name: 'Skin' },
 ];
 
 // Prices are tuned by the economy test (docs/economy.md); PRICE_SCALE shifts them all.
-export const PRICE_SCALE = 0.55;
+export const PRICE_SCALE = 0.48;
 const I = (id, slot, name, price, data = {}) => ({ id, slot, name, price: Math.round((price * PRICE_SCALE) / 5) * 5, ...data });
 
 export const ITEMS = [
@@ -56,6 +58,35 @@ export const ITEMS = [
   I('hair-shortcurls', 'hair', 'Short curls', 160),
   I('hair-puffs', 'hair', 'Curly puffs', 220),
   I('hair-wavybob', 'hair', 'Wavy bob', 120),
+  // More long styles
+  I('hair-curtain', 'hair', 'Long with curtain bangs', 0),
+  I('hair-layered', 'hair', 'Long layers', 40),
+  I('hair-sideswept', 'hair', 'Side-swept long', 60),
+  I('hair-lob', 'hair', 'Long bob', 60),
+  I('hair-wavyfringe', 'hair', 'Waves with a fringe', 80),
+  I('hair-lowpony', 'hair', 'Low ponytail', 80),
+  I('hair-sidepony', 'hair', 'Side ponytail', 120),
+  I('hair-hime', 'hair', 'Straight with side locks', 120),
+  I('hair-minibuns', 'hair', 'Long with mini buns', 160),
+  I('hair-princess', 'hair', 'Princess curls', 200),
+  I('hair-crownbraid', 'hair', 'Braided crown', 220),
+  I('hair-mermaid', 'hair', 'Mermaid waves', 260),
+  // Eye colours (natural ones free)
+  ...[['brown', 'Brown', '#6b4128'], ['darkbrown', 'Dark brown', '#3a2414'], ['hazel', 'Hazel', '#8a6a2a'], ['green', 'Green', '#3f9a5a'], ['blue', 'Blue', '#3f7fd0'], ['grey', 'Grey', '#7a8a96']].map(([id, n, c]) => I(`eye-${id}`, 'eyes', n, 0, { colour: c })),
+  I('eye-amber', 'eyes', 'Amber', 60, { colour: '#d08a1c' }),
+  I('eye-teal', 'eyes', 'Teal', 100, { colour: '#1aa6a0' }),
+  I('eye-violet', 'eyes', 'Violet', 120, { colour: '#8a5be0' }),
+  I('eye-pink', 'eyes', 'Pink', 140, { colour: '#f0609a' }),
+  I('eye-gold', 'eyes', 'Gold sparkle', 220, { colour: '#e0a800', sparkle: true }),
+  // Pet friends
+  I('pet-none', 'pet', 'No pet', 0),
+  I('pet-kitten', 'pet', 'Kitten', 120),
+  I('pet-bunny', 'pet', 'Bunny', 120),
+  I('pet-chick', 'pet', 'Chick', 100),
+  I('pet-puppy', 'pet', 'Puppy', 140),
+  I('pet-hamster', 'pet', 'Hamster', 140),
+  I('pet-panda', 'pet', 'Panda', 200),
+  I('pet-unicorn', 'pet', 'Baby unicorn', 360),
   // Hair accessories
   I('ha-none', 'hairAcc', 'None', 0),
   I('ha-bow-pink', 'hairAcc', 'Pink bow', 50, { colour: '#ff7eb6' }),
@@ -132,7 +163,7 @@ export const ITEMS = [
 ];
 
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
-export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
+export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', eyes: 'eye-brown', pet: 'pet-none', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
 export const FREE_ITEMS = ITEMS.filter((i) => i.price === 0).map((i) => i.id);
 
 // ---- Hair ------------------------------------------------------------------
@@ -167,6 +198,18 @@ function hairParts(style, c) {
     case 'hair-curly': return { back: curls([[56, 78], [52, 100], [54, 122], [56, 144], [62, 166], [144, 78], [148, 100], [146, 122], [144, 144], [138, 166], [100, 170], [80, 172], [120, 172]], 15, c) + P(LONG_BACK), front: curls([[66, 66], [80, 52], [100, 46], [120, 52], [134, 66]], 14, c) + P(FRINGE) };
     case 'hair-shortcurls': return { back: curls([[58, 84], [56, 106], [60, 124], [142, 84], [144, 106], [140, 124]], 13, c), front: curls([[62, 72], [72, 56], [90, 46], [110, 46], [128, 56], [138, 72]], 14, c) + P(PIXIE) };
     case 'hair-puffs': return { back: '', front: curls([[50, 48], [62, 36], [72, 50], [56, 60]], 15, c) + curls([[150, 48], [138, 36], [128, 50], [144, 60]], 15, c) + P(MIDDLE) };
+    case 'hair-curtain': return { back: P(LONG_BACK), front: P('M57 98C55 60 76 41 100 41S145 60 143 98Q138 80 120 74Q106 72 100 62Q94 72 80 74Q62 80 57 98Z') };
+    case 'hair-layered': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L150 140L142 158L152 168Q100 184 48 168L58 158L50 140Z'), front: P(FRINGE) };
+    case 'hair-sideswept': return { back: P(LONG_BACK), front: P(SIDE) + P('M58 88q-8 40 2 74q10-32 8-70z') };
+    case 'hair-lob': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92L154 146Q100 156 46 146Z'), front: P(SIDE) };
+    case 'hair-wavyfringe': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C152 110 144 124 152 140S146 166 154 176Q100 190 46 176C54 166 44 154 48 140S48 110 54 92Z'), front: P(FRINGE) };
+    case 'hair-lowpony': return { back: '', front: P(MIDDLE) + P('M130 116c18 8 24 34 12 56-2-18-10-34-20-42z') + tie(128, 118) };
+    case 'hair-sidepony': return { back: '', front: P(SIDE) + P('M62 72C30 78 24 122 34 156C40 128 48 104 66 90Z') + tie(62, 74) };
+    case 'hair-hime': return { back: P(LONG_BACK), front: P(FRINGE) + P('M55 88h14v46q-6 4-14 0z') + P('M131 88h14v46q-8 4-14 0z') };
+    case 'hair-minibuns': return { back: P(LONG_BACK), front: `<circle cx="70" cy="44" r="11" fill="${c}"/><circle cx="130" cy="44" r="11" fill="${c}"/>` + P(FRINGE) };
+    case 'hair-princess': return { back: P(LONG_BACK) + curls([[50, 168], [64, 176], [80, 180], [120, 180], [136, 176], [150, 168]], 11, c), front: P(SIDE) };
+    case 'hair-crownbraid': return { back: P(LONG_BACK), front: P(MIDDLE) + braid(62, 66, 138, 66, 10, c) };
+    case 'hair-mermaid': return { back: P('M54 92C50 58 74 38 100 38S150 58 146 92C154 112 142 128 154 146S144 176 158 198H42C56 176 46 162 46 146S46 112 54 92Z'), front: P(MIDDLE) };
     default: return { back: P(LONG_BACK), front: P(FRINGE) }; // hair-long
   }
 }
@@ -191,9 +234,11 @@ function hairAccSVG(a) {
 }
 
 // ---- Face --------------------------------------------------------------------
-function faceSVG(face) {
-  const eye = (x) => `<ellipse cx="${x}" cy="98" rx="5" ry="6.5" fill="#2a2230"/><circle cx="${x + 1.8}" cy="95.5" r="1.8" fill="#fff"/><path d="M${x - 6} 93l-3-3M${x - 4} 91l-2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
-  const eyeR = (x) => `<ellipse cx="${x}" cy="98" rx="5" ry="6.5" fill="#2a2230"/><circle cx="${x + 1.8}" cy="95.5" r="1.8" fill="#fff"/><path d="M${x + 6} 93l3-3M${x + 4} 91l2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
+function faceSVG(face, eyeItem = { colour: '#6b4128' }) {
+  // Coloured iris, dark pupil, two highlights and lashes.
+  const iris = (x) => `<ellipse cx="${x}" cy="98" rx="5.2" ry="6.6" fill="${eyeItem.colour}" stroke="#2a2230" stroke-width="1.4"/><ellipse cx="${x}" cy="99" rx="2.6" ry="3.4" fill="#2a2230"/><circle cx="${x + 1.9}" cy="95.4" r="1.9" fill="#fff"/><circle cx="${x - 1.6}" cy="101.4" r=".9" fill="#fff"/>${eyeItem.sparkle ? `<circle cx="${x - 2}" cy="96" r=".9" fill="#fff8c0"/>` : ''}`;
+  const eye = (x) => `${iris(x)}<path d="M${x - 6} 93l-3-3M${x - 4} 91l-2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
+  const eyeR = (x) => `${iris(x)}<path d="M${x + 6} 93l3-3M${x + 4} 91l2-3.5" stroke="#2a2230" stroke-width="1.6" stroke-linecap="round"/>`;
   const closed = (x) => `<path d="M${x - 6} 99q6-7 12 0" stroke="#2a2230" stroke-width="3" fill="none" stroke-linecap="round"/>`;
   const cheeks = '<ellipse cx="76" cy="110" rx="7" ry="4.5" fill="#ff8fa3" opacity=".55"/><ellipse cx="124" cy="110" rx="7" ry="4.5" fill="#ff8fa3" opacity=".55"/>';
   const smile = '<path d="M93 111q7 6 14 0" stroke="#2a2230" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
@@ -261,6 +306,22 @@ function hatSVG(h) {
   }
 }
 
+// ---- Pet friends (sit in the bottom-right corner) ---------------------------
+function petSVG(p) {
+  const f = (x, y) => `<circle cx="${x - 4}" cy="${y}" r="1.6" fill="#2a2230"/><circle cx="${x + 4}" cy="${y}" r="1.6" fill="#2a2230"/><path d="M${x - 2} ${y + 3}q2 2 4 0" stroke="#2a2230" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="${x - 8}" cy="${y + 3}" r="2" fill="#ff8fa3" opacity=".6"/><circle cx="${x + 8}" cy="${y + 3}" r="2" fill="#ff8fa3" opacity=".6"/>`;
+  const L = 'stroke="#4f3747" stroke-width="2" stroke-linejoin="round"';
+  switch (p.id) {
+    case 'pet-kitten': return `<path d="M152 166l-2-14 10 8zM180 166l2-14-10 8z" fill="#ffb36b" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#ffb36b" ${L}/>${f(166, 176)}`;
+    case 'pet-bunny': return `<ellipse cx="158" cy="152" rx="5" ry="13" fill="#fff" ${L}/><ellipse cx="174" cy="152" rx="5" ry="13" fill="#fff" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/>${f(166, 176)}`;
+    case 'pet-chick': return `<ellipse cx="166" cy="178" rx="18" ry="17" fill="#ffe066" ${L}/><path d="M163 180l3 4 3-4z" fill="#ff9a3c"/><path d="M162 162q4-8 8 0" fill="none" ${L}/>${f(166, 175)}`;
+    case 'pet-puppy': return `<ellipse cx="166" cy="178" rx="20" ry="16" fill="#e8c39a" ${L}/><ellipse cx="148" cy="174" rx="6" ry="11" fill="#9b6a42" ${L}/><ellipse cx="184" cy="174" rx="6" ry="11" fill="#9b6a42" ${L}/>${f(166, 176)}<ellipse cx="166" cy="181" rx="2.4" ry="1.6" fill="#2a2230"/>`;
+    case 'pet-hamster': return `<circle cx="154" cy="164" r="5" fill="#f2b257" ${L}/><circle cx="178" cy="164" r="5" fill="#f2b257" ${L}/><ellipse cx="166" cy="179" rx="21" ry="16" fill="#f2b257" ${L}/><ellipse cx="166" cy="184" rx="12" ry="8" fill="#fff4e0"/>${f(166, 175)}`;
+    case 'pet-panda': return `<circle cx="152" cy="164" r="6" fill="#2a2230"/><circle cx="180" cy="164" r="6" fill="#2a2230"/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/><ellipse cx="160" cy="176" rx="4" ry="5" fill="#2a2230"/><ellipse cx="172" cy="176" rx="4" ry="5" fill="#2a2230"/><circle cx="160" cy="175" r="1.2" fill="#fff"/><circle cx="172" cy="175" r="1.2" fill="#fff"/><path d="M164 181q2 2 4 0" stroke="#2a2230" stroke-width="1.2" fill="none"/>`;
+    case 'pet-unicorn': return `<path d="M166 160l-3-14 7 2z" fill="#f5c542" ${L}/><ellipse cx="166" cy="178" rx="20" ry="16" fill="#fff" ${L}/><path d="M150 168q-6 8 0 16M152 166q-2 10 4 16" stroke="#ff9cc4" stroke-width="4" fill="none" stroke-linecap="round"/>${f(168, 176)}`;
+    default: return '';
+  }
+}
+
 function bgSVG(b) {
   let s = `<defs><linearGradient id="bg§" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b.a}"/><stop offset="1" stop-color="${b.b}"/></linearGradient><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs><rect width="200" height="200" fill="url(#bg§)"/>`;
   if (b.dots) s += [[20, 24], [60, 14], [176, 30], [16, 90], [184, 100], [30, 160], [172, 168], [140, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${b.dots}" opacity=".6"/>`).join('');
@@ -285,5 +346,5 @@ export function avatarSVG(equipped = {}, { size = 160, label = 'Your avatar' } =
   const skin = get('skin').colour;
   const hc = get('hairColour').colour;
   const hair = hairParts(get('hair').id, hc);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id)}${hair.front}${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}</svg>`.replace(/§/g, uid);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}<g transform="translate(166 178) scale(1.25) translate(-166 -178)">${petSVG(get('pet'))}</g></svg>`.replace(/§/g, uid);
 }

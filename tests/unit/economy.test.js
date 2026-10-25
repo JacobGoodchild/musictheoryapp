@@ -7,11 +7,11 @@ import { coinsForCorrect } from '../../src/state/rewards.js';
 const runs = Array.from({ length: 30 }, (_, i) => simulate({ seed: i + 1, days: 120 }));
 const median = (a) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
 
-test('collecting everything takes roughly 4–5 weeks of regular study (made easier after student feedback)', () => {
+test('collecting everything (100 stickers, ~120 avatar items) takes roughly 4–6 weeks of regular study', () => {
   const days = runs.map((r) => r.allDoneDay);
   assert.ok(days.every((d) => d !== null), 'every simulated student finishes within 120 days');
   const m = median(days);
-  assert.ok(m >= 26 && m <= 38, `median ${m} days`);
+  assert.ok(m >= 28 && m <= 44, `median ${m} days`);
   assert.ok(Math.min(...days) >= 21, `fastest ${Math.min(...days)} days`);
 });
 
