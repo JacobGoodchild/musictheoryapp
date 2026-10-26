@@ -134,27 +134,22 @@ export function playQuestionAudio(spec) {
   }
 }
 
-/**
- * A soft bell/chime note: a pure fundamental with quiet, slightly inharmonic
- * upper partials, a fast attack and a long smooth decay (no harsh edges).
- */
-function bell(m, t, vel = 0.3, decay = 1.1) {
+/** A clean, gentle chime note: a sine with a whisper of its octave, a short soft attack and a smooth fade. */
+function chime(m, t, len, vel) {
   const c = ctx;
-  const f = freq(m);
   const out = c.createGain();
   out.connect(currentBus());
-  for (const [mult, amp, d] of [[1, 1, 1], [2.0, 0.28, 0.55], [3.01, 0.1, 0.35], [4.16, 0.05, 0.22]]) {
+  for (const [mult, amp] of [[1, 1], [2, 0.12]]) {
     const o = c.createOscillator();
     o.type = 'sine';
-    o.frequency.value = f * mult;
+    o.frequency.value = freq(m) * mult;
     const g = c.createGain();
-    const a = vel * amp;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(a, t + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + decay * d + 0.05);
+    g.gain.exponentialRampToValueAtTime(vel * amp, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len + 0.25);
     o.connect(g).connect(out);
     o.start(t);
-    o.stop(t + decay + 0.2);
+    o.stop(t + len + 0.35);
   }
 }
 
@@ -163,8 +158,8 @@ export function sfx(kind) {
   const c = audio();
   if (!c) return;
   const t = c.currentTime + 0.02;
-  // "Da-ding!": a rising perfect 4th, B flat then E flat, on a soft bell.
-  if (kind === 'correct') { bell(82, t, 0.22, 0.7); bell(87, t + 0.13, 0.3, 1.3); }
+  // "Da-ding!": A then D (a rising perfect 4th), pure soft tones.
+  if (kind === 'correct') { chime(81, t, 0.13, 0.16); chime(86, t + 0.12, 0.55, 0.2); }
   else if (kind === 'wrong') { tone(52, t, 0.18, 0.2); tone(51, t + 0.12, 0.25, 0.18); }
   else if (kind === 'coin') { tone(88, t, 0.08, 0.18); tone(93, t + 0.07, 0.2, 0.18); }
   else if (kind === 'reveal') { [72, 76, 79, 84].forEach((m, i) => tone(m, t + i * 0.08, 0.35, 0.25)); }

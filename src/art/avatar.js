@@ -17,7 +17,9 @@ export const SLOTS = [
 
 // Prices are tuned by the economy test (docs/economy.md); PRICE_SCALE shifts them all.
 export const PRICE_SCALE = 0.48;
-const I = (id, slot, name, price, data = {}) => ({ id, slot, name, price: Math.round((price * PRICE_SCALE) / 5) * 5, ...data });
+// Hairstyles cost about half as much as other items (student request).
+const HAIR_DISCOUNT = 0.5;
+const I = (id, slot, name, price, data = {}) => ({ id, slot, name, price: Math.round((price * PRICE_SCALE * (slot === 'hair' ? HAIR_DISCOUNT : 1)) / 5) * 5, ...data });
 
 export const ITEMS = [
   // Skin tones: all free (everyone should look like themselves from day one).
