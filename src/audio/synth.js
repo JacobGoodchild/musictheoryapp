@@ -158,8 +158,9 @@ export function sfx(kind) {
   const c = audio();
   if (!c) return;
   const t = c.currentTime + 0.02;
-  // "Da-ding!": A then D (a rising perfect 4th), pure soft tones.
-  if (kind === 'correct') { chime(81, t, 0.13, 0.16); chime(86, t + 0.12, 0.55, 0.2); }
+  // "Da-ding!": A then D (a rising perfect 4th, 5th note to home in D major), with a
+  // soft F sharp on the "ding" so it lands on a bright D major chord (D + F#).
+  if (kind === 'correct') { chime(81, t, 0.13, 0.16); chime(86, t + 0.12, 0.55, 0.2); chime(90, t + 0.12, 0.55, 0.09); }
   else if (kind === 'wrong') { tone(52, t, 0.18, 0.2); tone(51, t + 0.12, 0.25, 0.18); }
   else if (kind === 'coin') { tone(88, t, 0.08, 0.18); tone(93, t + 0.07, 0.2, 0.18); }
   else if (kind === 'reveal') { [72, 76, 79, 84].forEach((m, i) => tone(m, t + i * 0.08, 0.35, 0.25)); }

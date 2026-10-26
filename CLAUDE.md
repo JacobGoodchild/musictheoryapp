@@ -406,3 +406,4 @@ Done on Monday from the original list: four-part grand-stave chords and cadences
 - 25 Oct: hairstyle clean-up: middle parting no longer shows a skin spike (soft parting line instead); layers, side-swept, side locks, crown braid and princess curls redrawn; braids, side braid, side/low ponytails and pigtails now hang from BEHIND the head and ears (new 'mid' hair layer between body and head).
 - 25 Oct: correct-answer chime is now a soft bell "da-ding" rising a perfect 4th (B♭5 → E♭6).
 - 26 Oct: correct chime is now A5 → D6 (rising perfect 4th) on two clean sine tones (soft 12 ms attack, smooth fade, quiet); hairstyles half price (0–60 coins).
+- 26 Oct: correct chime 'ding' now a soft D major dyad (D6 + F#6) after A5, so it sounds clearly major.
