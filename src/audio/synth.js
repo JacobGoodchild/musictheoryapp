@@ -153,6 +153,21 @@ function chime(m, t, len, vel) {
   }
 }
 
+// A short sliding blip for game sounds (boing, squeak, beep…).
+function blip(f0, f1, t, len, vel, type = 'sine') {
+  const c = ctx;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, t);
+  o.frequency.exponentialRampToValueAtTime(f1, t + len);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vel, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g); g.connect(currentBus());
+  o.start(t); o.stop(t + len + 0.02);
+}
+
 export function sfx(kind) {
   if (!settings.sound) return;
   const c = audio();
@@ -163,5 +178,11 @@ export function sfx(kind) {
   if (kind === 'correct') { chime(81, t, 0.13, 0.16); chime(86, t + 0.12, 0.55, 0.2); chime(90, t + 0.12, 0.55, 0.09); }
   else if (kind === 'wrong') { tone(52, t, 0.18, 0.2); tone(51, t + 0.12, 0.25, 0.18); }
   else if (kind === 'coin') { tone(88, t, 0.08, 0.18); tone(93, t + 0.07, 0.2, 0.18); }
+  else if (kind === 'boing') blip(220, 520, t, 0.16, 0.12);
+  else if (kind === 'squeak') { blip(1300, 1900, t, 0.08, 0.06); blip(1900, 1200, t + 0.08, 0.08, 0.05); }
+  else if (kind === 'munch') { blip(180, 120, t, 0.07, 0.1, 'triangle'); blip(200, 130, t + 0.14, 0.07, 0.08, 'triangle'); }
+  else if (kind === 'beep') blip(1568, 1568, t, 0.09, 0.07, 'square');
+  else if (kind === 'pop') blip(500, 900, t, 0.07, 0.1);
+  else if (kind === 'kaching') { blip(1320, 1320, t, 0.12, 0.08, 'triangle'); chime(93, t + 0.1, 0.5, 0.16); chime(98, t + 0.18, 0.6, 0.12); }
   else if (kind === 'reveal') { [72, 76, 79, 84].forEach((m, i) => tone(m, t + i * 0.08, 0.35, 0.25)); }
 }

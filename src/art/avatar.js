@@ -327,3 +327,31 @@ export function avatarSVG(equipped = {}, { size = 160, label = 'Your avatar' } =
   const hair = hairParts(get('hair').id, hc);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${label}">${bgSVG(get('background'))}${hair.back}${outfitSVG(get('outfit'))}${hair.mid || ''}<rect x="90" y="128" width="20" height="18" rx="6" fill="${skin}"/><circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${accSVG(get('accessory'))}${hatSVG(get('hat'))}</svg>`.replace(/§/g, uid);
 }
+
+/**
+ * The avatar's head layers (same 200×200 space as avatarSVG) for drawing a
+ * full-body figure: back hair, head with face and front hair, plus the outfit
+ * and skin colours. Neck-level accessories (scarf, necklace…) are left out
+ * because the full-body figure draws its own clothes.
+ */
+export function avatarHeadParts(equipped = {}) {
+  const uid = `avh${++renderCount}`;
+  const e = { ...DEFAULT_EQUIPPED, ...equipped };
+  const get = (slot) => {
+    const it = itemById(e[slot]);
+    return it && it.slot === slot ? it : itemById(DEFAULT_EQUIPPED[slot]);
+  };
+  const skin = get('skin').colour;
+  const hair = hairParts(get('hair').id, get('hairColour').colour);
+  const acc = get('accessory');
+  const faceAcc = ['glasses', 'heart-glasses', 'star-glasses', 'freckles', 'sparkles', 'earrings'].includes(acc.id) ? accSVG(acc) : '';
+  const fix = (s) => s.replace(/§/g, uid);
+  return {
+    skin,
+    outfit: get('outfit'),
+    hairColour: get('hairColour').colour,
+    defs: fix('<defs><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs>'),
+    back: fix(`${hair.back}${hair.mid || ''}`),
+    head: fix(`<circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${faceAcc}${hatSVG(get('hat'))}`),
+  };
+}

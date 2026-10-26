@@ -3,7 +3,7 @@ import { STICKERS } from './stickers.js';
 // so private windows or blocked storage never break the app.
 
 export const SAVE_KEY = 'g5theory.save';
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export function freshSave() {
   return {
@@ -23,7 +23,7 @@ export function freshSave() {
     avatar: { owned: [], equipped: {} },
     stickers: { owned: {}, bagsOpened: 0, sinceEpic: 0, seed: 0 },
     promos: [],
-    pet: { owned: [], active: null, name: '' },
+    pet: { owned: [], active: null, names: {}, inventory: {}, toys: [], needs: {} },
     last: null,
     daily: { day: null, done: false, best: 0 },
     badges: {},
@@ -87,6 +87,12 @@ export function migrate(data) {
     s.pet = { owned, active: eq && eq !== 'pet-none' && owned.includes(eq) ? eq : null, name: '' };
     s.avatar.owned = (s.avatar.owned || []).filter((id) => !/^pet-/.test(id));
     if (s.avatar.equipped) delete s.avatar.equipped.pet;
+  }
+  if (v < 6 && s.pet) {
+    // v6 gave every pet its own name, plus a food cupboard, toys and needs.
+    const names = {};
+    if (s.pet.name && s.pet.active) names[s.pet.active] = cleanName(s.pet.name).slice(0, 16);
+    s.pet = { owned: s.pet.owned || [], active: s.pet.active || null, names, inventory: {}, toys: [], needs: {} };
   }
   // Fill in anything missing with defaults (deep for plain objects one level down).
   const base = freshSave();

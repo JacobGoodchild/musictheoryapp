@@ -10,6 +10,10 @@ export function codeHash(code) {
 
 export const PROMOS = [
   { id: 'launch-1', hash: 'p27red', coins: 100, notes: 100 },
+  { id: 'gift-1', hash: '1tmeset', coins: 300, notes: 100 },
+  { id: 'gift-2', hash: '1kv4rdc', coins: 150, notes: 150 },
+  { id: 'gift-3', hash: '9rfo86', coins: 250, notes: 50 },
+  { id: 'gift-4', hash: '15omywk', coins: 150, notes: 50 },
 ];
 
 /** Try a code. Returns { ok, message }; on success the reward is added to state s. */

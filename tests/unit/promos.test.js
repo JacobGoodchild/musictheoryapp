@@ -18,3 +18,12 @@ test('codes are stored only as hashes', () => {
   for (const p of PROMOS) assert.ok(!/SNERD/i.test(JSON.stringify(p)));
   assert.equal(codeHash('snerd'), PROMOS[0].hash);
 });
+
+test('every promo code is distinct, gives a sensible reward and has its own id', () => {
+  assert.equal(new Set(PROMOS.map((p) => p.hash)).size, PROMOS.length);
+  assert.equal(new Set(PROMOS.map((p) => p.id)).size, PROMOS.length);
+  for (const p of PROMOS) {
+    assert.match(p.hash, /^[0-9a-z]+$/);
+    assert.ok(p.coins > 0 && p.coins <= 300 && p.notes > 0 && p.notes <= 150, p.id);
+  }
+});

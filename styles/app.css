@@ -576,53 +576,59 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .promo-input { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; max-width: 220px; }
 .promo-msg.good { color: var(--good); font-weight: 650; }
 .promo-msg.bad { color: var(--bad); }
-/* ---------- Pet friends ---------- */
-.pet-frame { position: relative; display: inline-block; line-height: 0; }
-.pet-stage { position: absolute; left: 0; right: 0; bottom: 2%; height: 48%; pointer-events: none; }
-.pet { position: absolute; bottom: 0; transform: translateX(-50%); transition: left var(--walk, 0s) linear; }
-.pet .pet-svg { width: 100%; height: auto; display: block; overflow: visible; }
-/* Only animated parts measure transforms from their own box (static parts use their SVG rotate() centres). */
-.pet-svg .pet-flip, .pet-svg .pet-bob, .pet-svg .pet-tail, .pet-svg .eyes-open, .pet-svg .foot, .pet-svg .pet-ball, .pet-svg .pet-zzz { transform-box: fill-box; }
-.pet .pet-flip { transform-origin: center; transition: transform .25s; }
-.pet.face-left .pet-flip { transform: scaleX(-1); }
-.pet .eyes-closed, .pet .pet-zzz, .pet .pet-ball { display: none; }
-.pet .pet-tail { transform-origin: left center; animation: pet-wag 1.2s ease-in-out infinite alternate; }
-.pet .eyes-open { transform-origin: center; animation: pet-blink 4.2s infinite; }
-/* walking: bounce and patter */
-.pet.walking .pet-bob { animation: pet-walk .32s ease-in-out infinite alternate; }
-.pet.walking .foot-l { animation: pet-step .32s ease-in-out infinite alternate; }
-.pet.walking .foot-r { animation: pet-step .32s ease-in-out infinite alternate-reverse; }
-/* idle: gentle breathing */
-.pet.idle .pet-bob { transform-origin: bottom center; animation: pet-breathe 2.6s ease-in-out infinite; }
-/* playing: hop and bounce the ball */
-.pet.playing .pet-ball { display: inline; animation: pet-ball .55s cubic-bezier(.3,0,.7,1) infinite alternate; }
-.pet.playing .pet-bob { animation: pet-hop .55s cubic-bezier(.3,0,.7,1) infinite alternate; }
-.pet.playing .pet-tail { animation-duration: .35s; }
-/* sleeping: eyes shut, slow breathing, floating Zzz */
-.pet.sleeping .eyes-open { display: none; }
-.pet.sleeping .eyes-closed { display: inline; }
-.pet.sleeping .pet-zzz { display: inline; animation: pet-zzz 2.4s ease-in-out infinite; }
-.pet.sleeping .pet-bob { transform-origin: bottom center; animation: pet-sleep 3s ease-in-out infinite; }
-.pet.sleeping .pet-tail { animation: none; }
-@keyframes pet-wag { from { transform: rotate(-8deg); } to { transform: rotate(10deg); } }
-@keyframes pet-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
-@keyframes pet-walk { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-5%) rotate(2deg); } }
-@keyframes pet-step { from { transform: translateY(0); } to { transform: translateY(-14%); } }
-@keyframes pet-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, .98); } }
-@keyframes pet-hop { from { transform: translateY(0) scale(1.03, .97); } to { transform: translateY(-14%) scale(.98, 1.03); } }
-@keyframes pet-ball { from { transform: translateY(0); } to { transform: translateY(-60%); } }
-@keyframes pet-sleep { 0%, 100% { transform: scale(1.03, .94) translateY(3%); } 50% { transform: scale(1.05, .9) translateY(5%); } }
-@keyframes pet-zzz { 0% { opacity: 0; transform: translate(0, 4px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -10px); } }
-:root[data-reduced-motion="true"] .pet *, :root[data-reduced-motion="true"] .pet { animation: none !important; transition: none !important; }
-@media (prefers-reduced-motion: reduce) { :root:not([data-reduced-motion="false"]) .pet, :root:not([data-reduced-motion="false"]) .pet * { animation: none !important; transition: none !important; } }
-/* Pet room on the Rewards page */
-.pet-room { position: relative; height: 280px; border-radius: 22px; overflow: hidden; background: linear-gradient(#ffe9f3 0 62%, #f7d6b7 62% 100%); box-shadow: inset 0 -6px 0 #e9c29c; }
-.pet-room::before { content: ""; position: absolute; left: 50%; bottom: 6%; width: 60%; height: 16%; transform: translateX(-50%); border-radius: 50%; background: repeating-radial-gradient(#ffc6dc 0 6px, #ffb3cf 6px 12px); opacity: .8; }
-.pet-room::after { content: ""; position: absolute; left: 8%; top: 12%; width: 22%; height: 30%; border-radius: 12px; background: linear-gradient(#bfe3ff, #e8f5ff); box-shadow: 0 0 0 6px #fff, 0 4px 10px #0001; }
-.pet-room .pet-stage { height: 70%; bottom: 4%; z-index: 1; }
-.pet-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-@media (max-width: 900px) { .pet-layout { grid-template-columns: minmax(0, 1fr); } }
+/* ---------- Pet house and supermarket ---------- */
+.home-avatar { position: relative; display: inline-block; line-height: 0; }
+.home-pet { position: absolute; right: -18px; bottom: -10px; filter: drop-shadow(0 3px 4px #0002); pointer-events: none; }
+.house-card { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.house-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.house-head h2 { margin: 0; }
+.house-frame { border-radius: 18px; overflow: hidden; box-shadow: inset 0 0 0 2px #0000000d; }
+.house-svg, .market-svg { display: block; width: 100%; height: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.house-svg.grabbing, .house-svg.grabbing * { cursor: grabbing !important; }
+.house-actions { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: end; }
+.need-meters { display: grid; gap: 6px; min-width: min(320px, 100%); }
+.need { display: grid; grid-template-columns: 92px 1fr 44px; align-items: center; gap: 8px; font-size: .9rem; font-weight: 650; }
+.need-label { display: inline-flex; align-items: center; gap: 6px; }
+.need-bar { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; box-shadow: inset 0 0 0 1px #0000000f; }
+.need-fill { display: block; height: 100%; border-radius: 99px; transition: width .6s var(--ease); }
+.need-hunger .need-fill { background: linear-gradient(90deg, #ff9a7b, #ff6f86); }
+.need-fun .need-fill { background: linear-gradient(90deg, #ffd36e, #ffb03b); }
+.need-energy .need-fill { background: linear-gradient(90deg, #8fd1ff, #6f8cff); }
+.need-val { text-align: right; font-variant-numeric: tabular-nums; }
+.need.low .need-val::after { content: " low"; font-weight: 800; color: var(--bad); font-size: .75rem; }
+.food-tray { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-btn { position: relative; display: grid; place-items: center; padding: 4px 6px 2px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); cursor: pointer; transition: transform .15s var(--ease), border-color .15s; }
+.food-btn:hover { transform: translateY(-3px); border-color: var(--accent); }
+.food-btn:active { transform: scale(.95); }
+.food-count { font-size: .78rem; font-weight: 750; }
+.food-btn .fav { position: absolute; top: 2px; right: 6px; color: #ff4f7d; font-size: .9rem; }
+.pet-name-form { margin: 12px 0 18px; max-width: 460px; }
+.market { display: flex; flex-direction: column; gap: 14px; }
+.market-scene { padding: 0; overflow: hidden; }
+.market-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .market-layout { grid-template-columns: minmax(0, 1fr); } }
+.market-shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 10px; margin-top: 12px; }
+.market-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface); box-shadow: var(--shadow-1); cursor: pointer; font: inherit; color: inherit; transition: transform .15s var(--ease), box-shadow .15s; }
+.market-item:hover:not(:disabled) { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+.market-item:active:not(:disabled) { transform: scale(.96); }
+.market-item:disabled { opacity: .55; cursor: default; }
+.mi-name { font-weight: 700; text-align: center; }
+.mi-fav { font-size: .74rem; color: #d63c6a; font-weight: 700; text-align: center; }
+.mi-price { display: inline-flex; align-items: center; gap: 4px; font-weight: 750; }
+.receipt { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.aisle-tabs .tab { border: 0; background: none; font: inherit; cursor: pointer; }
+.receipt h3 { margin: 0; display: flex; align-items: center; gap: 6px; }
+.receipt-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.receipt-lines li { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+.r-price { font-variant-numeric: tabular-nums; font-weight: 700; }
+.receipt-total { display: flex; justify-content: space-between; border-top: 2px dashed var(--border); padding-top: 8px; font-size: 1.15rem; }
+.receipt-total strong { display: inline-flex; align-items: center; gap: 4px; }
+.btn.tiny { padding: 2px 10px; min-height: 0; font-size: 1rem; }
+.btn.block { width: 100%; justify-content: center; }
+.warn { color: var(--bad); }
+.fairy-light { animation: twinkle 1.6s ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity: .55; } to { opacity: 1; } }
+:root[data-reduced-motion="true"] .fairy-light { animation: none; }
 .pet-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 12px; }
-.pet-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; }
-.pet-card .pet-svg .eyes-closed, .pet-card .pet-svg .pet-zzz, .pet-card .pet-svg .pet-ball { display: none; }
+.pet-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; text-align: center; }
 .pet-card.current { border-color: var(--good); }

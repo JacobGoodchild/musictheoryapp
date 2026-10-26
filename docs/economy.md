@@ -57,7 +57,17 @@ cheapest avatar item and a bag, and uses notes for swaps whenever possible.
 
 Over 30 simulated students (different random seeds):
 
-- Everything is collected in **33–39 days, median about 37 days (~5 weeks)** (after the 25 Oct update: 100 stickers, 30 hairstyles, eye colours, pets, and the 3-for-2 bag deal).
+- Everything is collected in **31–37 days, median about 35 days (~5 weeks)** (after the 26 Oct update: pets now cost 30–45 coins).
 - About 10 purchases happen in the very first session.
 - After one week most of the avatar shop and a good number of stickers are still to win.
 - On average there are several purchases every study session.
+
+## Pets and the supermarket (26 Oct)
+
+- Pets cost **30–45 coins** (kitten, puppy, bunny, chick 30; hamster 35; panda 40;
+  baby unicorn 45), so even the special ones are only a session or two away.
+- The supermarket is deliberately cheap: food 2–8 coins, pet food 2–4, toys 5–8,
+  decorations 6–10. Food is used up when eaten; toys and decorations are bought once.
+- Pet care earns no coins (it is a reward, not a way to farm coins), so the
+  simulation above is unchanged by it. Needs (tummy, fun, energy) fall gently
+  while you are away and never drop below 10%, so nobody comes back to a sad pet.

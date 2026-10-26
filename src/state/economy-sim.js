@@ -2,7 +2,7 @@
 // economy test and quoted in docs/economy.md). Pure, deterministic.
 import { ECONOMY, streakBonus, mockReward, coinsForCorrect } from './rewards.js';
 import { ITEMS } from '../art/avatar.js';
-import { PETS } from '../art/pets.js';
+import { PETS } from './pets-data.js';
 import { STICKERS, RARITIES, openBag } from './stickers.js';
 import { rng } from '../questions/util.js';
 
