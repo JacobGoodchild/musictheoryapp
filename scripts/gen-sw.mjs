@@ -20,7 +20,8 @@ export function swSource() {
 // Offline service worker: pre-caches every app file; a new version waits until the user taps "Update".
 const VERSION = 'g5-${APP_VERSION}-${hash(JSON.stringify(precacheList()))}';
 const FILES = ${JSON.stringify(['./', ...precacheList()], null, 0)};
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES))); });
+// New versions take over straight away (the page reloads itself once), so nobody gets stuck on an old copy.
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('message', (e) => { if (e.data === 'skipWaiting') self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

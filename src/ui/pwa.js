@@ -6,7 +6,11 @@ let updateRequested = false;
 
 export function registerSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  navigator.serviceWorker.register('sw.js').then((reg) => {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+    // Look for a new version every time the app opens, and every 30 minutes.
+    reg.update().catch(() => {});
+    setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
     const show = (worker) => {
       const banner = document.getElementById('update-banner');
       clear(banner);
@@ -24,7 +28,8 @@ export function registerSW() {
   }).catch(() => {});
   let reloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloaded || !updateRequested) return;
+    // A new version took over: reload once to show it (not on the very first install).
+    if (reloaded || (!updateRequested && !hadController)) return;
     reloaded = true;
     location.reload();
   });
