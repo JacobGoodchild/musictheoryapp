@@ -26,6 +26,50 @@ export const MARKET = [
   { id: 'birthday-cake', name: 'Party cake', aisle: 'bakery', kind: 'food', price: 8, hunger: 30, fun: 25 },
   { id: 'milk', name: 'Milk', aisle: 'bakery', kind: 'food', price: 2, hunger: 10, fun: 3 },
   { id: 'cheese', name: 'Cheese', aisle: 'bakery', kind: 'food', price: 3, hunger: 15, fun: 4 },
+  // Meals
+  { id: 'pizza', name: 'Pizza', aisle: 'meals', kind: 'food', price: 5, hunger: 30, fun: 8 },
+  { id: 'burger', name: 'Burger', aisle: 'meals', kind: 'food', price: 5, hunger: 30, fun: 6 },
+  { id: 'sushi', name: 'Sushi', aisle: 'meals', kind: 'food', price: 5, hunger: 25, fun: 6 },
+  { id: 'ramen', name: 'Ramen', aisle: 'meals', kind: 'food', price: 5, hunger: 30, fun: 5 },
+  { id: 'pancakes', name: 'Pancakes', aisle: 'meals', kind: 'food', price: 4, hunger: 25, fun: 8 },
+  { id: 'sandwich', name: 'Sandwich', aisle: 'meals', kind: 'food', price: 3, hunger: 25, fun: 3 },
+  { id: 'dumpling', name: 'Dumplings', aisle: 'meals', kind: 'food', price: 4, hunger: 25, fun: 5 },
+  { id: 'onigiri', name: 'Rice ball', aisle: 'meals', kind: 'food', price: 3, hunger: 20, fun: 4 },
+  // Sweets
+  { id: 'lollipop', name: 'Lollipop', aisle: 'sweets', kind: 'food', price: 2, hunger: 4, fun: 10 },
+  { id: 'wrapped-sweet', name: 'Wrapped sweet', aisle: 'sweets', kind: 'food', price: 1, hunger: 3, fun: 6 },
+  { id: 'gummy-bear', name: 'Gummy bear', aisle: 'sweets', kind: 'food', price: 2, hunger: 4, fun: 8 },
+  { id: 'marshmallow', name: 'Marshmallow', aisle: 'sweets', kind: 'food', price: 2, hunger: 4, fun: 8 },
+  { id: 'chocolate', name: 'Chocolate bar', aisle: 'sweets', kind: 'food', price: 3, hunger: 6, fun: 12 },
+  { id: 'cotton-candy', name: 'Candy floss', aisle: 'sweets', kind: 'food', price: 3, hunger: 4, fun: 12 },
+  { id: 'jelly', name: 'Jelly', aisle: 'sweets', kind: 'food', price: 3, hunger: 6, fun: 10 },
+  { id: 'rainbow-lollipop', name: 'Rainbow lolly', aisle: 'sweets', kind: 'food', price: 4, hunger: 4, fun: 16 },
+  // Ice cream and drinks
+  { id: 'ice-lolly', name: 'Ice lolly', aisle: 'icecream', kind: 'food', price: 2, hunger: 5, fun: 10 },
+  { id: 'sundae', name: 'Sundae', aisle: 'icecream', kind: 'food', price: 5, hunger: 10, fun: 16 },
+  { id: 'ice-cream-sandwich', name: 'Ice cream sandwich', aisle: 'icecream', kind: 'food', price: 3, hunger: 8, fun: 12 },
+  { id: 'mochi-ice-cream', name: 'Mochi ice cream', aisle: 'icecream', kind: 'food', price: 4, hunger: 8, fun: 14 },
+  { id: 'unicorn-ice-cream', name: 'Unicorn ice cream', aisle: 'icecream', kind: 'food', price: 6, hunger: 10, fun: 20 },
+  { id: 'juice-box', name: 'Juice box', aisle: 'icecream', kind: 'food', price: 2, hunger: 5, fun: 4 },
+  { id: 'lemonade', name: 'Lemonade', aisle: 'icecream', kind: 'food', price: 2, hunger: 5, fun: 5 },
+  { id: 'bubble-tea', name: 'Bubble tea', aisle: 'icecream', kind: 'food', price: 4, hunger: 8, fun: 12 },
+  { id: 'hot-choc', name: 'Hot chocolate', aisle: 'icecream', kind: 'food', price: 3, hunger: 8, fun: 10 },
+  // Toys for her (they live in her house; click one to play with it)
+  { id: 'my-teddy', name: 'Teddy bear', aisle: 'mytoys', kind: 'mytoy', price: 8 },
+  { id: 'my-crayons', name: 'Colouring set', aisle: 'mytoys', kind: 'mytoy', price: 6 },
+  { id: 'my-yoyo', name: 'Yo-yo', aisle: 'mytoys', kind: 'mytoy', price: 4 },
+  { id: 'my-skipping', name: 'Skipping rope', aisle: 'mytoys', kind: 'mytoy', price: 4 },
+  { id: 'my-bubbles', name: 'Bubble wand', aisle: 'mytoys', kind: 'mytoy', price: 3 },
+  { id: 'my-ukulele', name: 'Ukulele', aisle: 'mytoys', kind: 'mytoy', price: 12 },
+  { id: 'my-unicorn-plush', name: 'Unicorn plushie', aisle: 'mytoys', kind: 'mytoy', price: 10 },
+  { id: 'my-kite', name: 'Kite', aisle: 'mytoys', kind: 'mytoy', price: 6 },
+  // Books (read them on the armchair, kitchen chair or bed)
+  { id: 'book-percy', name: 'Percy Jackson', aisle: 'books', kind: 'book', price: 6, cover: '#2f5fb3' },
+  { id: 'book-hp', name: 'Harry Potter', aisle: 'books', kind: 'book', price: 6, cover: '#8e2a3a' },
+  { id: 'book-ranger', name: "Ranger's Apprentice", aisle: 'books', kind: 'book', price: 6, cover: '#3f7a3a' },
+  { id: 'book-tomgates', name: 'Tom Gates', aisle: 'books', kind: 'book', price: 5, cover: '#f2c230' },
+  { id: 'book-wimpy', name: 'Diary of a Wimpy Kid', aisle: 'books', kind: 'book', price: 5, cover: '#d9443a' },
+  { id: 'book-music', name: 'Music Theory Fun', aisle: 'books', kind: 'book', price: 3, cover: '#7b5bd6' },
   // Pet corner: food
   { id: 'pf-fish', name: 'Fishy dinner', aisle: 'pets', kind: 'petfood', price: 3, hunger: 30, fun: 4 },
   { id: 'pf-kibble', name: 'Crunchy kibble', aisle: 'pets', kind: 'petfood', price: 3, hunger: 30, fun: 3 },
@@ -48,12 +92,17 @@ export const MARKET = [
 ];
 export const AISLES = [
   { id: 'fruit', name: 'Fruit and veg' },
-  { id: 'bakery', name: 'Bakery and treats' },
+  { id: 'bakery', name: 'Bakery' },
+  { id: 'meals', name: 'Meals' },
+  { id: 'sweets', name: 'Sweets' },
+  { id: 'icecream', name: 'Ice cream and drinks' },
+  { id: 'mytoys', name: 'Toys for me' },
+  { id: 'books', name: 'Books' },
   { id: 'pets', name: 'Pet food' },
-  { id: 'toys', name: 'Toys and home' },
+  { id: 'toys', name: 'Pet toys and home' },
 ];
 export const marketItem = (id) => MARKET.find((m) => m.id === id);
-export const isOneOff = (item) => item.kind === 'toy' || item.kind === 'decor';
+export const isOneOff = (item) => ['toy', 'decor', 'mytoy', 'book'].includes(item.kind);
 
 /** Each pet's favourite foods: extra fun and a shower of hearts. */
 export const FAVOURITES = {
@@ -73,7 +122,7 @@ export const FLOOR = 10;
 const clamp = (v) => Math.max(0, Math.min(100, v));
 
 export function freshPet() {
-  return { owned: [], active: null, names: {}, inventory: {}, toys: [], needs: {} };
+  return { owned: [], active: null, home: [], names: {}, inventory: {}, toys: [], needs: {} };
 }
 
 /** The current needs of a pet, after time away. Does not change the save. */

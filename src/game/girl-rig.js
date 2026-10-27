@@ -42,9 +42,14 @@ export function createGirl(equipped) {
   const skin = parts.skin;
   const main = o.cape ? o.colour : o.colour;
   const isDress = !!o.dress;
-  const bottom = isDress ? main : o.overlay || '#6f8fd8';
+  const onesie = !!o.onesie;
+  const bot = parts.bottoms || { colour: '#6f8fd8', kind: 'skirt' };
+  const bottom = isDress ? main : onesie ? main : o.id === 'dungarees' ? o.overlay : bot.colour;
   const sleeve = o.cardigan || (o.cape ? o.colour : main);
-  const shoe = '#ff6f9a';
+  const sh = parts.shoes || { colour: '#ff6f9a' };
+  const shoe = sh.colour;
+  const legCol = onesie ? main : !isDress && o.id !== 'dungarees' && bot.kind === 'trousers' ? bot.colour : skin;
+  const armCol = onesie ? main : skin;
   const root = E(null, 'g', { class: 'girl-rig' });
   E(root, 'defs').innerHTML = '';
   parseInto(root, parts.defs);
@@ -56,12 +61,13 @@ export function createGirl(equipped) {
   if (o.cape) E(body, 'path', { d: 'M-24-122C-40-90-44-60-46-44h92c-2-16-6-46-22-78z', fill: o.cape });
 
   // Legs and shoes (behind the clothes).
-  const legs = [limb(body, 13, skin), limb(body, 13, skin)];
-  const shoes = [E(body, 'ellipse', { rx: 10, ry: 6, fill: shoe }), E(body, 'ellipse', { rx: 10, ry: 6, fill: shoe })];
+  const legs = [limb(body, legCol === skin ? 13 : 15, legCol), limb(body, legCol === skin ? 13 : 15, legCol)];
+  const shoeAttrs = { rx: sh.tall ? 11 : 10, ry: sh.tall ? 8 : 6, fill: shoe, stroke: sh.sole || (sh.bunny ? '#ffc2d6' : 'none'), 'stroke-width': 2 };
+  const shoes = [E(body, 'ellipse', shoeAttrs), E(body, 'ellipse', shoeAttrs)];
   const socks = [E(body, 'circle', { r: 1, fill: '#fff' }), E(body, 'circle', { r: 1, fill: '#fff' })];
   void socks;
   // Arms: sleeve + skin + hand.
-  const arms = [0, 1].map(() => ({ skin: limb(body, 11, skin), sleeve: limb(body, 15, sleeve), hand: E(body, 'circle', { r: 7, fill: skin }) }));
+  const arms = [0, 1].map(() => ({ skin: limb(body, onesie ? 14 : 11, armCol), sleeve: limb(body, 15, sleeve), hand: E(body, 'circle', { r: 7, fill: skin }) }));
   const backArm = E(body, 'g'); const frontArmG = E(body, 'g');
   void backArm; void frontArmG;
 
@@ -74,10 +80,21 @@ export function createGirl(equipped) {
     if (o.dots) [[-14, -100], [10, -108], [-22, -62], [4, -78], [24, -58], [-4, -52]].forEach(([x, y]) => E(torso, 'circle', { cx: x, cy: y, r: 3.2, fill: o.dots }));
     if (o.sparkle) [[-12, -96], [12, -80], [-20, -56], [18, -54]].forEach(([x, y]) => E(torso, 'path', { d: `M${x} ${y - 4}l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z`, fill: '#f5d27a' }));
     E(torso, 'path', { d: 'M-26-92q26 6 52 0', stroke: shade(main, 0.85), 'stroke-width': 3, fill: 'none' });
+  } else if (onesie) {
+    E(torso, 'path', { d: 'M-22-124Q0-130 22-124L26-64Q26-54 14-54H-14Q-26-54-26-64Z', fill: main });
+    E(torso, 'path', { d: 'M0-122V-62', stroke: shade(main, 0.85), 'stroke-width': 2.5 });
+    if (o.dots) [[-12, -104], [12, -96], [-10, -76], [12, -70]].forEach(([x, y]) => E(torso, 'path', { d: `M${x} ${y - 4}l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z`, fill: '#fff' }));
+    else E(torso, 'ellipse', { cx: 0, cy: -84, rx: 13, ry: 18, fill: '#fff', opacity: 0.55 });
   } else {
-    // Skirt or shorts first, then the top.
-    if (o.overlay && o.id === 'dungarees') E(torso, 'path', { d: 'M-24-80h48l4 26h-20l-2-6h-12l-2 6h-20z', fill: bottom });
+    // Skirt, shorts or trousers first, then the top.
+    const k = o.id === 'dungarees' ? 'shorts' : bot.kind;
+    if (k === 'shorts') E(torso, 'path', { d: 'M-24-80h48l4 26h-22l-2-10-2 10h-22z', fill: bottom });
+    else if (k === 'trousers') E(torso, 'path', { d: 'M-24-80h48l2 24h-52z', fill: bottom });
+    else if (k === 'tutu') E(torso, 'path', { d: 'M-24-80h48l18 22q-4 6-9 2q-5 6-10 1q-5 6-10 1q-5 6-10 1q-5 6-10 1q-5 6-10 1q-5 6-10-2q-5 4-9-2z', fill: bottom });
     else E(torso, 'path', { d: 'M-24-80h48l14 30q-38 10-76 0z', fill: bottom });
+    if (bot.seam && k === 'trousers') E(torso, 'path', { d: 'M-24-74h48', stroke: bot.seam, 'stroke-width': 2 });
+    if (bot.pleats && k === 'skirt') for (const x of [-20, -8, 4, 16]) E(torso, 'path', { d: `M${x} -78l${x / 6} 26`, stroke: shade(bottom, 0.8), 'stroke-width': 2 });
+    if (bot.sparkle && k === 'skirt') [[-14, -66], [8, -60], [20, -70]].forEach(([x, y]) => E(torso, 'path', { d: `M${x} ${y - 4}l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z`, fill: '#fff' }));
     E(torso, 'path', { d: 'M-22-124Q0-130 22-124L26-76Q0-70-26-76Z', fill: main });
     if (o.stripes) for (const y of [-112, -100, -88]) E(torso, 'path', { d: `M-25 ${y}h50`, stroke: o.stripes, 'stroke-width': 5 });
     if (o.cardigan) { E(torso, 'path', { d: 'M-22-124Q-10-127-4-127L-6-74Q-16-74-26-76Z', fill: o.cardigan }); E(torso, 'path', { d: 'M22-124Q10-127 4-127L6-74Q16-74 26-76Z', fill: o.cardigan }); }
@@ -87,8 +104,18 @@ export function createGirl(equipped) {
     if (o.cape) [[-10, -100], [10, -92]].forEach(([x, y]) => E(torso, 'path', { d: `M${x} ${y - 4}l1.2 2.8 2.8 1.2-2.8 1.2-1.2 2.8-1.2-2.8-2.8-1.2 2.8-1.2z`, fill: '#f5c542' }));
   }
   const frontArms = E(body, 'g');
-  // Head on top.
+  // A book to read (hidden unless reading).
+  const book = E(frontArms, 'g', { display: 'none' });
+  const bookCover = E(book, 'path', { d: 'M-31-106h62v44h-62z', fill: '#6f8fd8', stroke: '#4a3040', 'stroke-width': 2.5, 'stroke-linejoin': 'round' });
+  E(book, 'path', { d: 'M-28-103q14-5 28 0v38q-14-5-28 0zM28-103q-14-5-28 0v38q14-5 28 0z', fill: '#fffdf6', stroke: '#4a3040', 'stroke-width': 1.6 });
+  E(book, 'path', { d: 'M-23-94h17M-23-88h17M-23-82h12M6-94h17M6-88h17M6-82h12', stroke: '#c9c3d6', 'stroke-width': 1.6 });
+  // Head on top (hood ears from a onesie go behind it).
   const headG = E(body, 'g');
+  if (o.ears === 'bunny') for (const x of [-18, 18]) { E(headG, 'ellipse', { cx: x, cy: -224, rx: 9, ry: 24, fill: main, transform: `rotate(${x / 2} ${x} -210)` }); E(headG, 'ellipse', { cx: x, cy: -222, rx: 4.5, ry: 16, fill: '#ffc2d6', transform: `rotate(${x / 2} ${x} -210)` }); }
+  if (o.ears === 'cat' || o.ears === 'unicorn') for (const sx of [-1, 1]) E(headG, 'path', { d: `M${sx * 38} -192L${sx * 32} -226L${sx * 12} -208Z`, fill: main });
+  if (o.ears === 'unicorn') E(headG, 'path', { d: 'M-6-208L0-240L6-208Z', fill: '#ffd76a' });
+  if (o.ears === 'dino') for (const [x, y] of [[-26, -200], [-10, -212], [8, -213], [24, -202]]) E(headG, 'path', { d: `M${x - 8} ${y + 6}L${x} ${y - 10}L${x + 8} ${y + 6}Z`, fill: '#5fae5a' });
+  if (o.onesie && o.ears) E(headG, 'path', { d: 'M-45-150Q-50-214 0-216Q50-214 45-150', fill: 'none', stroke: main, 'stroke-width': 9, 'stroke-linecap': 'round' });
   const headInner = E(headG, 'g', { transform: 'translate(-100 -266)' });
   parseInto(headInner, parts.head);
   const fx = E(root, 'g'); // hearts, sparkles (drawn by the scene)
@@ -144,6 +171,10 @@ export function createGirl(equipped) {
       dy = 22;
       for (const i of [0, 1]) setLeg(i, hips[i][0] * 1.1, hips[i][1], hips[i][0] * 1.35, -50, hips[i][0] * 1.35 + Math.sin(ph + i * 2) * 1.5, -dy);
       setArm(0, 0.5, -0.45); setArm(1, 0.5, -0.45);
+    } else if (pz === 'read') {
+      dy = 22;
+      for (const i of [0, 1]) setLeg(i, hips[i][0] * 1.1, hips[i][1], hips[i][0] * 1.35, -50, hips[i][0] * 1.35, -dy);
+      setArm(0, -0.55, 0.9, true); setArm(1, -0.55, 0.9, true);
     } else if (pz === 'crouch') {
       dy = 30;
       for (const i of [0, 1]) setLeg(i, hips[i][0], hips[i][1], hips[i][0] + (i === 0 ? -16 : 16), -24 - dy + 6, hips[i][0] * 1.2, -dy);
@@ -159,6 +190,7 @@ export function createGirl(equipped) {
       else if (pz === 'hold') { const i = dir > 0 ? 1 : 0; setArm(i, 1.1, 0.4, true); setArm(1 - i, 0.2 + br, -0.1); }
       else { setArm(0, 0.2 + br, -0.1); setArm(1, 0.2 + br, -0.1); }
     }
+    book.setAttribute('display', pz === 'read' ? 'inline' : 'none');
     body.setAttribute('transform', `translate(0 ${f1(dy)}) rotate(${f1(lean * 0.5)} 0 0)`);
     headG.setAttribute('transform', `translate(${f1(dir * (pz === 'crouch' ? 4 : 1.5))} ${pz === 'walk' ? f1(Math.sin(ph * 2) * 0.8) : 0}) rotate(${f1(pz === 'crouch' ? dir * 8 : lean * 0.6)} 0 -150)`);
   }
@@ -169,6 +201,19 @@ export function createGirl(equipped) {
     pose,
     /** A hand position in local units (0 = left hand, 1 = right hand). */
     hand: (i) => handPos[i],
+    /** Colour the book she reads. */
+    setBook: (colour) => bookCover.setAttribute('fill', colour),
     height: 215,
   };
+}
+
+/** A still, full-body picture of the avatar (for the shop). */
+export function girlSVG(equipped, { size = 96, label = 'Avatar' } = {}) {
+  const rig = createGirl(equipped);
+  const svgEl = document.createElementNS(NS, 'svg');
+  svgEl.setAttribute('viewBox', '-75 -248 150 254');
+  svgEl.setAttribute('width', size); svgEl.setAttribute('height', size);
+  svgEl.setAttribute('role', 'img'); svgEl.setAttribute('aria-label', label);
+  svgEl.appendChild(rig.el);
+  return svgEl;
 }

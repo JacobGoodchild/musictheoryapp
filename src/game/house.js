@@ -37,20 +37,27 @@ function markup(parent, str) {
 const reducedMotion = () => document.documentElement.dataset.reducedMotion === 'true'
   || (document.documentElement.dataset.reducedMotion !== 'false' && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-function roomArt(night, decor) {
+const WALLS = {
+  living: '<rect width="48" height="48" fill="#fff1f6"/><circle cx="12" cy="12" r="3" fill="#ffd9e6"/><circle cx="36" cy="36" r="3" fill="#e9defc"/>',
+  kitchen: '<rect width="48" height="48" fill="#f2fbff"/><path d="M0 0h48v48H0z" fill="none" stroke="#d6ecf7" stroke-width="3"/><circle cx="24" cy="24" r="3" fill="#ffe3a8"/>',
+  bedroom: '<rect width="48" height="48" fill="#f4efff"/><path d="M12 8l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#e2d6ff"/><circle cx="36" cy="34" r="2.5" fill="#ffd9e6"/>',
+};
+const FLOORS = { living: ['#e7b98a', '#f3cfa3', '#d9a575'], kitchen: ['#e9e4f2', '#f6f3fb', '#cfc8dd'], bedroom: ['#d9b48e', '#ecc9a0', '#c99a6e'] };
+
+function roomArt(night, decor, room = 'living') {
   const sky = night
     ? '<rect x="0" y="0" width="150" height="120" fill="#2c2f6b"/><circle cx="110" cy="30" r="14" fill="#fff6c8"/><circle cx="104" cy="26" r="13" fill="#2c2f6b"/>' + [[30, 30], [60, 70], [20, 90], [80, 22], [130, 80]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="#fff"/>`).join('')
     : '<rect x="0" y="0" width="150" height="120" fill="#bfe6ff"/><circle cx="118" cy="28" r="15" fill="#ffe27a"/><path d="M20 70q4-14 18-10q8-12 22-2q12 0 10 12z" fill="#fff"/><path d="M78 98q3-10 13-7q6-9 16-1q9 0 7 8z" fill="#fff"/><path d="M0 104q40-16 80 0t70 0v16H0z" fill="#9ad88f"/>';
   return `
   <defs>
-    <pattern id="wallp" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#fff1f6"/><circle cx="12" cy="12" r="3" fill="#ffd9e6"/><circle cx="36" cy="36" r="3" fill="#e9defc"/></pattern>
-    <linearGradient id="floorg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7b98a"/><stop offset="1" stop-color="#f3cfa3"/></linearGradient>
+    <pattern id="wallp" width="48" height="48" patternUnits="userSpaceOnUse">${WALLS[room]}</pattern>
+    <linearGradient id="floorg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${FLOORS[room][0]}"/><stop offset="1" stop-color="${FLOORS[room][1]}"/></linearGradient>
     <clipPath id="winclip"><rect x="0" y="0" width="150" height="120" rx="6"/></clipPath>
   </defs>
   <rect x="0" y="0" width="${W}" height="${FLOOR_TOP}" fill="url(#wallp)"/>
   <rect x="0" y="${FLOOR_TOP}" width="${W}" height="${450 - FLOOR_TOP}" fill="url(#floorg)"/>
-  ${[0.12, 0.3, 0.52, 0.78].map((k) => `<path d="M0 ${f1(floorY(k))}H${W}" stroke="#d9a575" stroke-width="2" opacity=".55"/>`).join('')}
-  ${[-3, -2, -1, 0, 1, 2, 3, 4].map((i) => `<path d="M${400 + i * 120} ${FLOOR_TOP}L${400 + i * 190} 450" stroke="#d9a575" stroke-width="2" opacity=".35"/>`).join('')}
+  ${[0.12, 0.3, 0.52, 0.78].map((k) => `<path d="M0 ${f1(floorY(k))}H${W}" stroke="${FLOORS[room][2]}" stroke-width="2" opacity=".55"/>`).join('')}
+  ${[-3, -2, -1, 0, 1, 2, 3, 4].map((i) => `<path d="M${400 + i * 120} ${FLOOR_TOP}L${400 + i * 190} 450" stroke="${FLOORS[room][2]}" stroke-width="2" opacity=".35"/>`).join('')}
   <rect x="0" y="${FLOOR_TOP - 14}" width="${W}" height="16" fill="#fff" stroke="#ead6df" stroke-width="2"/>
   <g transform="translate(300 52)">
     <rect x="-10" y="-10" width="170" height="140" rx="10" fill="#fff" stroke="#4a3040" stroke-width="3"/>
@@ -61,14 +68,15 @@ function roomArt(night, decor) {
     <path d="M176-14q-30 60-6 150h14q-8-80 8-150z" fill="#ffa6c1" stroke="#4a3040" stroke-width="3" stroke-linejoin="round"/>
     <rect x="-36" y="-20" width="222" height="10" rx="5" fill="#c58a5a" stroke="#4a3040" stroke-width="2.5"/>
   </g>
-  <g transform="translate(120 110)">
+  ${room === 'kitchen' ? `<g transform="translate(150 96)"><circle r="30" fill="#fff" stroke="#4a3040" stroke-width="3"/><path d="M0-18V0l12 8" stroke="#4a3040" stroke-width="3" fill="none" stroke-linecap="round"/></g>`
+    : `<g transform="translate(120 110)">
     <rect x="-36" y="-30" width="72" height="56" rx="4" fill="#fff" stroke="#4a3040" stroke-width="3"/>
     <rect x="-28" y="-22" width="56" height="40" fill="#d8f0e0"/>
     <path d="M-28 18l16-18 12 12 10-8 18 14z" fill="#8fd18f"/><circle cx="14" cy="-10" r="6" fill="#ffe27a"/>
-  </g>
-  ${decor.includes('decor-poster') ? `<g transform="translate(560 120)">${P.poster()}</g>` : ''}
-  ${decor.includes('decor-lights') ? P.fairyLights() : ''}
-  ${decor.includes('decor-rug') ? `<g transform="translate(400 ${floorY(0.55)})">${P.rainbowRug()}</g>` : `<ellipse cx="400" cy="${floorY(0.55)}" rx="170" ry="40" fill="#fbe0ea" stroke="#f1c4d6" stroke-width="3"/>`}`;
+  </g>`}
+  ${decor.includes('decor-poster') && room !== 'kitchen' ? `<g transform="translate(560 120)">${P.poster()}</g>` : ''}
+  ${decor.includes('decor-lights') && room !== 'kitchen' ? P.fairyLights() : ''}
+  ${room === 'kitchen' ? '' : decor.includes('decor-rug') ? `<g transform="translate(400 ${floorY(0.55)})">${P.rainbowRug()}</g>` : `<ellipse cx="400" cy="${floorY(0.55)}" rx="170" ry="40" fill="${room === 'bedroom' ? '#e6dcff' : '#fbe0ea'}" stroke="${room === 'bedroom' ? '#d2c4f5' : '#f1c4d6'}" stroke-width="3"/>`}`;
 }
 
 /**
@@ -76,11 +84,11 @@ function roomArt(night, decor) {
  * onNeeds(delta), onEvent(name) }. Returns { el, feed(item, effect), destroy }.
  */
 export function createHouse(opts) {
-  const { petId, equipped, toys = [] } = opts;
+  const { petId, equipped, toys = [], room = 'living' } = opts;
   const decor = toys.filter((t) => t.startsWith('decor-'));
   const night = (() => { const h = new Date().getHours(); return h < 7 || h >= 19; })();
   const svgEl = E(null, 'svg', { viewBox: `0 0 ${W} 450`, class: 'house-svg', role: 'img', 'aria-label': 'Your pet’s house. Drag a toy and let go to throw it. Click your pet to give it a cuddle.' });
-  markup(svgEl, roomArt(night, decor));
+  markup(svgEl, roomArt(night, decor, room));
   const world = E(svgEl, 'g');
   const fxLayer = E(svgEl, 'g', { 'pointer-events': 'none' });
   const reduced = reducedMotion();
@@ -96,23 +104,45 @@ export function createHouse(opts) {
     things.push(t);
     return t;
   }
-  const chair = { x: 668, z: 0.1 };
-  addProp(P.armchairBack(), chair.x, chair.z - 0.002, 'chair-back', CHAIR);
-  const chairFront = addProp(P.armchairFront(), chair.x, chair.z + 0.004, 'chair-front', CHAIR);
-  void chairFront;
-  const bedPos = { x: 128, z: 0.42 };
+  // The seat the girl sits on: armchair (living room), kitchen chair, or her bed.
+  const chair = room === 'kitchen' ? { x: 560, z: 0.5 } : room === 'bedroom' ? { x: 620, z: 0.14 } : { x: 668, z: 0.1 };
+  if (room === 'kitchen') {
+    addProp(P.fridge(), 680, 0.02, 'fridge', 1.2);
+    addProp(P.counter(), 400, 0.0, 'counter', 1.2);
+    addProp(P.kitchenTable(), 470, 0.52, 'table', 1.2);
+    addProp(P.kitchenChairBack(), chair.x, chair.z - 0.002, 'chair-back', CHAIR);
+    addProp(P.kitchenChairFront(), chair.x, chair.z + 0.004, 'chair-front', CHAIR);
+  } else if (room === 'bedroom') {
+    addProp(P.bedBack(), chair.x, chair.z - 0.002, 'chair-back', CHAIR);
+    addProp(P.bedFront(), chair.x, chair.z + 0.004, 'chair-front', CHAIR);
+    addProp(P.wardrobe(), 150, 0.0, 'wardrobe', 1.2);
+    addProp(P.bookshelf((opts.books || []).map((b) => b.cover)), 380, 0.0, 'bookshelf', 1.2);
+  } else {
+    addProp(P.armchairBack(), chair.x, chair.z - 0.002, 'chair-back', CHAIR);
+    addProp(P.armchairFront(), chair.x, chair.z + 0.004, 'chair-front', CHAIR);
+  }
+  const bedPos = room === 'bedroom' ? { x: 300, z: 0.55 } : { x: 128, z: 0.42 };
   addProp(P.petBed(decor.includes('decor-bed')), bedPos.x, bedPos.z - 0.01, 'bed');
-  const bowlPos = { x: 268, z: 0.86 };
+  const bowlPos = room === 'kitchen' ? { x: 200, z: 0.8 } : { x: 268, z: 0.86 };
   const bowlT = addProp(P.bowl(), bowlPos.x, bowlPos.z, 'bowl');
   const bowlFood = E(bowlT.el, 'g', { transform: 'translate(0 -27) scale(.22)' });
-  if (decor.includes('decor-plant')) addProp(P.plant(), 762, 0.02, 'plant', 1.3);
-  else addProp(P.plant(), 34, 0.02, 'plant', 1.3);
-  // The pet's own special toy.
+  if (room === 'living') {
+    if (decor.includes('decor-plant')) addProp(P.plant(), 762, 0.02, 'plant', 1.3);
+    else addProp(P.plant(), 34, 0.02, 'plant', 1.3);
+  }
+  // Her own toys sit about the bedroom and living room; click one to play with it.
+  const myToys = room === 'kitchen' ? [] : (opts.myToys || []).map((id, i) => {
+    const x = room === 'bedroom' ? 470 + i * 46 : 90 + i * 50, z = room === 'bedroom' ? 0.62 + (i % 2) * 0.12 : 0.92;
+    const t = addProp(`<g transform="translate(-30 -60) scale(.5)">${itemArt(id)}</g>`, x, z, `mytoy-${id}`, 1);
+    t.el.setAttribute('data-mytoy', id); t.el.style.cursor = 'pointer';
+    return { id, x, z, el: t.el };
+  });
+  // The pet's own special toy (in the living room).
   const special = P.SPECIES_PROP[petId] || P.SPECIES_PROP['pet-kitten'];
-  const spPos = petId === 'pet-unicorn' ? { x: 470, z: 0.08 } : { x: 492, z: 0.06 };
-  addProp(special.back(), spPos.x, spPos.z - 0.003, 'special', PROP);
+  const spPos = room !== 'living' ? null : petId === 'pet-unicorn' ? { x: 470, z: 0.08 } : { x: 492, z: 0.06 };
+  if (spPos) addProp(special.back(), spPos.x, spPos.z - 0.003, 'special', PROP);
   let spokes = null;
-  if (special.spokes) {
+  if (spPos && special.spokes) {
     const st = addProp('', spPos.x, spPos.z - 0.002, 'spokes', PROP);
     spokes = E(st.el, 'g');
     markup(spokes, special.spokes());
@@ -127,7 +157,7 @@ export function createHouse(opts) {
     const g = E(world, 'g', { class: 'house-toy', 'data-toy': id, style: 'cursor:grab' });
     const spin = E(g, 'g');
     markup(spin, def.art());
-    const it = { id, def, x: 360 + i * 70, z: 0.7 - (i % 3) * 0.12, h: 0, vx: 0, vz: 0, vh: 0, rot: 0, held: null, el: g, spin, shadow, kind: 'toy', lastThrow: 0 };
+    const it = { id, def, x: 360 + i * 70, z: 0.7 - (i % 3) * 0.12, h: 0, vx: 0, vz: 0, vh: 0, rot: 0, held: null, el: g, spin, shadow, kind: 'toy', lastThrow: -99 };
     things.push(it);
     return it;
   });
@@ -141,12 +171,22 @@ export function createHouse(opts) {
   petInner.appendChild(petRig.el);
   const pet = { kind: 'pet', el: petG, x: 300, z: 0.6, theta: 0, targetTheta: 0, phase: 0, tailPhase: 0, stride: 0, state: 'idle', t: 0, dur: 2, sub: null, carrying: null, eyes: 'open', mouth: 'smile', look: 0, lick: 0, headDy: 0, blink: 2, squash: 0, roll: 0, target: null, then: null, speed: 0, view: 'sit', spin: 0, hop: 0 };
   things.push(pet);
+  const friends = (opts.friends || []).map((id, i) => {
+    const rig = createPet(id);
+    const g = E(world, 'g', { class: 'house-pet friend', 'data-pet': id, style: 'cursor:pointer' });
+    E(g, 'ellipse', { cx: 0, cy: 0, rx: 34, ry: 8, fill: '#00000022' });
+    g.appendChild(rig.el);
+    const f = { id: `friend-${i}`, kind: 'friend', el: g, rig, x: 160 + ((i * 170) % 520), z: 0.35 + ((i * 0.27) % 0.55), off: (i % 2 ? 1 : -1) * 0.08 * (1 + (i >> 1)), theta: i % 2 ? Math.PI : 0, targetTheta: i % 2 ? Math.PI : 0, phase: i, tailPhase: i * 1.7, state: 'idle', t: 0, dur: 1 + i, blink: 1 + i * 0.7, happy: 0 };
+    things.push(f);
+    return f;
+  });
 
   // ---------------------------------------------------------------- the girl
   const girlRig = createGirl(equipped);
   const girlG = E(world, 'g', { class: 'house-girl', style: 'cursor:pointer' });
   E(girlG, 'ellipse', { cx: 0, cy: 0, rx: 40, ry: 9, fill: '#00000022' });
   girlG.appendChild(girlRig.el);
+  const handItem = E(girlRig.el, 'g', { display: 'none' });
   const girl = { kind: 'girl', el: girlG, x: 600, z: 0.78, dir: -1, phase: 0, state: 'idle', t: 0, dur: 3, target: null, then: null, pose: 'stand', holding: null, throwT: 0, stroke: 0 };
   things.push(girl);
 
@@ -232,6 +272,7 @@ export function createHouse(opts) {
   }
   function doSpecial() {
     const sp = petId;
+    if (!spPos) { if (sp === 'pet-puppy') setPetState('spin', 2.4); else if (sp === 'pet-panda') setPetState('roll', 1.6); else setPetState('binky', 2.2); return; }
     if (sp === 'pet-hamster') petWalkTo(spPos.x, spPos.z + 0.05, () => setPetState('wheel', rand(5, 8)));
     else if (sp === 'pet-puppy') setPetState('spin', 2.4);
     else if (sp === 'pet-bunny') Math.random() < 0.5 ? setPetState('binky', 2.2) : petWalkTo(spPos.x - 10, spPos.z + 0.12, () => setPetState('nibble', 4));
@@ -329,6 +370,26 @@ export function createHouse(opts) {
     const gy = floorY(girl.z);
     if (Math.abs(p.x - girl.x) < 45 && p.y > gy - 220 * depth(girl.z) && p.y < gy + 4 && girl.state !== 'sit') {
       setGirlState('wave', 1.8); emit('wave');
+      return;
+    }
+    // Another pet: hearts and a happy face.
+    for (const f of friends) {
+      const fy = floorY(f.z);
+      if (Math.abs(p.x - f.x) < 50 * depth(f.z) && p.y > fy - 110 * depth(f.z) && p.y < fy + 6) {
+        f.happy = 2; sfx('pop'); heart(f.x, fy - 100 * depth(f.z)); emit('friend-cuddle');
+        return;
+      }
+    }
+    // One of her toys: she goes and plays with it.
+    const mt = ev.target.closest && ev.target.closest('[data-mytoy]');
+    if (mt) { const t = myToys.find((m) => m.id === mt.dataset.mytoy); if (t) { playWith(t); return; } }
+    // Anywhere on the floor: walk there.
+    if (p.y > FLOOR_TOP + 4) {
+      const z = clamp((p.y - FLOOR_TOP) / FLOOR_DEPTH, 0.02, 1);
+      girl.holdArt = null;
+      girlWalkTo(p.x, z, () => setGirlState('idle', 6));
+      lastUser.t = clock;
+      emit('walk');
     }
   });
   svgEl.addEventListener('pointermove', (ev) => {
@@ -659,11 +720,82 @@ export function createHouse(opts) {
         pose = 'wave';
         if (girl.t > girl.dur) setGirlState('idle', 2);
         break;
+      case 'read':
+        pose = 'read'; girl.x = chair.x; girl.z = chair.z + 0.001;
+        if (girl.t > girl.dur) { girl.z = chair.z + 0.1; setGirlState('idle', 2); }
+        break;
+      case 'eat': case 'play':
+        pose = 'hold';
+        if (girl.state === 'eat' && Math.random() < dt * 3) sfx('munch');
+        if (Math.random() < dt * 1.5) heart(girl.x, floorY(girl.z) - 150 * depth(girl.z));
+        if (girl.t > girl.dur) { girl.holdArt = null; setGirlState('idle', 2); emit(girl.state === 'eat' ? 'girl-ate' : 'played'); }
+        break;
       default:
         if (girl.t > girl.dur) girlIdleChoice();
     }
     girl.pose = pose;
     girlRig.pose({ pose, phase: girl.phase, dir: girl.dir, t: girl.throwT, stroke: girl.stroke });
+    // Something in her hand (food she is eating, a toy).
+    if (girl.holdArt) {
+      const hnd = girlRig.hand(girl.dir > 0 ? 1 : 0);
+      handItem.setAttribute('display', 'inline');
+      handItem.setAttribute('transform', `translate(${f1(hnd.x)} ${f1(hnd.y - 14)}) scale(.36)`);
+    } else handItem.setAttribute('display', 'none');
+  }
+
+  function playWith(t) {
+    girlWalkTo(t.x + (t.x > girl.x ? -40 : 40), t.z, () => {
+      girl.dir = t.x > girl.x ? 1 : -1;
+      setHand(t.id); setGirlState('play', 3.5); emit('play');
+      for (const f of friends) f.happy = 2;
+    });
+  }
+  function setHand(id) {
+    girl.holdArt = id;
+    while (handItem.firstChild) handItem.firstChild.remove();
+    markup(handItem, `<g transform="translate(-60 -60)">${itemArt(id)}</g>`);
+  }
+  /** She eats something from the cupboard herself. */
+  function girlEat(item) {
+    girl.dir = girl.x > 400 ? -1 : 1;
+    setHand(item.id); setGirlState('eat', 3.2); emit('girl-eat');
+  }
+  /** She sits down (armchair, chair or bed) and reads a book. */
+  function read(book) {
+    girlRig.setBook(book.cover);
+    girlWalkTo(chair.x, chair.z + 0.05, () => { setGirlState('read', 30); emit('read'); });
+  }
+
+  // ---------------------------------------------------------------- the other pets at home
+  function stepFriend(f, dt) {
+    f.t += dt; f.tailPhase += dt * 2.2; f.blink -= dt; f.happy = Math.max(0, (f.happy || 0) - dt);
+    const chase = items.find((it) => !it.held && clock - it.lastThrow < 3.5);
+    let view = 'sit', speed = 0, tgt = null;
+    if (f.state === 'sleep') {
+      view = 'sleep';
+      if (Math.random() < dt * 0.6) zzz(f.x + 12, floorY(f.z) - 45 * depth(f.z));
+      if (f.t > f.dur || chase) { f.state = 'idle'; f.t = 0; f.dur = 2; }
+    } else if (f.state === 'walk' || (chase && !reduced)) {
+      f.state = 'walk';
+      tgt = chase ? { x: chase.x - 40 * Math.sign(chase.x - f.x || 1), z: clamp(chase.z + f.off, 0, 1) } : f.target;
+      speed = chase ? 160 : 60;
+      if (moveToward(f, tgt, speed, dt)) { f.state = 'idle'; f.t = 0; f.dur = rand(2, 5); tgt = null; }
+    } else if (f.t > f.dur && !reduced) {
+      const r = Math.random();
+      if (r < 0.55) { f.target = { x: rand(80, 720), z: rand(0.25, 0.95) }; f.state = 'walk'; }
+      else if (r < 0.7) { f.state = 'sleep'; f.t = 0; f.dur = rand(8, 14); }
+      else { f.t = 0; f.dur = rand(2, 5); }
+    }
+    if (tgt) {
+      view = 'move';
+      if (Math.abs(tgt.x - f.x) > 6) f.targetTheta = tgt.x >= f.x ? 0 : Math.PI;
+      f.phase += dt * (4 + speed / 18);
+    }
+    const d = f.targetTheta - f.theta;
+    if (Math.abs(d) > 0.01) f.theta += Math.sign(d) * Math.min(Math.abs(d), dt * 7);
+    if (view === 'sit') f.theta = f.targetTheta;
+    if (f.blink < -0.13) f.blink = rand(2, 5);
+    f.rig.pose({ view, theta: f.theta, phase: f.phase, stride: view === 'move' ? Math.min(1, speed / 90) : 0, eyes: f.happy > 0 ? 'happy' : f.blink < 0 ? 'closed' : 'open', mouth: f.happy > 0 ? 'open' : 'smile', tailPhase: f.tailPhase * (f.happy > 0 ? 2 : 1) });
   }
 
   function stepFx(dt) {
@@ -714,6 +846,7 @@ export function createHouse(opts) {
     }
     svgEl.dataset.ballX = f1(ball.x); svgEl.dataset.ballH = f1(ball.h);
     svgEl.dataset.petX = f1(pet.x);
+    for (const f of friends) f.el.setAttribute('transform', `translate(${f1(f.x)} ${f1(floorY(f.z))}) scale(${f1(depth(f.z) * 1000) / 1000})`);
   }
 
   // ---------------------------------------------------------------- loop
@@ -724,7 +857,7 @@ export function createHouse(opts) {
     const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016);
     last = ts;
     clock += dt;
-    stepToys(dt); stepPet(dt); stepGirl(dt); stepFx(dt); draw();
+    stepToys(dt); stepPet(dt); for (const f of friends) stepFriend(f, dt); stepGirl(dt); stepFx(dt); draw();
     raf = requestAnimationFrame(frame);
   }
   function stop() { cancelAnimationFrame(raf); raf = 0; }
@@ -740,6 +873,8 @@ export function createHouse(opts) {
     bedtime: () => goSleep(),
     destroy: stop,
     /** For tests and the dev page: start the pet's special game. */
+    read,
+    girlEat,
     _special: () => doSpecial(),
     _sit: () => girlWalkTo(chair.x, chair.z + 0.05, () => setGirlState('sit', 20)),
     /** For tests: throw a toy as if dragged. */

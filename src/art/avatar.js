@@ -7,7 +7,9 @@ export const SLOTS = [
   { id: 'hairColour', name: 'Hair colour' },
   { id: 'hairAcc', name: 'Hair bits' },
   { id: 'eyes', name: 'Eye colour' },
-  { id: 'outfit', name: 'Outfit' },
+  { id: 'outfit', name: 'Tops & outfits' },
+  { id: 'bottoms', name: 'Bottoms' },
+  { id: 'shoes', name: 'Shoes' },
   { id: 'face', name: 'Face' },
   { id: 'accessory', name: 'Accessory' },
   { id: 'hat', name: 'Headwear' },
@@ -42,35 +44,14 @@ export const ITEMS = [
   I('hc-rainbow', 'hairColour', 'Rainbow', 520, { colour: 'url(#rainbow§)' }),
   // Hairstyles (18)
   I('hair-long', 'hair', 'Long and straight', 0),
-  I('hair-bob', 'hair', 'Bob with fringe', 0),
-  I('hair-ponytail', 'hair', 'Ponytail', 0),
-  I('hair-pigtails', 'hair', 'Pigtails', 0),
   I('hair-wavy', 'hair', 'Long waves', 60),
-  I('hair-shoulder', 'hair', 'Shoulder length', 60),
-  I('hair-pixie', 'hair', 'Pixie cut', 80),
-  I('hair-highpony', 'hair', 'High ponytail', 100),
-  I('hair-topbun', 'hair', 'Top bun', 100),
-  I('hair-braids', 'hair', 'Two braids', 140),
-  I('hair-sidebraid', 'hair', 'Side braid', 140),
-  I('hair-buns', 'hair', 'Space buns', 160),
-  I('hair-twintails', 'hair', 'Twin tails', 180),
-  I('hair-halfup', 'hair', 'Half-up bun', 180),
   I('hair-curly', 'hair', 'Long curls', 200),
-  I('hair-shortcurls', 'hair', 'Short curls', 160),
-  I('hair-puffs', 'hair', 'Curly puffs', 220),
-  I('hair-wavybob', 'hair', 'Wavy bob', 120),
   // More long styles
   I('hair-curtain', 'hair', 'Long with curtain bangs', 0),
   I('hair-layered', 'hair', 'Long layers', 40),
   I('hair-sideswept', 'hair', 'Side-swept long', 60),
-  I('hair-lob', 'hair', 'Long bob', 60),
   I('hair-wavyfringe', 'hair', 'Waves with a fringe', 80),
-  I('hair-lowpony', 'hair', 'Low ponytail', 80),
-  I('hair-sidepony', 'hair', 'Side ponytail', 120),
-  I('hair-hime', 'hair', 'Straight with side locks', 120),
-  I('hair-minibuns', 'hair', 'Long with mini buns', 160),
   I('hair-princess', 'hair', 'Princess curls', 200),
-  I('hair-crownbraid', 'hair', 'Braided crown', 220),
   I('hair-mermaid', 'hair', 'Mermaid waves', 260),
   // Eye colours (natural ones free)
   ...[['brown', 'Brown', '#6b4128'], ['darkbrown', 'Dark brown', '#3a2414'], ['hazel', 'Hazel', '#8a6a2a'], ['green', 'Green', '#3f9a5a'], ['blue', 'Blue', '#3f7fd0'], ['grey', 'Grey', '#7a8a96']].map(([id, n, c]) => I(`eye-${id}`, 'eyes', n, 0, { colour: c })),
@@ -106,6 +87,27 @@ export const ITEMS = [
   I('tutu', 'outfit', 'Sparkly tutu', 300, { colour: '#ffb6d5', dress: true, tutu: true }),
   I('concert-dress', 'outfit', 'Concert dress', 340, { colour: '#2a2440', dress: true, sparkle: true }),
   I('star-cape', 'outfit', 'Star cape', 420, { colour: '#3a2f80', cape: '#f5c542' }),
+  I('onesie-bunny', 'outfit', 'Bunny onesie', 200, { colour: '#fbe9f2', onesie: true, ears: 'bunny' }),
+  I('onesie-cat', 'outfit', 'Kitty onesie', 200, { colour: '#ffc58a', onesie: true, ears: 'cat' }),
+  I('onesie-dino', 'outfit', 'Dino onesie', 220, { colour: '#8fd18a', onesie: true, ears: 'dino' }),
+  I('onesie-unicorn', 'outfit', 'Unicorn onesie', 260, { colour: '#efe4ff', onesie: true, ears: 'unicorn' }),
+  I('pyjamas', 'outfit', 'Star pyjamas', 140, { colour: '#9fc4ff', onesie: true, dots: '#fff9' }),
+  // Bottoms (hidden under dresses and onesies)
+  I('bot-skirt', 'bottoms', 'Blue skirt', 0, { colour: '#6f8fd8', kind: 'skirt' }),
+  I('bot-jeans', 'bottoms', 'Jeans', 0, { colour: '#4f73b8', kind: 'trousers', seam: '#8fb0e8' }),
+  I('bot-leggings', 'bottoms', 'Pink leggings', 60, { colour: '#ff8fb8', kind: 'trousers' }),
+  I('bot-shorts', 'bottoms', 'Denim shorts', 60, { colour: '#6f9df2', kind: 'shorts' }),
+  I('bot-pleated', 'bottoms', 'Pleated skirt', 80, { colour: '#e8607a', kind: 'skirt', pleats: true }),
+  I('bot-tutu', 'bottoms', 'Tutu skirt', 120, { colour: '#ffc6e0', kind: 'tutu' }),
+  I('bot-sparkle', 'bottoms', 'Sparkly skirt', 160, { colour: '#b48ee8', kind: 'skirt', sparkle: true }),
+  I('bot-joggers', 'bottoms', 'Comfy joggers', 80, { colour: '#a7a3b8', kind: 'trousers' }),
+  // Shoes
+  I('shoe-pink', 'shoes', 'Pink shoes', 0, { colour: '#ff6f9a' }),
+  I('shoe-trainers', 'shoes', 'White trainers', 0, { colour: '#ffffff', sole: '#c9c3d6' }),
+  I('shoe-boots', 'shoes', 'Brown boots', 60, { colour: '#8a5a3a', tall: true }),
+  I('shoe-wellies', 'shoes', 'Yellow wellies', 60, { colour: '#ffd23f', tall: true }),
+  I('shoe-party', 'shoes', 'Sparkly party shoes', 100, { colour: '#c9a7ff', sparkle: true }),
+  I('shoe-slippers', 'shoes', 'Bunny slippers', 80, { colour: '#fff4fa', bunny: true }),
   // Faces
   I('smile', 'face', 'Smile', 0),
   I('happy', 'face', 'Happy eyes', 0),
@@ -155,7 +157,7 @@ export const ITEMS = [
 ];
 
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
-export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', eyes: 'eye-brown', outfit: 'tee-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
+export const DEFAULT_EQUIPPED = { background: 'bg-pink', skin: 'skin-2', hair: 'hair-long', hairColour: 'hc-brown', hairAcc: 'ha-none', eyes: 'eye-brown', outfit: 'tee-pink', bottoms: 'bot-skirt', shoes: 'shoe-pink', face: 'smile', hat: 'hat-none', accessory: 'acc-none' };
 export const FREE_ITEMS = ITEMS.filter((i) => i.price === 0).map((i) => i.id);
 
 // ---- Hair ------------------------------------------------------------------
@@ -349,6 +351,8 @@ export function avatarHeadParts(equipped = {}) {
   return {
     skin,
     outfit: get('outfit'),
+    bottoms: get('bottoms'),
+    shoes: get('shoes'),
     hairColour: get('hairColour').colour,
     defs: fix('<defs><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs>'),
     back: fix(`${hair.back}${hair.mid || ''}`),

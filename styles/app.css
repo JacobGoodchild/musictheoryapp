@@ -632,3 +632,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .pet-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 12px; }
 .pet-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; text-align: center; }
 .pet-card.current { border-color: var(--good); }
+.avatar-pair { justify-content: center; gap: 4px; flex-wrap: nowrap; }
+.avatar-pair svg { max-width: 50%; height: auto; }
+.room-tabs .tab { border: 0; background: none; font: inherit; cursor: pointer; }
+.who-eats { gap: 6px; }

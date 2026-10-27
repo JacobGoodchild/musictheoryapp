@@ -13,6 +13,7 @@ test('supermarket: everything is cheap, in an aisle, and has a picture', () => {
     assert.ok(AISLES.some((a) => a.id === m.aisle), m.id);
     if (m.kind === 'food') assert.ok(FOOD[m.id], `food art for ${m.id}`);
     if (m.kind === 'toy') assert.ok(TOYS[m.id], `toy art for ${m.id}`);
+    if (m.kind === 'book') assert.match(m.cover, /^#[0-9a-f]{6}$/);
     if (!isOneOff(m)) assert.ok(m.hunger > 0, `${m.id} fills a tummy`);
   }
   for (const [pet, favs] of Object.entries(FAVOURITES)) {
@@ -68,7 +69,7 @@ test('feeding uses up food, and favourites are extra fun', () => {
 
 test('v5 saves move the pet name onto the active pet', () => {
   const s = migrate({ version: 5, pet: { owned: ['pet-kitten'], active: 'pet-kitten', name: 'Mochi<b>' } });
-  assert.equal(s.version, 6);
+  assert.equal(s.version, 7);
   assert.deepEqual(s.pet.names, { 'pet-kitten': 'Mochib' });
   assert.deepEqual(s.pet.inventory, {});
   assert.deepEqual(s.pet.toys, []);

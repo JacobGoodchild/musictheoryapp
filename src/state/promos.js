@@ -14,6 +14,8 @@ export const PROMOS = [
   { id: 'gift-2', hash: '1kv4rdc', coins: 150, notes: 150 },
   { id: 'gift-3', hash: '9rfo86', coins: 250, notes: 50 },
   { id: 'gift-4', hash: '15omywk', coins: 150, notes: 50 },
+  { id: 'gift-5', hash: '24se6a', coins: 200, notes: 100 },
+  { id: 'gift-6', hash: '2u63y2', coins: 200, notes: 100 },
 ];
 
 /** Try a code. Returns { ok, message }; on success the reward is added to state s. */

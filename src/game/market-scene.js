@@ -69,9 +69,36 @@ function tillArt() {
 export function createMarketScene({ petId, equipped }) {
   const svgEl = E(null, 'svg', { viewBox: '0 0 800 240', class: 'market-svg', role: 'img', 'aria-label': 'The supermarket: you, your pet and your trolley' });
   markup(svgEl, `<defs><pattern id="tiles" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#fff"/><rect width="20" height="20" fill="#ffe9f1"/><rect x="20" y="20" width="20" height="20" fill="#ffe9f1"/></pattern></defs>
-    <rect width="800" height="240" fill="#fff7e8"/>${shelves()}
+    <rect width="800" height="240" fill="#fff7e8"/>
     <rect x="0" y="186" width="800" height="54" fill="url(#tiles)"/><path d="M0 186h800" stroke="#e9d5c2" stroke-width="3"/>
-    <g transform="translate(400 22)"><rect x="-92" y="-16" width="184" height="30" rx="15" fill="#ff7b8a" stroke="${L}" stroke-width="3"/><text x="0" y="5" text-anchor="middle" font-size="16" font-weight="800" fill="#fff" font-family="system-ui, sans-serif">SUPERMARKET</text></g>`);
+    <g transform="translate(400 22)"><rect x="-140" y="-16" width="280" height="30" rx="15" fill="#ff7b8a" stroke="${L}" stroke-width="3"/><text class="aisle-sign" x="0" y="5" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="system-ui, sans-serif">SUPERMARKET</text></g>`);
+  // Shelves full of the real things in this aisle (tap one to pop it in the trolley).
+  const shelfL = E(svgEl, 'g');
+  svgEl.insertBefore(shelfL, svgEl.children[2] || null);
+  const sign = svgEl.querySelector('.aisle-sign');
+  let onPick = null;
+  function setAisle(name, list, pick, freezer = false) {
+    onPick = pick;
+    sign.textContent = name.toUpperCase();
+    while (shelfL.firstChild) shelfL.firstChild.remove();
+    markup(shelfL, `<rect x="14" y="38" width="772" height="150" rx="8" fill="${freezer ? '#dff3ff' : '#f6e6d4'}" stroke="${L}" stroke-width="2.5"/>${freezer ? '<path d="M14 38h772" stroke="#9fd0ff" stroke-width="6"/>' : ''}`
+      + [84, 134, 184].map((y) => `<rect x="14" y="${y}" width="772" height="7" rx="3" fill="#d9c4b0" stroke="${L}" stroke-width="2"/>`).join(''));
+    if (!list.length) return;
+    let k = 0;
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 15; col++) {
+        const item = list[k++ % list.length];
+        const x = 40 + col * 50 + (row % 2) * 10, y = 84 + row * 50;
+        if (x > 760) continue;
+        const g = E(shelfL, 'g', { transform: `translate(${x - 20} ${y - 42}) scale(.34)`, 'data-shelf-item': item.id, style: 'cursor:pointer', role: 'button', 'aria-label': `${item.name}, ${item.price} coins` });
+        markup(g, `<rect width="120" height="120" fill="transparent"/>${itemArt(item.id)}`);
+        g.addEventListener('click', () => { if (onPick) onPick(item, g); st.target = Math.max(120, Math.min(460, x - 120)); st.mode = 'walk'; });
+      }
+    }
+    if (freezer) markup(shelfL, '<rect x="14" y="38" width="772" height="150" rx="8" fill="#ffffff" opacity=".18" pointer-events="none"/><path d="M60 50l40 120M300 50l40 120M540 50l40 120" stroke="#fff" stroke-width="6" opacity=".35" pointer-events="none"/>');
+    // Walk into the new aisle.
+    if (!reduced && st) { st.x = -120; st.petX = -60; st.target = 250; st.mode = 'walk'; }
+  }
   const till = E(svgEl, 'g', { transform: `translate(690 ${GROUND}) scale(.8)` });
   markup(till, tillArt());
   const tillTotal = till.querySelector('.till-total');
@@ -155,5 +182,5 @@ export function createMarketScene({ petId, equipped }) {
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
-  return { el: svgEl, setTrolley, checkout, stop: () => cancelAnimationFrame(raf) };
+  return { el: svgEl, setTrolley, checkout, setAisle, stop: () => cancelAnimationFrame(raf) };
 }

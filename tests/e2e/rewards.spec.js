@@ -138,3 +138,25 @@ test('supermarket: fill the trolley, pay at the till, then feed the pet at home'
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('g5theory.save')).pet.needs['pet-hamster']?.hunger || 0)).toBeGreaterThan(70);
   expect(errors).toEqual([]);
 });
+
+test('house: several pets at once, rooms, reading a book and eating a treat yourself', async ({ page }) => {
+  await withProfile(page, { coins: 50, pet: { owned: ['pet-kitten', 'pet-puppy'], active: 'pet-kitten' } });
+  await page.addInitScript(() => { const s = JSON.parse(localStorage.getItem('g5theory.save')); if (s.version === 3) { s.version = 6; s.pet = { owned: ['pet-kitten', 'pet-puppy'], active: 'pet-kitten', names: {}, toys: ['book-percy', 'my-teddy'], inventory: { cupcake: 1 }, needs: {} }; localStorage.setItem('g5theory.save', JSON.stringify(s)); } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/index.html#/rewards/pet');
+  await expect(page.locator('svg.house-svg .house-pet')).toHaveCount(1);
+  await page.locator('.pet-card', { hasText: 'Puppy' }).locator('[data-action=pet-home]').click();
+  await expect(page.locator('svg.house-svg .house-pet')).toHaveCount(2);
+  await page.locator('[data-room=bedroom]').click();
+  await expect(page.locator('svg.house-svg [data-thing=bookshelf]')).toHaveCount(1);
+  await page.locator('[data-action=read]').click();
+  await expect(page.locator('svg.house-svg')).toHaveAttribute('data-girl-state', 'read', { timeout: 15000 });
+  await page.locator('[data-who=me]').click();
+  await page.locator('[data-action=feed][data-item=cupcake]').click();
+  await expect(page.locator('svg.house-svg')).toHaveAttribute('data-girl-state', 'eat');
+  await page.locator('[data-room=kitchen]').click();
+  await expect(page.locator('svg.house-svg [data-thing=fridge]')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

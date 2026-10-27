@@ -55,6 +55,16 @@ test('a v4 save moves pets out of the avatar into their own section', () => {
   const s = migrate({ version: 4, avatar: { owned: ['pet-kitten', 'hair-bob'], equipped: { pet: 'pet-kitten', hair: 'hair-bob' } } });
   assert.deepEqual(s.pet.owned, ['pet-kitten']);
   assert.equal(s.pet.active, 'pet-kitten');
-  assert.deepEqual(s.avatar.owned, ['hair-bob']);
+  assert.deepEqual(s.avatar.owned, [], 'the bob was removed in v7');
+  assert.equal(s.avatar.equipped.hair, 'hair-long');
   assert.equal(s.avatar.equipped.pet, undefined);
+  assert.deepEqual(s.pet.home, ['pet-kitten']);
+});
+
+test('v7 refunds removed hairstyles and keeps the rest', () => {
+  const s = migrate({ version: 6, coins: 10, avatar: { owned: ['hair-braids', 'hair-mermaid', 'hair-crownbraid'], equipped: { hair: 'hair-braids' } }, pet: { owned: ['pet-puppy'], active: 'pet-puppy' } });
+  assert.equal(s.coins, 10 + 35 + 55);
+  assert.deepEqual(s.avatar.owned, ['hair-mermaid']);
+  assert.equal(s.avatar.equipped.hair, 'hair-long');
+  assert.deepEqual(s.pet.home, ['pet-puppy']);
 });

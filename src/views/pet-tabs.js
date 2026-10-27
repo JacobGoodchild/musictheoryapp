@@ -52,18 +52,32 @@ export function petTab() {
     clear(wrap);
     const st = getState();
     const p = st.pet;
-    const active = p.active && petById(p.active);
+    const home = (p.home || []).filter((id) => p.owned.includes(id));
+    const active = home.length ? petById(home[0]) : null;
     if (active) {
+      const room = p.room || 'living';
+      const books = (p.toys || []).map(marketItem).filter((m) => m && m.kind === 'book');
       const house = createHouse({
         petId: active.id,
+        friends: home.slice(1),
+        room,
+        books,
+        myToys: (p.toys || []).filter((id) => marketItem(id)?.kind === 'mytoy'),
         equipped: { ...DEFAULT_EQUIPPED, ...st.avatar.equipped },
         toys: p.toys || [],
         getNeeds: () => needsNow(getState().pet, active.id),
         onNeeds: (d) => update((s) => { changeNeeds(s, active.id, d); }),
       });
       const nameEl = h('h2', { class: 'pet-name' });
-      nameEl.textContent = petName(p, active.id);
+      nameEl.textContent = home.length > 1 ? `${petName(p, active.id)} and friends` : petName(p, active.id);
+      let eater = 'pet';
       const tray = h('div', { class: 'food-tray', role: 'group', 'aria-label': 'Food cupboard' });
+      const whoBar = h('div', { class: 'row who-eats', role: 'group', 'aria-label': 'Who is eating?' });
+      const drawWho = () => {
+        clear(whoBar);
+        for (const [k, label] of [['pet', `Feed ${petName(getState().pet, active.id)}`], ['me', 'Eat it myself']]) whoBar.append(h('button', { class: `btn small${eater === k ? ' primary' : ''}`, 'aria-pressed': String(eater === k), 'data-who': k, onclick: () => { eater = k; drawWho(); } }, label));
+      };
+      drawWho();
       const drawTray = () => {
         clear(tray);
         const food = Object.entries(getState().pet.inventory || {}).filter(([id, n]) => n > 0 && marketItem(id));
@@ -71,7 +85,15 @@ export function petTab() {
         for (const [id, n] of food) {
           const item = marketItem(id);
           const fav = (FAVOURITES[active.id] || []).includes(id);
-          tray.append(h('button', { class: 'food-btn', 'data-action': 'feed', 'data-item': id, title: `Feed: ${item.name}${fav ? ' (a favourite!)' : ''}`, 'aria-label': `Feed ${item.name}, ${n} left${fav ? ', a favourite' : ''}`, onclick: () => {
+          tray.append(h('button', { class: 'food-btn', 'data-action': 'feed', 'data-item': id, title: item.name, 'aria-label': `${item.name}, ${n} left${fav ? `, ${petName(getState().pet, active.id)}'s favourite` : ''}`, onclick: () => {
+            if (eater === 'me') {
+              if (item.kind === 'petfood') { toast('That one is pet food! Choose something else for you.'); return; }
+              let it = null;
+              update((s) => { it = takeFood(s, id); });
+              if (!it) return;
+              house.girlEat(item); toast(`Yum, ${item.name.toLowerCase()}!`); drawTray();
+              return;
+            }
             let eff = null;
             update((s) => { const it = takeFood(s, id); if (it) eff = foodEffect(it, active.id); });
             if (!eff) return;
@@ -82,38 +104,47 @@ export function petTab() {
         }
       };
       drawTray();
+      const rooms = h('div', { class: 'tabs room-tabs', role: 'tablist', 'aria-label': 'Rooms' }, [['living', 'Living room'], ['kitchen', 'Kitchen'], ['bedroom', 'Bedroom']].map(([id, label]) =>
+        h('button', { class: `tab${room === id ? ' active' : ''}`, role: 'tab', 'aria-selected': String(room === id), 'data-room': id, onclick: () => { update((x) => { x.pet.room = id; }); draw(); } }, label)));
+      const shelf = books.length ? h('div', { class: 'stack' }, h('strong', {}, 'My books'), h('div', { class: 'row wrap' }, books.map((b) =>
+        h('button', { class: 'food-btn book-btn', 'data-action': 'read', 'data-item': b.id, title: `Read ${b.name}`, 'aria-label': `Read ${b.name}`, onclick: () => { house.read(b); toast(`Reading ${b.name}…`); } }, svgFromString(itemSVG(b.id, 46, b.name)), h('span', { class: 'food-count' }, 'Read'))))) : null;
       const nameInput = h('input', { type: 'text', maxlength: 16, class: 'pet-name-input', 'aria-label': 'Pet name', placeholder: 'Give your pet a name', value: (p.names || {})[active.id] || '' });
       wrap.append(h('div', { class: 'card house-card' },
-        h('div', { class: 'house-head' }, h('div', {}, nameEl, h('p', { class: 'muted small' }, 'Drag a toy and let go to throw it. Click your pet for a cuddle.')), needMeters(active.id)),
+        h('div', { class: 'house-head' }, h('div', {}, nameEl, h('p', { class: 'muted small' }, 'Click the floor to walk there. Drag a toy and let go to throw it. Click a pet for a cuddle.')), needMeters(active.id)),
+        rooms,
         h('div', { class: 'house-frame' }, house.el),
         h('div', { class: 'house-actions' },
-          h('div', { class: 'stack' }, h('strong', {}, 'Food cupboard'), tray),
+          h('div', { class: 'stack' }, h('strong', {}, 'Food cupboard'), whoBar, tray),
+          shelf,
           h('div', { class: 'row wrap' },
             h('button', { class: 'btn', 'data-action': 'cuddle', onclick: () => house.cuddle() }, icon('heart', 'coin-icon'), 'Cuddle'),
             h('button', { class: 'btn', 'data-action': 'bedtime', onclick: () => house.bedtime() }, icon('moon', 'coin-icon'), 'Bedtime'),
-            h('a', { class: 'btn primary', href: '#/rewards/market' }, icon('bag', 'coin-icon'), 'Go to the supermarket')))));
+            h('a', { class: 'btn primary', href: '#/rewards/market' }, icon('trolley', 'coin-icon'), 'Go to the supermarket')))));
       wrap.append(h('form', { class: 'row pet-name-form', onsubmit: (e) => {
         e.preventDefault();
         update((x) => { x.pet.names = x.pet.names || {}; x.pet.names[active.id] = cleanName(nameInput.value).slice(0, 16); });
-        nameEl.textContent = petName(getState().pet, active.id);
+        draw();
         toast('Name saved');
       } }, nameInput, h('button', { class: 'btn', type: 'submit' }, 'Save name')));
     } else {
-      wrap.append(h('div', { class: 'card stack' }, h('h2', {}, 'No pet yet'), h('p', { class: 'muted' }, 'Adopt a pet friend below. It will live in a little house with you: chasing the ball you throw, playing with its own special toy, eating the food you buy at the supermarket, and napping in its bed.')));
+      wrap.append(h('div', { class: 'card stack' }, h('h2', {}, p.owned.length ? 'Nobody is home' : 'No pet yet'), h('p', { class: 'muted' }, p.owned.length ? 'Bring a pet home below to open your house.' : 'Adopt a pet friend below. It will live in your house with you: chasing the ball you throw, playing with its own special toy, eating the food you buy at the supermarket, and napping in its bed.')));
     }
     // Pet shop.
     const shop = h('div', { class: 'pet-shop' }, PETS.map((pt) => {
       const owned = p.owned.includes(pt.id);
-      const isActive = p.active === pt.id;
-      const btn = isActive ? h('span', { class: 'chip good' }, icon('check', 'coin-icon'), 'At home')
-        : owned ? h('button', { class: 'btn small', 'data-action': 'pet-choose', onclick: () => { update((x) => { x.pet.active = pt.id; }); draw(); } }, 'Play with')
-          : h('button', { class: 'btn small primary', 'data-action': 'pet-buy', disabled: st.coins < pt.price, onclick: async () => {
-            const ok = await confirmDialog(`Adopt the ${pt.name}?`, `This costs ${pt.price} coins. It comes with its own ${pt.toy}.`, { ok: 'Adopt' });
-            if (!ok) return;
-            let done = false;
-            update((x) => { if (spendCoins(x, pt.price)) { x.pet.owned.push(pt.id); x.pet.active = pt.id; done = true; } });
-            if (done) { sfx('reveal'); confetti(); toast(`Welcome home, little ${pt.name.toLowerCase()}!`); draw(); }
-          } }, coinIcon(), String(pt.price));
+      const isHome = (p.home || []).includes(pt.id);
+      const btn = owned ? h('button', { class: `btn small${isHome ? ' good' : ''}`, 'data-action': 'pet-home', 'aria-pressed': String(isHome), onclick: () => {
+        update((x) => { x.pet.home = x.pet.home || []; if (x.pet.home.includes(pt.id)) x.pet.home = x.pet.home.filter((i) => i !== pt.id); else x.pet.home.push(pt.id); x.pet.active = x.pet.home[0] || null; });
+        draw();
+      } }, isHome ? 'At home ✓ (send out to play)' : 'Bring home')
+        : h('button', { class: 'btn small primary', 'data-action': 'pet-buy', disabled: st.coins < pt.price, onclick: async () => {
+          const ok = await confirmDialog(`Adopt the ${pt.name}?`, `This costs ${pt.price} coins. It comes with its own ${pt.toy}.`, { ok: 'Adopt' });
+          if (!ok) return;
+          let done = false;
+          update((x) => { if (spendCoins(x, pt.price)) { x.pet.owned.push(pt.id); x.pet.home = [...(x.pet.home || []), pt.id]; x.pet.active = x.pet.home[0]; done = true; } });
+          if (done) { sfx('reveal'); confetti(); toast(`Welcome home, little ${pt.name.toLowerCase()}!`); draw(); }
+        } }, coinIcon(), String(pt.price));
+      const isActive = isHome;
       return h('div', { class: `card pet-card${isActive ? ' current' : ''}` }, petSVG(pt.id, { size: 104, label: pt.name }), h('strong', {}, pt.name), h('span', { class: 'muted small' }, `Comes with: ${pt.toy}`), btn);
     }));
     wrap.append(h('h3', {}, 'Pet shop'), shop);
@@ -137,6 +168,9 @@ export function marketTab() {
   const drawAisles = () => {
     clear(aisleBar);
     for (const a of AISLES) aisleBar.append(h('button', { class: `tab${a.id === aisle ? ' active' : ''}`, role: 'tab', 'aria-selected': String(a.id === aisle), 'data-aisle': a.id, onclick: () => { aisle = a.id; drawAisles(); drawShelf(); } }, a.name));
+    const a = AISLES.find((x) => x.id === aisle);
+    const s0 = getState();
+    scene.setAisle(a.name, MARKET.filter((m) => m.aisle === aisle && !(isOneOff(m) && (s0.pet.toys || []).includes(m.id))), (item) => { const card = shelf.querySelector(`[data-item="${item.id}"]`); if (card && !card.disabled) add(item, card); }, aisle === 'icecream');
   };
   const drawShelf = () => {
     clear(shelf);

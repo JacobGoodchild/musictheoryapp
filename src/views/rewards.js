@@ -1,4 +1,5 @@
 import { petTab, marketTab } from './pet-tabs.js';
+import { girlSVG } from '../game/girl-rig.js';
 import { promoBox } from '../ui/promo.js';
 import { h, clear, svgFromString, toast, confirmDialog, append } from '../dom.js';
 import { getState, update, subscribe } from '../state/store.js';
@@ -55,7 +56,7 @@ function avatarTab() {
   const drawPreview = () => {
     clear(preview);
     const eq = { ...DEFAULT_EQUIPPED, ...getState().avatar.equipped, ...(trying ? { [trying.slot]: trying.id } : {}) };
-    preview.append(svgFromString(avatarSVG(eq, { size: 240 })));
+    preview.append(h('div', { class: 'row avatar-pair' }, svgFromString(avatarSVG(eq, { size: 200 })), girlSVG(eq, { size: 200, label: 'Your whole outfit' })));
     if (trying && !owns(getState(), trying.id)) preview.append(h('div', { class: 'chip accent' }, `Trying on: ${trying.name}`));
   };
   const drawShop = () => {
@@ -68,7 +69,7 @@ function avatarTab() {
       const equipped = ({ ...DEFAULT_EQUIPPED, ...st.avatar.equipped })[it.slot] === it.id;
       const eq = { ...DEFAULT_EQUIPPED, ...st.avatar.equipped, [it.slot]: it.id };
       const card = h('div', { class: `shop-item card${equipped ? ' equipped' : ''}` },
-        h('button', { class: 'shop-thumb', 'aria-label': `Try on ${it.name}`, onmouseenter: () => { trying = it; drawPreview(); }, onfocus: () => { trying = it; drawPreview(); }, onclick: () => { trying = it; drawPreview(); } }, svgFromString(avatarSVG(eq, { size: 96, label: it.name }))),
+        h('button', { class: 'shop-thumb', 'aria-label': `Try on ${it.name}`, onmouseenter: () => { trying = it; drawPreview(); }, onfocus: () => { trying = it; drawPreview(); }, onclick: () => { trying = it; drawPreview(); } }, (['outfit', 'bottoms', 'shoes'].includes(it.slot) ? girlSVG(eq, { size: 96, label: it.name }) : svgFromString(avatarSVG(eq, { size: 96, label: it.name })))),
         h('div', { class: 'shop-name' }, it.name),
         equipped ? h('span', { class: 'chip good' }, icon('check', 'coin-icon'), 'Wearing')
           : owned ? h('button', { class: 'btn small', onclick: () => { update((x) => { x.avatar.equipped[it.slot] = it.id; }); trying = null; drawShop(); drawPreview(); } }, 'Wear')

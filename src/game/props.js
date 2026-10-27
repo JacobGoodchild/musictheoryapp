@@ -164,14 +164,82 @@ export const TOYS = {
 
 // ---------------------------------------------------------------- decorations
 export function fairyLights() {
-  let s = '<path d="M60 40Q230 86 400 40T740 40" stroke="#6b5a70" stroke-width="2" fill="none"/>';
+  // Four sagging loops between hooks; every bulb hangs from a point ON the wire.
   const cols = ['#ff7b8a', '#ffe066', '#7fd88f', '#6fb8ff', '#b28cff'];
-  for (let i = 0; i < 17; i++) {
-    const t = i / 16, x = 60 + t * 680;
-    const y = 40 + Math.sin(t * Math.PI * 2) * 0 + (Math.abs(Math.sin(t * Math.PI * 2)) * 22);
-    s += `<g class="fairy-light" style="animation-delay:${(i % 5) * 0.3}s"><circle cx="${x.toFixed(0)}" cy="${(y + 8).toFixed(0)}" r="9" fill="${cols[i % 5]}" opacity=".3"/><circle cx="${x.toFixed(0)}" cy="${(y + 8).toFixed(0)}" r="4.5" fill="${cols[i % 5]}"/></g>`;
+  const hooks = [40, 220, 400, 580, 760], y0 = 30, sag = 46;
+  let wire = '', bulbs = '', n = 0;
+  for (let k = 0; k < hooks.length - 1; k++) {
+    const a = hooks[k], b = hooks[k + 1], cx = (a + b) / 2, cy = y0 + sag;
+    wire += `${k ? '' : `M${a} ${y0}`}Q${cx} ${cy} ${b} ${y0}`;
+    for (const t of [0.2, 0.4, 0.6, 0.8]) {
+      const x = (1 - t) ** 2 * a + 2 * (1 - t) * t * cx + t * t * b;
+      const y = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t * t * y0;
+      const c = cols[n % 5];
+      bulbs += `<g class="fairy-light" style="animation-delay:${(n % 5) * 0.3}s"><rect x="${(x - 2.5).toFixed(1)}" y="${(y - 1).toFixed(1)}" width="5" height="5" rx="1" fill="#6b5a70"/><circle cx="${x.toFixed(1)}" cy="${(y + 10).toFixed(1)}" r="10" fill="${c}" opacity=".28"/><ellipse cx="${x.toFixed(1)}" cy="${(y + 10).toFixed(1)}" rx="4.5" ry="6" fill="${c}"/></g>`;
+      n++;
+    }
   }
-  return s;
+  const pins = hooks.map((x) => `<circle cx="${x}" cy="${y0}" r="3.5" fill="#c9a06a" stroke="#6b5a70" stroke-width="1.5"/>`).join('');
+  return `<path d="${wire}" stroke="#6b5a70" stroke-width="2" fill="none"/>${bulbs}${pins}`;
+}
+
+// ---------------------------------------------------------------- kitchen and bedroom
+export function fridge() {
+  return `<g><rect x="-44" y="-200" width="88" height="200" rx="10" fill="#f4f6fb" ${ink}/><path d="M-44-130h88" ${ink}/>
+    <rect x="30" y="-186" width="6" height="40" rx="3" fill="#c9cfe0"/><rect x="30" y="-116" width="6" height="56" rx="3" fill="#c9cfe0"/>
+    <circle cx="-22" cy="-170" r="7" fill="#ff8fa3"/><path d="M-10-160l10-14 8 10z" fill="#ffd36e"/><rect x="-28" y="-104" width="22" height="16" rx="2" fill="#fff" stroke="#e0b25a" stroke-width="2"/></g>`;
+}
+export function counter() {
+  return `<g><rect x="-150" y="-104" width="300" height="104" rx="6" fill="#ffe0b8" ${ink}/>
+    <rect x="-156" y="-112" width="312" height="14" rx="5" fill="#fff" ${ink}/>
+    ${[-142, -70, 2, 74].map((x) => `<rect x="${x}" y="-90" width="66" height="80" rx="5" fill="#ffd09a" stroke="${L}" stroke-width="2.5"/><rect x="${x + 27}" y="-58" width="12" height="5" rx="2.5" fill="#a87a44"/>`).join('')}
+    <rect x="-40" y="-112" width="80" height="14" fill="#5a6a88"/>
+    ${[-22, 22].map((x) => `<ellipse cx="${x}" cy="-112" rx="14" ry="4" fill="#2a2a3a"/>`).join('')}
+    <path d="M60-112v-34h10v6" fill="none" stroke="${L}" stroke-width="4" stroke-linecap="round"/>
+    <g transform="translate(-100 -112)"><path d="M-16 0v-14q0-6 6-6h20q6 0 6 6v14z" fill="#ff7b8a" ${ink}/><path d="M-20-20h40" stroke="${L}" stroke-width="3"/></g></g>`;
+}
+export function kitchenChairBack() {
+  return `<g><path d="M-40-48v-92q0-10 10-10h60q10 0 10 10v92" fill="#c58a5a" ${ink}/><path d="M-26-60v-70h52v70" fill="none" stroke="#a8703f" stroke-width="3"/>
+    <rect x="-46" y="-56" width="92" height="16" rx="5" fill="#ffc0d4" ${ink}/></g>`;
+}
+export function kitchenChairFront() {
+  return `<g><path d="M-42-40V0M42-40V0" stroke="${L}" stroke-width="10" stroke-linecap="round"/><path d="M-42-40V0M42-40V0" stroke="#c58a5a" stroke-width="5" stroke-linecap="round"/></g>`;
+}
+export function kitchenTable() {
+  return `<g><path d="M-80-70V0M80-70V0" stroke="${L}" stroke-width="11" stroke-linecap="round"/><path d="M-80-70V0M80-70V0" stroke="#c58a5a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-110-86h220l-14 18h-192z" fill="#e8b47a" ${ink}/><ellipse cx="-30" cy="-88" rx="18" ry="5" fill="#fff" ${ink}/><path d="M30-104v16h14v-16z" fill="#bfe6ff" stroke="${L}" stroke-width="2.4"/></g>`;
+}
+export function bedBack() {
+  return `<g><path d="M-100-40v-110q0-18 18-18h164q18 0 18 18v110" fill="#b9a2f0" ${ink}/>
+    <rect x="-104" y="-62" width="208" height="30" rx="8" fill="#fff" ${ink}/>
+    <rect x="-84" y="-82" width="62" height="28" rx="12" fill="#fff" ${ink}/><rect x="22" y="-82" width="62" height="28" rx="12" fill="#fff" ${ink}/></g>`;
+}
+export function bedFront() {
+  return `<g><path d="M-108-48h216v40h-216z" fill="#ff9ec4" ${ink}/>
+    ${[-80, -40, 0, 40, 80].map((x) => `<path d="${heartPath(x, -24, 0.45)}" fill="#fff" opacity=".7"/>`).join('')}
+    <rect x="-108" y="-10" width="12" height="12" rx="3" fill="#8a5a3a" ${ink}/><rect x="96" y="-10" width="12" height="12" rx="3" fill="#8a5a3a" ${ink}/></g>`;
+}
+export function wardrobe() {
+  return `<g><rect x="-60" y="-200" width="120" height="196" rx="6" fill="#f5d9b8" ${ink}/><path d="M0-196v188" ${ink}/>
+    <circle cx="-8" cy="-100" r="4" fill="#a87a44"/><circle cx="8" cy="-100" r="4" fill="#a87a44"/>
+    <path d="M-48-180h36v24h-36zM12-180h36v24h-36z" fill="none" stroke="#e0b88e" stroke-width="2.5"/>
+    <rect x="-56" y="-6" width="10" height="8" fill="#8a5a3a"/><rect x="46" y="-6" width="10" height="8" fill="#8a5a3a"/></g>`;
+}
+export function bookshelf(spines = []) {
+  const cols = ['#ff8fa3', '#7cc6ff', '#ffd36e', '#8fd18a', '#b9a2f0', '#ffb86b'];
+  const shelf = (y, list) => {
+    let x = -62, s = '';
+    for (let i = 0; i < 9; i++) {
+      const c = list[i] || cols[(i + y) % cols.length], w = list[i] ? 14 : 10 + (i * 3) % 5, h = 40 + (i * 7) % 12;
+      s += `<rect x="${x}" y="${y - h}" width="${w}" height="${h}" rx="2" fill="${c}" stroke="${L}" stroke-width="1.2"/>`;
+      x += w + 1;
+      if (x > 50) break;
+    }
+    return s;
+  };
+  return `<g><rect x="-72" y="-170" width="144" height="170" rx="6" fill="#d9a575" ${ink}/>
+    ${shelf(-118, spines.slice(0, 5))}${shelf(-62, spines.slice(5))}
+    <path d="M-68-116h136M-68-60h136M-68-6h136" stroke="${L}" stroke-width="3"/></g>`;
 }
 export function poster() {
   return `<g><rect x="-34" y="-44" width="68" height="88" rx="4" fill="#fff" ${ink}/><rect x="-26" y="-36" width="52" height="72" rx="2" fill="#ffe3ef"/>
