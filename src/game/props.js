@@ -249,3 +249,43 @@ export function rainbowRug() {
   const cols = ['#ff9aa8', '#ffc98a', '#fff09a', '#a6e3a8', '#9fd0ff', '#c9b0ff'];
   return cols.map((c, i) => `<ellipse cx="0" cy="0" rx="${190 - i * 26}" ry="${46 - i * 6.4}" fill="${c}"/>`).join('') + '<ellipse cx="0" cy="0" rx="190" ry="46" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 7"/>';
 }
+
+// ---------------------------------------------------------------- music corner, garden, seasonal
+export function piano() {
+  let keys = '';
+  for (let i = 0; i < 14; i++) keys += `<rect x="${-70 + i * 10}" y="-92" width="10" height="26" fill="#fff" stroke="${L}" stroke-width="1.4"/>`;
+  for (const i of [0, 1, 3, 4, 5, 7, 8, 10, 11, 12]) keys += `<rect x="${-70 + i * 10 + 7}" y="-92" width="6" height="16" fill="${L}"/>`;
+  return `<g><rect x="-80" y="-190" width="160" height="104" rx="8" fill="#7a4a3a" ${ink}/><rect x="-66" y="-176" width="132" height="60" rx="6" fill="#8e5a46"/>
+    <path d="M-40-160v30M-40-160l14-4M0-166v34M0-166l14-4" stroke="#f5d27a" stroke-width="3" fill="none"/><ellipse cx="-44" cy="-130" rx="5" ry="4" fill="#f5d27a"/><ellipse cx="-4" cy="-132" rx="5" ry="4" fill="#f5d27a"/>
+    <rect x="-84" y="-96" width="168" height="34" rx="4" fill="#7a4a3a" ${ink}/>${keys}
+    <rect x="-76" y="-62" width="152" height="62" rx="4" fill="#6a3e30" ${ink}/><rect x="-70" y="-6" width="10" height="8" fill="#4a2a20"/><rect x="60" y="-6" width="10" height="8" fill="#4a2a20"/></g>`;
+}
+export function stool() {
+  return `<g><path d="M-26-40V0M26-40V0" stroke="${L}" stroke-width="9" stroke-linecap="round"/><path d="M-26-40V0M26-40V0" stroke="#7a4a3a" stroke-width="5" stroke-linecap="round"/><rect x="-34" y="-52" width="68" height="16" rx="7" fill="#c9476a" ${ink}/></g>`;
+}
+export function tree() {
+  return `<g><path d="M-14 0q4-60 0-110h28q-4 50 0 110z" fill="#a8703f" ${ink}/>
+    <circle cx="-50" cy="-150" r="52" fill="#7fcf6a" ${ink}/><circle cx="48" cy="-156" r="56" fill="#7fcf6a" ${ink}/><circle cx="0" cy="-200" r="60" fill="#8fd97a" ${ink}/>
+    ${[[-60, -150], [40, -170], [10, -215], [70, -130], [-20, -175]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="#ff7b8a" stroke="${L}" stroke-width="2"/>`).join('')}</g>`;
+}
+export function flowers() {
+  const f = (x, c) => `<path d="M${x} 0v-34" stroke="#5fae5a" stroke-width="4"/>${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="${x}" cy="-42" rx="6" ry="10" fill="${c}" transform="rotate(${a} ${x} -34)"/>`).join('')}<circle cx="${x}" cy="-34" r="5" fill="#ffe066" stroke="${L}" stroke-width="1.5"/>`;
+  return `<g>${f(-40, '#ff9ec4')}${f(-14, '#b28cff')}${f(12, '#ff7b8a')}${f(38, '#ffb05c')}<path d="M-56 0h112" stroke="#5fae5a" stroke-width="5" stroke-linecap="round"/></g>`;
+}
+export function paddlingPool() {
+  return `<g><ellipse cx="0" cy="-14" rx="120" ry="34" fill="#6fb8ff" ${ink}/><ellipse cx="0" cy="-20" rx="104" ry="24" fill="#9fdcff"/>
+    <path d="M-60-22q14-6 28 0M10-16q14-6 28 0M-20-30q12-5 24 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M-120-14q0 22 120 26q120-4 120-26" fill="#ff8fb8" ${ink}/></g>`;
+}
+export function pumpkin(s = 1) {
+  return `<g transform="scale(${s})"><ellipse cx="-16" cy="-26" rx="20" ry="26" fill="#ff9a3c" ${ink}/><ellipse cx="16" cy="-26" rx="20" ry="26" fill="#ff9a3c" ${ink}/><ellipse cx="0" cy="-26" rx="18" ry="27" fill="#ffad4f" ${ink}/>
+    <path d="M0-52q2-10 8-12" stroke="#5fae5a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M-14-32l6-7 6 7zM2-32l6-7 6 7z" fill="#4a3040"/><path d="M-14-18q14 10 28 0q-14 4-28 0z" fill="#4a3040"/></g>`;
+}
+export function bat(x, y, s = 1) {
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0q-10-12-26-8q6 4 4 10q-6-2-10 2q12 0 18 6q6-4 14-10zM0 0q10-12 26-8q-6 4-4 10q6-2 10 2q-12 0-18 6q-6-4-14-10z" fill="#5a4a6a"/><circle r="7" fill="#5a4a6a"/><circle cx="-2.5" cy="-1" r="1.6" fill="#fff"/><circle cx="2.5" cy="-1" r="1.6" fill="#fff"/></g>`;
+}
+export function giftBox() {
+  return `<g><rect x="-30" y="-48" width="60" height="48" rx="5" fill="#ff7bb0" ${ink}/><rect x="-34" y="-60" width="68" height="16" rx="5" fill="#ff9ec4" ${ink}/>
+    <path d="M-5-60v60M5-60v60" stroke="#ffe066" stroke-width="5"/><path d="M0-60c-14-16-26-6-14 0M0-60c14-16 26-6 14 0" fill="none" stroke="#ffe066" stroke-width="5" stroke-linecap="round"/></g>`;
+}

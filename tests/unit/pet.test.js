@@ -69,9 +69,37 @@ test('feeding uses up food, and favourites are extra fun', () => {
 
 test('v5 saves move the pet name onto the active pet', () => {
   const s = migrate({ version: 5, pet: { owned: ['pet-kitten'], active: 'pet-kitten', name: 'Mochi<b>' } });
-  assert.equal(s.version, 7);
+  assert.equal(s.version, 8);
   assert.deepEqual(s.pet.names, { 'pet-kitten': 'Mochib' });
   assert.deepEqual(s.pet.inventory, {});
   assert.deepEqual(s.pet.toys, []);
   assert.deepEqual(s.pet.owned, ['pet-kitten']);
+});
+
+test('storage: a room holds a limited number of things and things can be put away', async () => {
+  const { putOut, whereIs, ROOM_LIMIT, openGift, giftReady } = await import('../../src/state/pet.js');
+  const s = freshSave();
+  s.pet.toys = ['toy-yarn', 'decor-rug', 'my-teddy'];
+  assert.equal(whereIs(s.pet, 'my-teddy'), 'storage');
+  assert.equal(putOut(s, 'my-teddy', 'bedroom'), true);
+  assert.equal(whereIs(s.pet, 'my-teddy'), 'bedroom');
+  assert.equal(putOut(s, 'my-teddy', 'living'), true);
+  assert.deepEqual(s.pet.out.bedroom, []);
+  putOut(s, 'my-teddy', 'storage');
+  assert.equal(whereIs(s.pet, 'my-teddy'), 'storage');
+  s.pet.out.living = Array.from({ length: ROOM_LIMIT }, (_, i) => `x${i}`);
+  assert.equal(putOut(s, 'toy-yarn', 'living'), false);
+  // daily gift: once a day
+  const d = new Date(2026, 9, 30);
+  assert.equal(giftReady(s.pet, d), true);
+  const coins = s.coins;
+  const r = openGift(s, () => 0.1, d);
+  assert.ok(r.coins >= 15 && s.coins === coins + r.coins);
+  assert.equal(openGift(s, () => 0.1, d), null);
+});
+
+test('v7 saves start tidy: only a few things out', () => {
+  const s = migrate({ version: 7, pet: { owned: [], toys: ['decor-rug', 'toy-yarn', 'toy-duck', 'toy-mouse', 'my-teddy', 'my-kite', 'my-yoyo', 'my-ukulele'] } });
+  assert.deepEqual(s.pet.out.living, ['decor-rug', 'toy-yarn', 'toy-duck']);
+  assert.deepEqual(s.pet.out.bedroom, ['my-teddy', 'my-kite', 'my-yoyo']);
 });

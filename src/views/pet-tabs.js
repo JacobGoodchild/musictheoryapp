@@ -6,9 +6,9 @@ import { cleanName } from '../state/save.js';
 import { spendCoins } from '../state/rewards.js';
 import { sfx } from '../audio/synth.js';
 import { confetti } from '../ui/confetti.js';
-import { PETS, petById, MARKET, AISLES, marketItem, isOneOff, FAVOURITES, needsNow, changeNeeds, takeFood, foodEffect, trolleyTotal, checkout, petName } from '../state/pet.js';
+import { PETS, MARKET, AISLES, marketItem, isOneOff, FAVOURITES, needsNow, changeNeeds, takeFood, foodEffect, trolleyTotal, checkout, petName, storable, whereIs, putOut, ROOM_LIMIT, giftReady, openGift, totalCorrect } from '../state/pet.js';
 import { petSVG } from '../game/pet-rig.js';
-import { createHouse } from '../game/house.js';
+import { createHouse, ROOMS, TRICKS } from '../game/house.js';
 import { createMarketScene } from '../game/market-scene.js';
 import { itemSVG } from '../game/item-art.js';
 import { DEFAULT_EQUIPPED } from '../art/avatar.js';
@@ -46,111 +46,191 @@ function needMeters(petId) {
 }
 
 // ---------------------------------------------------------------- Pet house
+const DRAWERS = [
+  ['feed', 'Feed', 'heart'], ['cuddle', 'Cuddle all', 'heart'], ['bed', 'Bedtime', 'moon'], ['tricks', 'Tricks', 'star'],
+  ['storage', 'Storage', 'bag'], ['pets', 'My pets', 'paw'], ['photo', 'Photo', 'download'],
+];
+
+/** Save a picture of the house as a PNG file. */
+function savePhoto(svgEl) {
+  const clone = svgEl.cloneNode(true);
+  clone.setAttribute('width', 1600); clone.setAttribute('height', 900);
+  const xml = new XMLSerializer().serializeToString(clone);
+  const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml' }));
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = 1600; c.height = 900;
+    c.getContext('2d').drawImage(img, 0, 0, 1600, 900);
+    URL.revokeObjectURL(url);
+    const a = h('a', { href: c.toDataURL('image/png'), download: 'my-house.png' });
+    document.body.append(a); a.click(); a.remove();
+    toast('Photo saved!');
+  };
+  img.src = url;
+}
+
 export function petTab() {
   const wrap = h('div', {});
+  let drawer = null;
   const draw = () => {
     clear(wrap);
     const st = getState();
     const p = st.pet;
     const home = (p.home || []).filter((id) => p.owned.includes(id));
-    const active = home.length ? petById(home[0]) : null;
-    if (active) {
-      const room = p.room || 'living';
+    const room = p.room || 'living';
+    if (home.length) {
       const books = (p.toys || []).map(marketItem).filter((m) => m && m.kind === 'book');
+      const outHere = (p.out && p.out[room]) || [];
       const house = createHouse({
-        petId: active.id,
-        friends: home.slice(1),
+        pets: home.map((id) => ({ id, name: petName(p, id) })),
         room,
         books,
-        myToys: (p.toys || []).filter((id) => marketItem(id)?.kind === 'mytoy'),
+        out: { decor: outHere.filter((id) => id.startsWith('decor-')), toys: outHere.filter((id) => id.startsWith('toy-')), myToys: outHere.filter((id) => id.startsWith('my-')) },
         equipped: { ...DEFAULT_EQUIPPED, ...st.avatar.equipped },
-        toys: p.toys || [],
-        getNeeds: () => needsNow(getState().pet, active.id),
-        onNeeds: (d) => update((s) => { changeNeeds(s, active.id, d); }),
+        gift: giftReady(p),
+        onGift: () => { let r = null; update((x) => { r = openGift(x); }); return r ? `A present! ${r.message}` : 'A present!'; },
+        getNeeds: (id) => needsNow(getState().pet, id),
+        onNeeds: (id, d) => update((x) => { changeNeeds(x, id, d); }),
       });
-      const nameEl = h('h2', { class: 'pet-name' });
-      nameEl.textContent = home.length > 1 ? `${petName(p, active.id)} and friends` : petName(p, active.id);
-      let eater = 'pet';
-      const tray = h('div', { class: 'food-tray', role: 'group', 'aria-label': 'Food cupboard' });
-      const whoBar = h('div', { class: 'row who-eats', role: 'group', 'aria-label': 'Who is eating?' });
-      const drawWho = () => {
-        clear(whoBar);
-        for (const [k, label] of [['pet', `Feed ${petName(getState().pet, active.id)}`], ['me', 'Eat it myself']]) whoBar.append(h('button', { class: `btn small${eater === k ? ' primary' : ''}`, 'aria-pressed': String(eater === k), 'data-who': k, onclick: () => { eater = k; drawWho(); } }, label));
+      const panel = h('div', { class: 'house-drawer' });
+      const bar = h('div', { class: 'house-bar', role: 'toolbar', 'aria-label': 'House actions' });
+      const drawBar = () => {
+        clear(bar);
+        for (const [id, label, ic] of DRAWERS) {
+          const isToggle = !['cuddle', 'bed', 'photo'].includes(id);
+          bar.append(h('button', { class: `house-btn${drawer === id ? ' on' : ''}`, 'data-action': id, 'aria-pressed': isToggle ? String(drawer === id) : null, onclick: () => {
+            if (id === 'cuddle') { house.cuddleAll(); return; }
+            if (id === 'bed') { house.bedtime(); return; }
+            if (id === 'photo') { savePhoto(house.el); return; }
+            drawer = drawer === id ? null : id; drawBar(); drawPanel();
+          } }, icon(ic, 'coin-icon'), label));
+        }
+        bar.append(h('a', { class: 'house-btn primary', href: '#/rewards/market' }, icon('trolley', 'coin-icon'), 'Supermarket'));
       };
-      drawWho();
-      const drawTray = () => {
-        clear(tray);
+      const drawPanel = () => {
+        clear(panel);
+        panel.hidden = !drawer;
+        if (drawer === 'feed') panel.append(feedPanel());
+        else if (drawer === 'tricks') panel.append(tricksPanel());
+        else if (drawer === 'storage') panel.append(storagePanel());
+        else if (drawer === 'pets') panel.append(petsPanel());
+      };
+      // Feed: choose who eats (one pet, everyone, or me), then the food.
+      let eater = 'all';
+      const feedPanel = () => {
+        const box = h('div', { class: 'stack' });
+        const who = h('div', { class: 'row wrap who-eats', role: 'group', 'aria-label': 'Who is eating?' });
+        const opts = [['all', home.length > 1 ? 'Everyone' : petName(p, home[0])], ...(home.length > 1 ? home.map((id, i) => [`p${i}`, petName(getState().pet, id)]) : []), ['me', 'Me']];
+        for (const [k, label] of opts) who.append(h('button', { class: `btn small${eater === k ? ' primary' : ''}`, 'aria-pressed': String(eater === k), 'data-who': k, onclick: () => { eater = k; drawPanel(); } }, label));
+        const tray = h('div', { class: 'food-tray' });
         const food = Object.entries(getState().pet.inventory || {}).filter(([id, n]) => n > 0 && marketItem(id));
-        if (!food.length) { tray.append(h('p', { class: 'muted small' }, 'The cupboard is empty. Pop to the supermarket for some food!')); return; }
+        if (!food.length) tray.append(h('p', { class: 'muted small' }, 'The cupboard is empty. Pop to the supermarket for some food!'));
         for (const [id, n] of food) {
           const item = marketItem(id);
-          const fav = (FAVOURITES[active.id] || []).includes(id);
-          tray.append(h('button', { class: 'food-btn', 'data-action': 'feed', 'data-item': id, title: item.name, 'aria-label': `${item.name}, ${n} left${fav ? `, ${petName(getState().pet, active.id)}'s favourite` : ''}`, onclick: () => {
+          tray.append(h('button', { class: 'food-btn', 'data-action': 'feed', 'data-item': id, title: item.name, 'aria-label': `${item.name}, ${n} left`, onclick: () => {
             if (eater === 'me') {
-              if (item.kind === 'petfood') { toast('That one is pet food! Choose something else for you.'); return; }
-              let it = null;
-              update((s) => { it = takeFood(s, id); });
-              if (!it) return;
-              house.girlEat(item); toast(`Yum, ${item.name.toLowerCase()}!`); drawTray();
-              return;
+              if (item.kind === 'petfood') { house.say('That’s pet food, silly!'); return; }
+              let ok = null; update((x) => { ok = takeFood(x, id); });
+              if (ok) house.girlEat(item);
+            } else {
+              const targets = eater === 'all' ? home.map((_, i) => i) : [Number(eater.slice(1))];
+              for (const i of targets) {
+                let eff = null;
+                update((x) => { const it = takeFood(x, id); if (it) eff = foodEffect(it, home[i]); });
+                if (!eff) { if (i === targets[0]) house.say('Oh no, we ran out!'); break; }
+                house.feed(item, eff, i);
+              }
             }
-            let eff = null;
-            update((s) => { const it = takeFood(s, id); if (it) eff = foodEffect(it, active.id); });
-            if (!eff) return;
-            house.feed(item, eff);
-            if (eff.favourite) toast(`Yum! ${item.name} is a favourite!`);
-            drawTray();
-          } }, svgFromString(itemSVG(id, 46, item.name)), h('span', { class: 'food-count' }, `×${n}`), fav ? h('span', { class: 'fav', 'aria-hidden': 'true' }, '♥') : null));
+            drawPanel();
+          } }, svgFromString(itemSVG(id, 46, item.name)), h('span', { class: 'food-count' }, `×${n}`)));
         }
+        box.append(h('strong', {}, 'Who’s eating?'), who, h('strong', {}, 'Food cupboard'), tray);
+        const books = (getState().pet.toys || []).map(marketItem).filter((m) => m && m.kind === 'book');
+        if (books.length) box.append(h('strong', {}, 'My books'), h('div', { class: 'row wrap' }, books.map((b) => h('button', { class: 'food-btn book-btn', 'data-action': 'read', 'data-item': b.id, 'aria-label': `Read ${b.name}`, onclick: () => house.read(b) }, svgFromString(itemSVG(b.id, 46, b.name)), h('span', { class: 'food-count' }, 'Read')))));
+        return box;
       };
-      drawTray();
-      const rooms = h('div', { class: 'tabs room-tabs', role: 'tablist', 'aria-label': 'Rooms' }, [['living', 'Living room'], ['kitchen', 'Kitchen'], ['bedroom', 'Bedroom']].map(([id, label]) =>
+      const tricksPanel = () => {
+        const n = totalCorrect(getState());
+        const next = TRICKS.find((t) => t.at > n);
+        return h('div', { class: 'stack' },
+          h('p', { class: 'muted small' }, 'Your pets learn new tricks as you get questions right in Practice, Learn and Mocks.'),
+          h('div', { class: 'row wrap' }, TRICKS.map((t) => t.at <= n
+            ? h('button', { class: 'btn small', 'data-trick': t.id, onclick: () => house.trick(t.id) }, t.name)
+            : h('span', { class: 'chip' }, icon('lock', 'coin-icon'), `${t.name} (${t.at} right answers)`))),
+          next ? h('p', { class: 'small' }, `${next.at - n} more right answers until they learn "${next.name}"!`) : h('p', { class: 'small' }, 'They know every trick. Superstars!'),
+          room === 'living' ? h('button', { class: 'btn small', 'data-action': 'piano', onclick: () => house.playPiano() }, 'Play the piano (the pets will dance!)') : null);
+      };
+      const storagePanel = () => {
+        const x = getState().pet;
+        const owned = (x.toys || []).filter(storable);
+        const list = h('div', { class: 'storage-grid' });
+        if (!owned.length) list.append(h('p', { class: 'muted small' }, 'Nothing here yet. Toys and decorations you buy can be kept here.'));
+        for (const id of owned) {
+          const item = marketItem(id);
+          const where = whereIs(x, id);
+          const here = where === room;
+          list.append(h('div', { class: `storage-item${here ? ' here' : ''}` }, svgFromString(itemSVG(id, 44, item ? item.name : id)),
+            h('span', { class: 'small' }, item ? item.name : id),
+            h('span', { class: 'muted tiny' }, where === 'storage' ? 'In storage' : `In the ${ROOMS.find((r) => r[0] === where)[1].toLowerCase()}`),
+            h('button', { class: `btn tiny${here ? '' : ' primary'}`, 'data-store': id, onclick: () => {
+              let ok = true;
+              update((s2) => { ok = putOut(s2, id, here ? 'storage' : room); });
+              if (!ok) toast(`This room is full (${ROOM_LIMIT} things). Put something away first.`);
+              draw();
+            } }, here ? 'Put away' : 'Put out here')));
+        }
+        return h('div', { class: 'stack' }, h('p', { class: 'muted small' }, `Choose what is out in this room (up to ${ROOM_LIMIT} things). Everything else waits safely in storage.`), list);
+      };
+      const petsPanel = () => {
+        const x = getState().pet;
+        const box = h('div', { class: 'pet-shop' });
+        for (const pt of PETS) {
+          const owned = x.owned.includes(pt.id), isHome = (x.home || []).includes(pt.id);
+          const nameIn = h('input', { type: 'text', maxlength: 16, class: 'pet-name-input', 'aria-label': `${pt.name}'s name`, placeholder: 'Name', value: (x.names || {})[pt.id] || '' });
+          box.append(h('div', { class: `card pet-card${isHome ? ' current' : ''}` }, petSVG(pt.id, { size: 90, label: pt.name }), h('strong', {}, owned ? petName(x, pt.id) : pt.name),
+            owned ? h('button', { class: `btn small${isHome ? ' good' : ''}`, 'data-action': 'pet-home', 'aria-pressed': String(isHome), onclick: () => {
+              update((y) => { y.pet.home = y.pet.home || []; if (y.pet.home.includes(pt.id)) y.pet.home = y.pet.home.filter((i) => i !== pt.id); else y.pet.home.push(pt.id); y.pet.active = y.pet.home[0] || null; });
+              draw();
+            } }, isHome ? 'At home ✓' : 'Bring home') : buyPetButton(pt, draw),
+            owned ? h('form', { class: 'row tight', onsubmit: (e) => { e.preventDefault(); update((y) => { y.pet.names = y.pet.names || {}; y.pet.names[pt.id] = cleanName(nameIn.value).slice(0, 16); }); toast('Name saved'); draw(); } }, nameIn, h('button', { class: 'btn tiny', type: 'submit' }, 'Save')) : h('span', { class: 'muted tiny' }, `Comes with: ${pt.toy}`)));
+        }
+        return box;
+      };
+      const rooms = h('div', { class: 'tabs room-tabs', role: 'tablist', 'aria-label': 'Rooms' }, ROOMS.map(([id, label]) =>
         h('button', { class: `tab${room === id ? ' active' : ''}`, role: 'tab', 'aria-selected': String(room === id), 'data-room': id, onclick: () => { update((x) => { x.pet.room = id; }); draw(); } }, label)));
-      const shelf = books.length ? h('div', { class: 'stack' }, h('strong', {}, 'My books'), h('div', { class: 'row wrap' }, books.map((b) =>
-        h('button', { class: 'food-btn book-btn', 'data-action': 'read', 'data-item': b.id, title: `Read ${b.name}`, 'aria-label': `Read ${b.name}`, onclick: () => { house.read(b); toast(`Reading ${b.name}…`); } }, svgFromString(itemSVG(b.id, 46, b.name)), h('span', { class: 'food-count' }, 'Read'))))) : null;
-      const nameInput = h('input', { type: 'text', maxlength: 16, class: 'pet-name-input', 'aria-label': 'Pet name', placeholder: 'Give your pet a name', value: (p.names || {})[active.id] || '' });
+      const names = home.map((id) => petName(p, id));
+      const title = h('h2', { class: 'pet-name' });
+      title.textContent = names.length > 2 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names.join(' and ');
+      const meters = h('div', { class: 'pet-meters' }, home.map((id) => { const n = h('strong', { class: 'small' }); n.textContent = petName(p, id); return h('div', { class: 'pet-meter' }, petSVG(id, { size: 34, label: '' }), n, needMeters(id)); }));
       wrap.append(h('div', { class: 'card house-card' },
-        h('div', { class: 'house-head' }, h('div', {}, nameEl, h('p', { class: 'muted small' }, 'Click the floor to walk there. Drag a toy and let go to throw it. Click a pet for a cuddle.')), needMeters(active.id)),
-        rooms,
+        h('div', { class: 'house-head' }, h('div', {}, title, h('p', { class: 'muted small' }, 'Click the floor to walk. Drag a toy and let go to throw it. Click a pet for a cuddle.')), rooms),
         h('div', { class: 'house-frame' }, house.el),
-        h('div', { class: 'house-actions' },
-          h('div', { class: 'stack' }, h('strong', {}, 'Food cupboard'), whoBar, tray),
-          shelf,
-          h('div', { class: 'row wrap' },
-            h('button', { class: 'btn', 'data-action': 'cuddle', onclick: () => house.cuddle() }, icon('heart', 'coin-icon'), 'Cuddle'),
-            h('button', { class: 'btn', 'data-action': 'bedtime', onclick: () => house.bedtime() }, icon('moon', 'coin-icon'), 'Bedtime'),
-            h('a', { class: 'btn primary', href: '#/rewards/market' }, icon('trolley', 'coin-icon'), 'Go to the supermarket')))));
-      wrap.append(h('form', { class: 'row pet-name-form', onsubmit: (e) => {
-        e.preventDefault();
-        update((x) => { x.pet.names = x.pet.names || {}; x.pet.names[active.id] = cleanName(nameInput.value).slice(0, 16); });
-        draw();
-        toast('Name saved');
-      } }, nameInput, h('button', { class: 'btn', type: 'submit' }, 'Save name')));
+        bar, panel,
+        h('details', { class: 'pet-needs' }, h('summary', {}, 'How are my pets feeling?'), meters)));
+      drawBar(); drawPanel();
     } else {
-      wrap.append(h('div', { class: 'card stack' }, h('h2', {}, p.owned.length ? 'Nobody is home' : 'No pet yet'), h('p', { class: 'muted' }, p.owned.length ? 'Bring a pet home below to open your house.' : 'Adopt a pet friend below. It will live in your house with you: chasing the ball you throw, playing with its own special toy, eating the food you buy at the supermarket, and napping in its bed.')));
+      const box = h('div', { class: 'card stack' }, h('h2', {}, p.owned.length ? 'Nobody is home' : 'No pet yet'),
+        h('p', { class: 'muted' }, p.owned.length ? 'Bring a pet home to open your house.' : 'Adopt a pet friend. It will live in your house with you: chasing the ball you throw, learning tricks, eating the food you buy at the supermarket, and napping in its bed.'));
+      const shop = h('div', { class: 'pet-shop' }, PETS.map((pt) => {
+        const owned = p.owned.includes(pt.id);
+        return h('div', { class: 'card pet-card' }, petSVG(pt.id, { size: 104, label: pt.name }), h('strong', {}, pt.name), h('span', { class: 'muted small' }, `Comes with: ${pt.toy}`),
+          owned ? h('button', { class: 'btn small', 'data-action': 'pet-home', onclick: () => { update((y) => { y.pet.home = [...(y.pet.home || []), pt.id]; y.pet.active = y.pet.home[0]; }); draw(); } }, 'Bring home') : buyPetButton(pt, draw));
+      }));
+      wrap.append(box, h('h3', {}, 'Pet shop'), shop);
     }
-    // Pet shop.
-    const shop = h('div', { class: 'pet-shop' }, PETS.map((pt) => {
-      const owned = p.owned.includes(pt.id);
-      const isHome = (p.home || []).includes(pt.id);
-      const btn = owned ? h('button', { class: `btn small${isHome ? ' good' : ''}`, 'data-action': 'pet-home', 'aria-pressed': String(isHome), onclick: () => {
-        update((x) => { x.pet.home = x.pet.home || []; if (x.pet.home.includes(pt.id)) x.pet.home = x.pet.home.filter((i) => i !== pt.id); else x.pet.home.push(pt.id); x.pet.active = x.pet.home[0] || null; });
-        draw();
-      } }, isHome ? 'At home ✓ (send out to play)' : 'Bring home')
-        : h('button', { class: 'btn small primary', 'data-action': 'pet-buy', disabled: st.coins < pt.price, onclick: async () => {
-          const ok = await confirmDialog(`Adopt the ${pt.name}?`, `This costs ${pt.price} coins. It comes with its own ${pt.toy}.`, { ok: 'Adopt' });
-          if (!ok) return;
-          let done = false;
-          update((x) => { if (spendCoins(x, pt.price)) { x.pet.owned.push(pt.id); x.pet.home = [...(x.pet.home || []), pt.id]; x.pet.active = x.pet.home[0]; done = true; } });
-          if (done) { sfx('reveal'); confetti(); toast(`Welcome home, little ${pt.name.toLowerCase()}!`); draw(); }
-        } }, coinIcon(), String(pt.price));
-      const isActive = isHome;
-      return h('div', { class: `card pet-card${isActive ? ' current' : ''}` }, petSVG(pt.id, { size: 104, label: pt.name }), h('strong', {}, pt.name), h('span', { class: 'muted small' }, `Comes with: ${pt.toy}`), btn);
-    }));
-    wrap.append(h('h3', {}, 'Pet shop'), shop);
   };
   draw();
   return wrap;
+}
+
+function buyPetButton(pt, redraw) {
+  return h('button', { class: 'btn small primary', 'data-action': 'pet-buy', disabled: getState().coins < pt.price, onclick: async () => {
+    const ok = await confirmDialog(`Adopt the ${pt.name}?`, `This costs ${pt.price} coins. It comes with its own ${pt.toy}.`, { ok: 'Adopt' });
+    if (!ok) return;
+    let done = false;
+    update((x) => { if (spendCoins(x, pt.price)) { x.pet.owned.push(pt.id); x.pet.home = [...(x.pet.home || []), pt.id]; x.pet.active = x.pet.home[0]; done = true; } });
+    if (done) { sfx('reveal'); confetti(); toast(`Welcome home, little ${pt.name.toLowerCase()}!`); redraw(); }
+  } }, coinIcon(), String(pt.price));
 }
 
 // ---------------------------------------------------------------- Supermarket

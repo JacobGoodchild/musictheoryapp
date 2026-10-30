@@ -117,7 +117,27 @@ export function createGirl(equipped) {
   if (o.ears === 'dino') for (const [x, y] of [[-26, -200], [-10, -212], [8, -213], [24, -202]]) E(headG, 'path', { d: `M${x - 8} ${y + 6}L${x} ${y - 10}L${x + 8} ${y + 6}Z`, fill: '#5fae5a' });
   if (o.onesie && o.ears) E(headG, 'path', { d: 'M-45-150Q-50-214 0-216Q50-214 45-150', fill: 'none', stroke: main, 'stroke-width': 9, 'stroke-linecap': 'round' });
   const headInner = E(headG, 'g', { transform: 'translate(-100 -266)' });
-  parseInto(headInner, parts.head);
+  parseInto(headInner, parts.headBase);
+  // Facial expressions drawn over the face (avatar coordinates, head centre 100,96).
+  const faceG = E(headInner, 'g', { display: 'none' });
+  parseInto(headInner, parts.headTop);
+  const ec = parts.eyeColour;
+  const cover = `<ellipse cx="86" cy="97" rx="11.5" ry="10.5" fill="${skin}"/><ellipse cx="114" cy="97" rx="11.5" ry="10.5" fill="${skin}"/><ellipse cx="100" cy="111" rx="13" ry="8" fill="${skin}"/>`;
+  const ink = 'stroke="#2a2230" stroke-width="2.8" stroke-linecap="round" fill="none"';
+  const happyEyes = `<path d="M79 99q7-8 14 0M107 99q7-8 14 0" ${ink}/>`;
+  const roundEyes = `<ellipse cx="86" cy="97" rx="6" ry="7.5" fill="#2a2230"/><ellipse cx="114" cy="97" rx="6" ry="7.5" fill="#2a2230"/><circle cx="88" cy="94" r="2.4" fill="#fff"/><circle cx="116" cy="94" r="2.4" fill="#fff"/><circle cx="86" cy="98" r="3.5" fill="${ec}" opacity=".55"/><circle cx="114" cy="98" r="3.5" fill="${ec}" opacity=".55"/>`;
+  const blush = (big) => `<ellipse cx="74" cy="108" rx="${big ? 9 : 7}" ry="${big ? 6 : 4.5}" fill="#ff8fab" opacity=".6"/><ellipse cx="126" cy="108" rx="${big ? 9 : 7}" ry="${big ? 6 : 4.5}" fill="#ff8fab" opacity=".6"/>`;
+  const heartEye = (x) => `<path d="M${x} 103c-6-4-8-7-8-10 0-3 2-5 4.5-5 1.6 0 2.8 1 3.5 2.2.7-1.2 1.9-2.2 3.5-2.2 2.5 0 4.5 2 4.5 5 0 3-2 6-8 10z" fill="#ff4f7d"/>`;
+  const FACES = {
+    happy: cover + happyEyes + blush() + '<path d="M91 108q9 10 18 0z" fill="#d9465f"/>',
+    bite: cover + happyEyes + blush() + '<ellipse cx="100" cy="111" rx="7" ry="6.5" fill="#7a2a3a"/><path d="M95 107h10" stroke="#fff" stroke-width="2.4"/>',
+    chew: cover + happyEyes + blush(true) + '<path d="M94 111q3 3 6 0q3 3 6 0" stroke="#2a2230" stroke-width="2.4" fill="none" stroke-linecap="round"/><ellipse cx="80" cy="108" rx="9" ry="7" fill="#000" opacity=".04"/>',
+    love: cover + heartEye(86) + heartEye(114) + blush() + '<path d="M92 108q8 8 16 0" ' + ink + '/>',
+    surprised: cover + roundEyes + '<ellipse cx="100" cy="112" rx="4" ry="5" fill="#7a2a3a"/>',
+    sleepy: cover + '<path d="M80 99h12M108 99h12" ' + ink + '/>' + blush() + '<ellipse cx="100" cy="111" rx="3" ry="2.4" fill="#7a2a3a"/>',
+    proud: cover + roundEyes + blush() + '<path d="M90 107q10 9 20 0" ' + ink + '/>',
+  };
+  let faceNow = null;
   const fx = E(root, 'g'); // hearts, sparkles (drawn by the scene)
   void fx;
 
@@ -187,6 +207,11 @@ export function createGirl(equipped) {
       const br = Math.sin(ph * 0.5) * 0.03;
       if (pz === 'wave') { setArm(1, 2.1 + Math.sin(ph * 3) * 0.25, 0.5, true); setArm(0, 0.2, -0.1); }
       else if (pz === 'throw') { const t = p.t || 0; const a = t < 0.5 ? 1.4 + t * 3 : 2.9 - (t - 0.5) * 5; const i = dir > 0 ? 1 : 0; setArm(i, a, 0, true); setArm(1 - i, 0.25, -0.1); }
+      else if (pz === 'eat') {
+        // Lift the food to her mouth (lift 0 → 1), then lower it to chew.
+        const i = dir > 0 ? 1 : 0, k = p.lift || 0;
+        setArm(i, 1.05 + k * 1.4, 0.45 + k * 1.45, true); setArm(1 - i, 0.2 + br, -0.1);
+      }
       else if (pz === 'hold') { const i = dir > 0 ? 1 : 0; setArm(i, 1.1, 0.4, true); setArm(1 - i, 0.2 + br, -0.1); }
       else { setArm(0, 0.2 + br, -0.1); setArm(1, 0.2 + br, -0.1); }
     }
@@ -201,6 +226,13 @@ export function createGirl(equipped) {
     pose,
     /** A hand position in local units (0 = left hand, 1 = right hand). */
     hand: (i) => handPos[i],
+    /** Show a facial expression (happy, bite, chew, love, surprised, sleepy, proud) or null. */
+    setFace: (f) => {
+      if (f === faceNow) return;
+      faceNow = f;
+      while (faceG.firstChild) faceG.firstChild.remove();
+      if (f && FACES[f]) { parseInto(faceG, FACES[f]); faceG.setAttribute('display', 'inline'); } else faceG.setAttribute('display', 'none');
+    },
     /** Colour the book she reads. */
     setBook: (colour) => bookCover.setAttribute('fill', colour),
     height: 215,

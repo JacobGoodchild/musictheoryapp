@@ -356,6 +356,8 @@ export function avatarHeadParts(equipped = {}) {
     hairColour: get('hairColour').colour,
     defs: fix('<defs><linearGradient id="rainbow§" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".33" stop-color="#ffd93d"/><stop offset=".66" stop-color="#4d96ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient></defs>'),
     back: fix(`${hair.back}${hair.mid || ''}`),
-    head: fix(`<circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${faceAcc}${hatSVG(get('hat'))}`),
+    eyeColour: get('eyes').colour || '#3a2414',
+    headBase: fix(`<circle cx="100" cy="96" r="42" fill="${skin}"/><ellipse cx="58" cy="100" rx="6" ry="9" fill="${skin}"/><ellipse cx="142" cy="100" rx="6" ry="9" fill="${skin}"/>${faceSVG(get('face').id, get('eyes'))}`),
+    headTop: fix(`${hair.front}<path d="M76 56q12-10 30-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".22"/>${hairAccSVG(get('hairAcc'))}${faceAcc}${hatSVG(get('hat'))}`),
   };
 }

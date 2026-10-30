@@ -102,8 +102,9 @@ test('pet house: adopt a pet, throw the ball by dragging, the pet chases and fet
   // The pet picks it up and brings it back.
   await expect(house).toHaveAttribute('data-last-event', /pickup|drop/, { timeout: 15000 });
   // A name for this pet.
-  await page.fill('.pet-name-input', 'Mochi');
-  await page.locator('button', { hasText: 'Save name' }).click();
+  await page.locator('[data-action=pets]').click();
+  await page.locator('.pet-card', { hasText: 'Kitten' }).locator('.pet-name-input').fill('Mochi');
+  await page.locator('.pet-card', { hasText: 'Kitten' }).locator('button', { hasText: 'Save' }).click();
   await expect(page.locator('.house-head h2')).toHaveText('Mochi');
   await page.goto('/index.html#/home');
   await expect(page.locator('.home-avatar .home-pet svg')).toHaveCount(1);
@@ -132,6 +133,7 @@ test('supermarket: fill the trolley, pay at the till, then feed the pet at home'
   expect(saved.coins).toBe(100 + 20 - 12); // + first-visit streak bonus
   await page.locator('[data-action="go-home"]').click();
   await expect(page.locator('svg.house-svg [data-toy="toy-duck"]')).toHaveCount(1);
+  await page.locator('.house-bar [data-action="feed"]').click();
   await page.locator('[data-action="feed"][data-item="pf-seeds"]').click();
   await expect(page.locator('[data-action="feed"][data-item="pf-seeds"]')).toContainText('×1');
   await expect(page.locator('svg.house-svg')).toHaveAttribute('data-last-event', 'ate', { timeout: 15000 });
@@ -147,10 +149,15 @@ test('house: several pets at once, rooms, reading a book and eating a treat your
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('/index.html#/rewards/pet');
   await expect(page.locator('svg.house-svg .house-pet')).toHaveCount(1);
+  await page.locator('[data-action=pets]').click();
   await page.locator('.pet-card', { hasText: 'Puppy' }).locator('[data-action=pet-home]').click();
   await expect(page.locator('svg.house-svg .house-pet')).toHaveCount(2);
+  // Everyone goes to bed, not just one pet.
+  await page.locator('[data-action=bed]').click();
+  await expect(page.locator('svg.house-svg')).toHaveAttribute('data-pet-states', 'sleep,sleep', { timeout: 15000 });
   await page.locator('[data-room=bedroom]').click();
   await expect(page.locator('svg.house-svg [data-thing=bookshelf]')).toHaveCount(1);
+  await page.locator('.house-bar [data-action=feed]').click();
   await page.locator('[data-action=read]').click();
   await expect(page.locator('svg.house-svg')).toHaveAttribute('data-girl-state', 'read', { timeout: 15000 });
   await page.locator('[data-who=me]').click();

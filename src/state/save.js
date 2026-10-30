@@ -3,7 +3,7 @@ import { STICKERS } from './stickers.js';
 // so private windows or blocked storage never break the app.
 
 export const SAVE_KEY = 'g5theory.save';
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 // Hairstyles removed on 27 Oct (with their price, refunded in coins).
 const REMOVED_HAIR = { 'hair-bob': 0, 'hair-ponytail': 0, 'hair-pigtails': 0, 'hair-shoulder': 15, 'hair-pixie': 20, 'hair-highpony': 25, 'hair-topbun': 25, 'hair-braids': 35, 'hair-sidebraid': 35, 'hair-buns': 40, 'hair-twintails': 45, 'hair-halfup': 45, 'hair-shortcurls': 40, 'hair-puffs': 55, 'hair-wavybob': 30, 'hair-lob': 15, 'hair-lowpony': 20, 'hair-sidepony': 30, 'hair-hime': 30, 'hair-minibuns': 40, 'hair-crownbraid': 55 };
 
@@ -25,7 +25,7 @@ export function freshSave() {
     avatar: { owned: [], equipped: {} },
     stickers: { owned: {}, bagsOpened: 0, sinceEpic: 0, seed: 0 },
     promos: [],
-    pet: { owned: [], active: null, home: [], names: {}, inventory: {}, toys: [], needs: {} },
+    pet: { owned: [], active: null, home: [], names: {}, inventory: {}, toys: [], needs: {}, out: {}, gift: null },
     last: null,
     daily: { day: null, done: false, best: 0 },
     badges: {},
@@ -105,6 +105,16 @@ export function migrate(data) {
       if (s.avatar.equipped && s.avatar.equipped.hair in REMOVED_HAIR) s.avatar.equipped.hair = 'hair-long';
     }
     if (s.pet) s.pet.home = s.pet.active ? [s.pet.active] : [];
+  }
+  if (v < 8 && s.pet) {
+    // v8: things can be put away in storage. Start tidy: decorations and two
+    // toys in the living room, up to three of her toys in the bedroom.
+    const owned = s.pet.toys || [];
+    s.pet.out = {
+      living: [...owned.filter((id) => id.startsWith('decor-')), ...owned.filter((id) => id.startsWith('toy-')).slice(0, 2)].slice(0, 6),
+      bedroom: owned.filter((id) => id.startsWith('my-')).slice(0, 3),
+      kitchen: [], garden: [],
+    };
   }
   // Fill in anything missing with defaults (deep for plain objects one level down).
   const base = freshSave();

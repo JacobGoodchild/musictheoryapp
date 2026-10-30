@@ -122,7 +122,7 @@ export const FLOOR = 10;
 const clamp = (v) => Math.max(0, Math.min(100, v));
 
 export function freshPet() {
-  return { owned: [], active: null, home: [], names: {}, inventory: {}, toys: [], needs: {} };
+  return { owned: [], active: null, home: [], names: {}, inventory: {}, toys: [], needs: {}, out: {}, gift: null };
 }
 
 /** The current needs of a pet, after time away. Does not change the save. */
@@ -184,7 +184,10 @@ export function checkout(s, trolley) {
   s.pet.inventory = s.pet.inventory || {};
   s.pet.toys = s.pet.toys || [];
   for (const [id, n] of lines) {
-    if (isOneOff(marketItem(id))) s.pet.toys.push(id);
+    if (isOneOff(marketItem(id))) {
+      s.pet.toys.push(id);
+      if (storable(id)) { s.pet.out = s.pet.out || {}; const room = id.startsWith('my-') ? 'bedroom' : 'living'; if ((s.pet.out[room] || []).length < ROOM_LIMIT) s.pet.out[room] = [...(s.pet.out[room] || []), id]; }
+    }
     else s.pet.inventory[id] = (s.pet.inventory[id] || 0) + n;
   }
   return true;
@@ -195,3 +198,47 @@ export function petName(p, petId) {
 }
 
 export { PETS, petById };
+
+// ---------------------------------------------------------------- storage: what is out in each room
+export const ROOM_IDS = ['living', 'kitchen', 'bedroom', 'garden'];
+export const ROOM_LIMIT = 6; // things out in one room at once (books live on the shelf)
+export const storable = (id) => /^(toy-|decor-|my-)/.test(id);
+
+/** Every stored or placed thing she owns, and where it is ('living', … or 'storage'). */
+export function whereIs(p, id) {
+  for (const r of ROOM_IDS) if ((p.out?.[r] || []).includes(id)) return r;
+  return 'storage';
+}
+export function putOut(s, id, room) {
+  const p = s.pet;
+  p.out = p.out || {};
+  for (const r of ROOM_IDS) p.out[r] = (p.out[r] || []).filter((x) => x !== id);
+  if (room === 'storage') return true;
+  if ((p.out[room] || []).length >= ROOM_LIMIT) return false;
+  p.out[room] = [...(p.out[room] || []), id];
+  return true;
+}
+
+// ---------------------------------------------------------------- daily surprise gift
+export const dayKeyOf = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+export const giftReady = (p, d = new Date()) => p.gift !== dayKeyOf(d);
+const GIFT_TREATS = ['cupcake', 'cookie', 'donut', 'ice-lolly', 'lollipop', 'pf-fish', 'pf-bone', 'pf-seeds', 'macaron', 'strawberry'];
+/** Open today's gift: some coins or a couple of treats. Returns a message, or null if already opened. */
+export function openGift(s, r = Math.random, d = new Date()) {
+  if (!giftReady(s.pet, d)) return null;
+  s.pet.gift = dayKeyOf(d);
+  if (r() < 0.5) {
+    const coins = 15 + Math.floor(r() * 26);
+    s.coins += coins;
+    return { coins, message: `${coins} coins!` };
+  }
+  const a = GIFT_TREATS[Math.floor(r() * GIFT_TREATS.length)], b = GIFT_TREATS[Math.floor(r() * GIFT_TREATS.length)];
+  s.pet.inventory = s.pet.inventory || {};
+  for (const id of [a, b]) s.pet.inventory[id] = (s.pet.inventory[id] || 0) + 1;
+  return { items: [a, b], message: `${marketItem(a).name} and ${marketItem(b).name.toLowerCase()}!` };
+}
+
+/** How many questions she has answered correctly (pets learn tricks from this). */
+export function totalCorrect(s) {
+  return Object.values(s.topics || {}).reduce((t, x) => t + (x.correct || 0), 0);
+}
