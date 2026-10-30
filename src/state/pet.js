@@ -2,6 +2,7 @@
 // fun, energy), feeding, and paying at the till. Pure functions on the save,
 // so they can be tested in Node.
 import { PETS, petById } from './pets-data.js';
+import { ITEMS as WEAR } from '../art/avatar.js';
 
 // Everything is cheap on purpose: the supermarket is for fun, not a grind.
 // kind: food (people food the pets love too), petfood, toy (throwable), decor.
@@ -26,6 +27,26 @@ export const MARKET = [
   { id: 'birthday-cake', name: 'Party cake', aisle: 'bakery', kind: 'food', price: 8, hunger: 30, fun: 25 },
   { id: 'milk', name: 'Milk', aisle: 'bakery', kind: 'food', price: 2, hunger: 10, fun: 3 },
   { id: 'cheese', name: 'Cheese', aisle: 'bakery', kind: 'food', price: 3, hunger: 15, fun: 4 },
+  { id: 'orange', name: 'Orange', aisle: 'fruit', kind: 'food', price: 2, hunger: 14, fun: 3 },
+  { id: 'pear', name: 'Pear', aisle: 'fruit', kind: 'food', price: 2, hunger: 14, fun: 2 },
+  { id: 'cherries', name: 'Cherries', aisle: 'fruit', kind: 'food', price: 3, hunger: 10, fun: 5 },
+  { id: 'grapes', name: 'Grapes', aisle: 'fruit', kind: 'food', price: 2, hunger: 12, fun: 4 },
+  { id: 'peach', name: 'Peach', aisle: 'fruit', kind: 'food', price: 2, hunger: 14, fun: 3 },
+  { id: 'kiwi', name: 'Kiwi', aisle: 'fruit', kind: 'food', price: 2, hunger: 12, fun: 3 },
+  { id: 'pineapple', name: 'Pineapple', aisle: 'fruit', kind: 'food', price: 4, hunger: 20, fun: 5 },
+  { id: 'tomato', name: 'Tomato', aisle: 'fruit', kind: 'food', price: 1, hunger: 10, fun: 1 },
+  { id: 'muffin', name: 'Muffin', aisle: 'bakery', kind: 'food', price: 3, hunger: 14, fun: 8 },
+  { id: 'waffle', name: 'Waffle', aisle: 'bakery', kind: 'food', price: 3, hunger: 16, fun: 8 },
+  { id: 'cinnamon-roll', name: 'Cinnamon roll', aisle: 'bakery', kind: 'food', price: 3, hunger: 14, fun: 9 },
+  { id: 'swiss-roll', name: 'Swiss roll', aisle: 'bakery', kind: 'food', price: 4, hunger: 14, fun: 10 },
+  { id: 'cream-puff', name: 'Cream puff', aisle: 'bakery', kind: 'food', price: 4, hunger: 10, fun: 12 },
+  { id: 'taco', name: 'Taco', aisle: 'meals', kind: 'food', price: 4, hunger: 25, fun: 6 },
+  { id: 'hot-dog', name: 'Hot dog', aisle: 'meals', kind: 'food', price: 4, hunger: 25, fun: 6 },
+  { id: 'fries', name: 'Chips', aisle: 'meals', kind: 'food', price: 3, hunger: 18, fun: 7 },
+  { id: 'pretzel', name: 'Pretzel', aisle: 'sweets', kind: 'food', price: 2, hunger: 10, fun: 5 },
+  { id: 'popcorn', name: 'Popcorn', aisle: 'sweets', kind: 'food', price: 2, hunger: 8, fun: 8 },
+  { id: 'smoothie', name: 'Smoothie', aisle: 'icecream', kind: 'food', price: 3, hunger: 10, fun: 8 },
+  { id: 'strawberry-milk', name: 'Strawberry milk', aisle: 'icecream', kind: 'food', price: 3, hunger: 10, fun: 8 },
   // Meals
   { id: 'pizza', name: 'Pizza', aisle: 'meals', kind: 'food', price: 5, hunger: 30, fun: 8 },
   { id: 'burger', name: 'Burger', aisle: 'meals', kind: 'food', price: 5, hunger: 30, fun: 6 },
@@ -90,6 +111,9 @@ export const MARKET = [
   { id: 'decor-plant', name: 'Pot plant', aisle: 'toys', kind: 'decor', price: 6 },
   { id: 'decor-poster', name: 'Music poster', aisle: 'toys', kind: 'decor', price: 6 },
 ];
+// The clothes rail sells the avatar's clothes too (same prices as the avatar shop).
+for (const it of WEAR) if (['outfit', 'bottoms', 'shoes', 'hat', 'hairAcc'].includes(it.slot) && it.price > 0) MARKET.push({ id: it.id, name: it.name, aisle: 'clothes', kind: 'wear', price: it.price, slot: it.slot });
+
 export const AISLES = [
   { id: 'fruit', name: 'Fruit and veg' },
   { id: 'bakery', name: 'Bakery' },
@@ -98,11 +122,12 @@ export const AISLES = [
   { id: 'icecream', name: 'Ice cream and drinks' },
   { id: 'mytoys', name: 'Toys for me' },
   { id: 'books', name: 'Books' },
+  { id: 'clothes', name: 'Clothes' },
   { id: 'pets', name: 'Pet food' },
   { id: 'toys', name: 'Pet toys and home' },
 ];
 export const marketItem = (id) => MARKET.find((m) => m.id === id);
-export const isOneOff = (item) => ['toy', 'decor', 'mytoy', 'book'].includes(item.kind);
+export const isOneOff = (item) => ['toy', 'decor', 'mytoy', 'book', 'wear'].includes(item.kind);
 
 /** Each pet's favourite foods: extra fun and a shower of hearts. */
 export const FAVOURITES = {
@@ -177,13 +202,15 @@ export function trolleyTotal(trolley) {
 export function checkout(s, trolley) {
   const lines = Object.entries(trolley).filter(([id, n]) => marketItem(id) && n > 0);
   if (!lines.length) return false;
-  for (const [id, n] of lines) if (isOneOff(marketItem(id)) && (n > 1 || (s.pet.toys || []).includes(id))) return false;
+  const ownedAlready = (id) => (s.pet.toys || []).includes(id) || (s.avatar?.owned || []).includes(id);
+  for (const [id, n] of lines) if (isOneOff(marketItem(id)) && (n > 1 || ownedAlready(id))) return false;
   const total = trolleyTotal(Object.fromEntries(lines));
   if (s.coins < total) return false;
   s.coins -= total;
   s.pet.inventory = s.pet.inventory || {};
   s.pet.toys = s.pet.toys || [];
   for (const [id, n] of lines) {
+    if (marketItem(id).kind === 'wear') { s.avatar.owned.push(id); continue; }
     if (isOneOff(marketItem(id))) {
       s.pet.toys.push(id);
       if (storable(id)) { s.pet.out = s.pet.out || {}; const room = id.startsWith('my-') ? 'bedroom' : 'living'; if ((s.pet.out[room] || []).length < ROOM_LIMIT) s.pet.out[room] = [...(s.pet.out[room] || []), id]; }

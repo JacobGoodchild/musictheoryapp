@@ -6,10 +6,10 @@ import { cleanName } from '../state/save.js';
 import { spendCoins } from '../state/rewards.js';
 import { sfx } from '../audio/synth.js';
 import { confetti } from '../ui/confetti.js';
-import { PETS, MARKET, AISLES, marketItem, isOneOff, FAVOURITES, needsNow, changeNeeds, takeFood, foodEffect, trolleyTotal, checkout, petName, storable, whereIs, putOut, ROOM_LIMIT, giftReady, openGift, totalCorrect } from '../state/pet.js';
+import { PETS, MARKET, marketItem, isOneOff, FAVOURITES, needsNow, changeNeeds, takeFood, foodEffect, trolleyTotal, checkout, petName, storable, whereIs, putOut, ROOM_LIMIT, giftReady, openGift, totalCorrect } from '../state/pet.js';
 import { petSVG } from '../game/pet-rig.js';
 import { createHouse, ROOMS, TRICKS } from '../game/house.js';
-import { createMarketScene } from '../game/market-scene.js';
+import { createMarketScene, DEPARTMENTS } from '../game/market-scene.js';
 import { itemSVG } from '../game/item-art.js';
 import { DEFAULT_EQUIPPED } from '../art/avatar.js';
 
@@ -236,76 +236,47 @@ function buyPetButton(pt, redraw) {
 // ---------------------------------------------------------------- Supermarket
 export function marketTab() {
   const st = getState();
-  const petId = st.pet.active;
+  const home = (st.pet.home || []).filter((id) => st.pet.owned.includes(id));
   const trolley = {};
   const order = [];
-  let aisle = 'fruit';
-  const scene = createMarketScene({ petId, equipped: { ...DEFAULT_EQUIPPED, ...st.avatar.equipped } });
-  const shelf = h('div', { class: 'market-shelf', role: 'list' });
   const receipt = h('div', { class: 'receipt card' });
-  const aisleBar = h('div', { class: 'tabs aisle-tabs', role: 'tablist' });
-
-  const drawAisles = () => {
-    clear(aisleBar);
-    for (const a of AISLES) aisleBar.append(h('button', { class: `tab${a.id === aisle ? ' active' : ''}`, role: 'tab', 'aria-selected': String(a.id === aisle), 'data-aisle': a.id, onclick: () => { aisle = a.id; drawAisles(); drawShelf(); } }, a.name));
-    const a = AISLES.find((x) => x.id === aisle);
-    const s0 = getState();
-    scene.setAisle(a.name, MARKET.filter((m) => m.aisle === aisle && !(isOneOff(m) && (s0.pet.toys || []).includes(m.id))), (item) => { const card = shelf.querySelector(`[data-item="${item.id}"]`); if (card && !card.disabled) add(item, card); }, aisle === 'icecream');
+  const owned = (id) => (getState().pet.toys || []).includes(id) || (getState().avatar.owned || []).includes(id) || !!trolley[id] && isOneOff(marketItem(id));
+  const itemsFor = (dept) => {
+    let list = MARKET.filter((m) => m.aisle === dept);
+    if (dept === 'clothes') list = list.filter((m) => !(getState().avatar.owned || []).includes(m.id)).sort((x, y) => x.price - y.price).slice(0, 12);
+    return list;
   };
-  const drawShelf = () => {
-    clear(shelf);
-    const s = getState();
-    for (const item of MARKET.filter((m) => m.aisle === aisle)) {
-      const have = isOneOff(item) && ((s.pet.toys || []).includes(item.id) || trolley[item.id]);
-      const fav = petId && (FAVOURITES[petId] || []).includes(item.id);
-      const card = h('button', { class: 'market-item', role: 'listitem', 'data-item': item.id, disabled: have, onclick: (e) => add(item, e.currentTarget) },
-        svgFromString(itemSVG(item.id, 64, item.name)),
-        h('span', { class: 'mi-name' }, item.name),
-        fav ? h('span', { class: 'mi-fav' }, `♥ ${petName(s.pet, petId)} loves this`) : null,
-        have ? h('span', { class: 'mi-price' }, (s.pet.toys || []).includes(item.id) ? 'At home' : 'In trolley')
-          : h('span', { class: 'mi-price' }, coinIcon(), String(item.price)));
-      shelf.append(card);
-    }
-  };
+  const scene = createMarketScene({ pets: home, equipped: { ...DEFAULT_EQUIPPED, ...st.avatar.equipped }, items: itemsFor, owned, onPick: (item) => add(item) });
+  const map = h('div', { class: 'row wrap dept-map', role: 'group', 'aria-label': 'Go to a department' },
+    DEPARTMENTS.map((d) => h('button', { class: 'btn small', 'data-dept': d.id, onclick: () => scene.goTo(d.id) }, d.name)),
+    h('button', { class: 'btn small primary', 'data-dept': 'till', onclick: () => scene.goTo('till') }, 'Checkout'));
   const drawReceipt = () => {
     clear(receipt);
     const s = getState();
     const total = trolleyTotal(trolley);
     const lines = Object.entries(trolley).filter(([, n]) => n > 0);
-    receipt.append(h('h3', {}, icon('bag', 'coin-icon'), ' Trolley'));
-    if (!lines.length) receipt.append(h('p', { class: 'muted small' }, 'Tap things on the shelves to pop them in your trolley.'));
+    receipt.append(h('h3', {}, icon('trolley', 'coin-icon'), ' Trolley'));
+    if (!lines.length) receipt.append(h('p', { class: 'muted small' }, 'Walk around the shop and click things on the shelves to pop them in your trolley.'));
     const list = h('ul', { class: 'receipt-lines' });
     for (const [id, n] of lines) {
       const item = marketItem(id);
       list.append(h('li', {}, h('span', {}, `${item.name}${n > 1 ? ` ×${n}` : ''}`), h('span', { class: 'r-price' }, String(item.price * n)),
-        h('button', { class: 'btn tiny', 'aria-label': `Take one ${item.name} out`, 'data-action': 'remove', onclick: () => { trolley[id] -= 1; if (!trolley[id]) delete trolley[id]; order.splice(order.lastIndexOf(id), 1); scene.setTrolley(order); drawReceipt(); drawShelf(); } }, '−')));
+        h('button', { class: 'btn tiny', 'aria-label': `Put one ${item.name} back`, 'data-action': 'remove', onclick: () => { trolley[id] -= 1; if (!trolley[id]) delete trolley[id]; order.splice(order.lastIndexOf(id), 1); scene.setTrolley(order); scene.restock(); drawReceipt(); } }, '−')));
     }
     receipt.append(list);
     const short = total - s.coins;
     receipt.append(h('div', { class: 'receipt-total' }, h('span', {}, 'Total'), h('strong', {}, coinIcon(), String(total))));
     receipt.append(h('div', { class: 'muted small' }, `You have ${s.coins} coins.`));
-    if (short > 0) receipt.append(h('p', { class: 'warn small' }, `You need ${short} more coins. Take something out, or earn more by practising!`));
-    receipt.append(h('button', { class: 'btn primary block', 'data-action': 'pay', disabled: !lines.length || short > 0, onclick: pay }, 'Pay at the till'));
+    if (short > 0) receipt.append(h('p', { class: 'warn small' }, `You need ${short} more coins. Put something back, or earn more by practising!`));
+    receipt.append(h('button', { class: 'btn primary block', 'data-action': 'pay', disabled: !lines.length || short > 0, onclick: pay }, 'Pay at the checkout'));
   };
-  function add(item, card) {
+  function add(item) {
     if (isOneOff(item) && trolley[item.id]) return;
     trolley[item.id] = (trolley[item.id] || 0) + 1;
     order.push(item.id);
-    sfx('pop');
-    // Fly the picture into the trolley.
-    const pic = card.querySelector('svg');
-    const tgt = scene.el.getBoundingClientRect();
-    if (pic && !reduced() && tgt.width) {
-      const r = pic.getBoundingClientRect();
-      const ghost = pic.cloneNode(true);
-      Object.assign(ghost.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px`, zIndex: 50, pointerEvents: 'none' });
-      document.body.append(ghost);
-      const tx = tgt.left + tgt.width * 0.42 - r.left, ty = tgt.top + tgt.height * 0.5 - r.top;
-      const anim = ghost.animate([{ transform: 'translate(0,0) scale(1)' }, { transform: `translate(${tx * 0.5}px, ${ty - 120}px) scale(.8)`, offset: 0.5 }, { transform: `translate(${tx}px, ${ty}px) scale(.3)`, opacity: 0.6 }], { duration: 650, easing: 'ease-in-out' });
-      anim.onfinish = () => ghost.remove();
-    }
-    setTimeout(() => scene.setTrolley(order), reduced() ? 0 : 600);
-    drawReceipt(); drawShelf();
+    setTimeout(() => scene.setTrolley(order), reduced() ? 0 : 450);
+    if (isOneOff(item)) scene.restock();
+    drawReceipt();
   }
   let paying = false;
   async function pay() {
@@ -320,18 +291,17 @@ export function marketTab() {
     await scene.checkout(order.slice(), total);
     for (const k of Object.keys(trolley)) delete trolley[k];
     order.length = 0;
-    scene.setTrolley([]);
+    scene.setTrolley([]); scene.restock();
     paying = false;
     confetti();
     clear(receipt);
-    receipt.append(h('h3', {}, 'Thank you!'), h('p', {}, 'Everything is put away at home.'),
-      getState().pet.active ? h('a', { class: 'btn primary block', href: '#/rewards/pet', 'data-action': 'go-home' }, `Go home to ${petName(getState().pet, getState().pet.active)}`) : h('a', { class: 'btn primary block', href: '#/rewards/pet' }, 'Adopt a pet'),
-      h('button', { class: 'btn block', onclick: () => { drawReceipt(); drawShelf(); } }, 'Keep shopping'));
-    drawShelf();
+    const s2 = getState();
+    receipt.append(h('h3', {}, 'Thank you!'), h('p', {}, 'Food goes in the cupboard, toys and decorations go home (or into storage), and clothes go in your wardrobe.'),
+      (s2.pet.home || []).length ? h('a', { class: 'btn primary block', href: '#/rewards/pet', 'data-action': 'go-home' }, 'Go home') : h('a', { class: 'btn primary block', href: '#/rewards/pet' }, 'Adopt a pet'),
+      h('button', { class: 'btn block', onclick: () => drawReceipt() }, 'Keep shopping'));
   }
-  drawAisles(); drawShelf(); drawReceipt();
+  drawReceipt();
   return h('div', { class: 'market' },
     h('div', { class: 'card market-scene' }, scene.el),
-    !petId ? h('p', { class: 'muted' }, 'Tip: adopt a pet first, so it can come shopping with you!') : null,
-    h('div', { class: 'market-layout' }, h('div', { class: 'stack' }, aisleBar, shelf), receipt));
+    h('div', { class: 'market-layout' }, h('div', { class: 'stack' }, h('strong', {}, 'Go to…'), map, h('p', { class: 'muted small' }, 'Click the floor or use the ← → keys to walk around the shop. Click anything on display to buy it.')), receipt));
 }

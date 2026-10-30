@@ -38,13 +38,22 @@ function tube(parent, width, colour, line) {
 }
 
 const f1 = (n) => Math.round(n * 10) / 10;
+// Lighter or darker shade of a #rrggbb colour (k > 1 lighter, < 1 darker).
+function tint(hex, k) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (v) => Math.max(0, Math.min(255, Math.round(k > 1 ? v + (255 - v) * (k - 1) : v * k))).toString(16).padStart(2, '0');
+  return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`;
+}
+const EYE = { 'pet-kitten': '#5b9a4a', 'pet-puppy': '#7a4a2a', 'pet-bunny': '#c0456a', 'pet-unicorn': '#7b5bd6', 'pet-hamster': '#5a3a24', 'pet-panda': '#5a3a24', 'pet-chick': '#5a3a24' };
 
 // ---------------------------------------------------------------- head
 function buildHead(parent, sp, uid) {
   const { hx, hy, line, fur } = sp;
   const g = E(parent, 'g');
   const ears = E(g, 'g');
-  const lw = 3;
+  const lw = 2.5;
   const ink = { stroke: line, 'stroke-width': lw, 'stroke-linejoin': 'round' };
   const refs = { g, ears };
   // Ears behind the head.
@@ -79,7 +88,8 @@ function buildHead(parent, sp, uid) {
     });
   }
   // Head shape.
-  E(g, 'ellipse', { cx: 0, cy: 0, rx: hx, ry: hy, fill: fur, ...ink });
+  E(g, 'ellipse', { cx: 0, cy: 0, rx: hx, ry: hy, fill: `url(#${uid}hf)`, ...ink });
+  if (['floppy', 'bunny', 'round'].includes(sp.ears)) E(g, 'path', { d: `M-7 ${-hy + 3}q3-9 7-5q3-7 8 1`, fill: 'none', stroke: line, 'stroke-width': 2.2, 'stroke-linecap': 'round' });
   if (sp.cheeks) for (const s of [-1, 1]) E(g, 'ellipse', { cx: s * hx * 0.72, cy: hy * 0.38, rx: hx * 0.38, ry: hy * 0.36, fill: fur, ...ink });
   if (sp.cheeks) E(g, 'ellipse', { cx: 0, cy: hy * 0.1, rx: hx * 0.85, ry: hy * 0.62, fill: fur }); // hides the inner cheek lines
   if (sp.ears === 'floppy') {
@@ -126,15 +136,16 @@ function buildHead(parent, sp, uid) {
   const ex = hx * 0.36, ey = sp.bird ? -3 : -1;
   const open = E(face, 'g'), closed = E(face, 'g', { display: 'none' }), happy = E(face, 'g', { display: 'none' });
   for (const s of [-1, 1]) {
-    E(open, 'ellipse', { cx: s * ex, cy: ey, rx: 4.8, ry: 6.2, fill: '#2b1f2a' });
-    E(open, 'circle', { cx: s * ex + 1.5, cy: ey - 2.4, r: 2, fill: '#fff' });
-    E(open, 'circle', { cx: s * ex - 1.4, cy: ey + 2.2, r: 0.9, fill: '#fff' });
+    E(open, 'ellipse', { cx: s * ex, cy: ey, rx: 5.6, ry: 7, fill: `url(#${uid}eye)` });
+    E(open, 'circle', { cx: s * ex + 1.7, cy: ey - 2.6, r: 2.5, fill: '#fff' });
+    E(open, 'circle', { cx: s * ex - 1.6, cy: ey + 2.6, r: 1.2, fill: '#fff' });
+    E(open, 'circle', { cx: s * ex + 2.6, cy: ey + 1.4, r: 0.6, fill: '#fff', opacity: 0.8 });
     E(closed, 'path', { d: `M${f1(s * ex - 5)} ${ey + 1}q5 4 10 0`, fill: 'none', stroke: sp.eyePatch ? '#fff' : '#2b1f2a', 'stroke-width': 2.4, 'stroke-linecap': 'round' });
     E(happy, 'path', { d: `M${f1(s * ex - 5)} ${ey + 2}q5-7 10 0`, fill: 'none', stroke: sp.eyePatch ? '#fff' : '#2b1f2a', 'stroke-width': 2.6, 'stroke-linecap': 'round' });
   }
   refs.eyes = { open, closed, happy };
   // Blush.
-  for (const s of [-1, 1]) E(face, 'ellipse', { cx: s * hx * 0.62, cy: hy * 0.3, rx: 5, ry: 3, fill: '#ff8fa8', opacity: 0.55 });
+  for (const s of [-1, 1]) E(face, 'ellipse', { cx: s * hx * 0.63, cy: hy * 0.3, rx: 6.2, ry: 3.8, fill: '#ff8fa8', opacity: 0.6 });
   // Nose and mouth.
   const ny = hy * 0.27;
   const mouth = { smile: E(face, 'g'), open: E(face, 'g', { display: 'none' }), tongue: E(face, 'g', { display: 'none' }) };
@@ -173,7 +184,7 @@ export function createPet(species) {
   const root = E(null, 'g', { class: 'pet-rig' });
   const flip = E(root, 'g'); // mirrors only the non-face parts when needed
   const { line, fur, far, legLen: L, rx, ry } = sp;
-  const ink = { stroke: line, 'stroke-width': 3, 'stroke-linejoin': 'round' };
+  const ink = { stroke: line, 'stroke-width': 2.5, 'stroke-linejoin': 'round' };
   const legW = sp.gait === 'scurry' ? 9 : sp.gait === 'prance' ? 9 : 10;
   const limb = sp.limb || fur, limbFar = sp.limb || far;
   const cy = -(L + ry * 0.72);
@@ -191,10 +202,14 @@ export function createPet(species) {
   if (sp.bird) for (const lg of legs) { lg.t.colour('#ffa938'); lg.t.g.firstChild.setAttribute('stroke-width', 7); lg.t.g.lastChild.setAttribute('stroke-width', 3); lg.paw.setAttribute('fill', '#ffa938'); }
   const clipId = `${uid}c`;
   const defs = E(root, 'defs');
+  const rg = (id, c) => { const g = E(defs, 'radialGradient', { id, cx: 0.38, cy: 0.32, r: 0.75 }); E(g, 'stop', { offset: 0, 'stop-color': tint(c, 1.35) }); E(g, 'stop', { offset: 0.6, 'stop-color': c }); E(g, 'stop', { offset: 1, 'stop-color': tint(c, 0.9) }); };
+  rg(`${uid}hf`, fur); rg(`${uid}bf`, fur);
+  const eg = E(defs, 'linearGradient', { id: `${uid}eye`, x1: 0, y1: 0, x2: 0, y2: 1 });
+  E(eg, 'stop', { offset: 0.35, 'stop-color': '#1e1622' }); E(eg, 'stop', { offset: 1, 'stop-color': EYE[species] || '#5a3a24' });
   const clip = E(defs, 'clipPath', { id: clipId });
   E(clip, 'ellipse', { cx: 0, cy, rx, ry });
   const sideBody = E(side, 'g');
-  E(sideBody, 'ellipse', { cx: 0, cy, rx, ry, fill: fur, ...ink });
+  E(sideBody, 'ellipse', { cx: 0, cy, rx, ry, fill: `url(#${uid}bf)`, ...ink });
   const sbClip = E(sideBody, 'g', { 'clip-path': `url(#${clipId})` });
   E(sbClip, 'ellipse', { cx: rx * 0.3, cy: cy + ry * 0.75, rx: rx * 0.62, ry: ry * 0.55, fill: sp.patch });
   if (sp.limb) E(sbClip, 'ellipse', { cx: rx * 0.42, cy: cy - ry * 0.1, rx: rx * 0.34, ry: ry * 1.2, fill: sp.limb }); // panda shoulder band
@@ -226,7 +241,7 @@ export function createPet(species) {
     fLegs.push({ t, s });
     fLegs.push({ paw: E(front, 'ellipse', { rx: sp.bird ? 5 : 6.5, ry: sp.bird ? 3 : 4.2, fill: sp.bird ? '#ffa938' : sp.hoof || limb, ...ink }), s });
   }
-  E(front, 'ellipse', { cx: 0, cy, rx: fw * 1.05, ry: ry * 1.08, fill: fur, ...ink });
+  E(front, 'ellipse', { cx: 0, cy, rx: fw * 1.05, ry: ry * 1.08, fill: `url(#${uid}bf)`, ...ink });
   if (sp.limb) E(front, 'path', { d: `M${f1(-fw)} ${f1(cy - 4)}Q0 ${f1(cy - ry * 0.7)} ${f1(fw)} ${f1(cy - 4)}L${f1(fw * 0.9)} ${f1(cy + 6)}Q0 ${f1(cy - 6)} ${f1(-fw * 0.9)} ${f1(cy + 6)}Z`, fill: sp.limb });
   E(front, 'ellipse', { cx: 0, cy: cy + ry * 0.25, rx: fw * 0.55, ry: ry * 0.62, fill: sp.patch });
 
@@ -241,13 +256,15 @@ export function createPet(species) {
   if (sp.tail === 'bird') E(sit, 'path', { d: `M${f1(W * 0.7)} ${f1(-H * 0.35)}l12-8-3 8 5 4z`, fill: far, ...ink });
   // haunches and body
   for (const s of sp.bird ? [] : [-1, 1]) E(sit, 'ellipse', { cx: f1(s * W * 0.62), cy: f1(-H * 0.2), rx: f1(W * 0.5), ry: f1(H * 0.22), fill: sp.limb || fur, ...ink });
-  E(sit, 'path', { d: `M0 ${f1(-H)}C${f1(-W * 0.62)} ${f1(-H)} ${f1(-W)} ${f1(-H * 0.48)} ${f1(-W)} ${f1(-H * 0.2)}C${f1(-W)} -4 ${f1(-W * 0.6)} 0 0 0C${f1(W * 0.6)} 0 ${f1(W)} -4 ${f1(W)} ${f1(-H * 0.2)}C${f1(W)} ${f1(-H * 0.48)} ${f1(W * 0.62)} ${f1(-H)} 0 ${f1(-H)}Z`, fill: fur, ...ink });
+  E(sit, 'path', { d: `M0 ${f1(-H)}C${f1(-W * 0.62)} ${f1(-H)} ${f1(-W)} ${f1(-H * 0.48)} ${f1(-W)} ${f1(-H * 0.2)}C${f1(-W)} -4 ${f1(-W * 0.6)} 0 0 0C${f1(W * 0.6)} 0 ${f1(W)} -4 ${f1(W)} ${f1(-H * 0.2)}C${f1(W)} ${f1(-H * 0.48)} ${f1(W * 0.62)} ${f1(-H)} 0 ${f1(-H)}Z`, fill: `url(#${uid}bf)`, ...ink });
   if (sp.limb) E(sit, 'path', { d: `M${f1(-W * 0.82)} ${f1(-H * 0.62)}Q0 ${f1(-H * 1.02)} ${f1(W * 0.82)} ${f1(-H * 0.62)}L${f1(W * 0.7)} ${f1(-H * 0.48)}Q0 ${f1(-H * 0.8)} ${f1(-W * 0.7)} ${f1(-H * 0.48)}Z`, fill: sp.limb });
   E(sit, 'ellipse', { cx: 0, cy: f1(-H * 0.42), rx: f1(W * 0.45), ry: f1(H * 0.3), fill: sp.patch });
+  if (!sp.bird && !sp.limb) E(sit, 'path', { d: `M${f1(-W * 0.3)} ${f1(-H * 0.68)}l${f1(W * 0.1)} 5 ${f1(W * 0.1)} -4 ${f1(W * 0.1)} 5 ${f1(W * 0.1)} -4 ${f1(W * 0.1)} 5 ${f1(W * 0.1)} -4`, fill: 'none', stroke: tint(sp.patch, 0.9), 'stroke-width': 1.6, 'stroke-linejoin': 'round' });
   if (sp.stripes) for (const s of [-1, 1]) E(sit, 'path', { d: `M${f1(s * W * 0.95)} ${f1(-H * 0.36)}q${s * -6} 2 ${s * -9} 6M${f1(s * W * 0.98)} ${f1(-H * 0.22)}q${s * -6} 2 ${s * -9} 6`, stroke: sp.stripe, 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' });
   for (const s of [-1, 1]) E(sit, 'ellipse', { cx: f1(s * W * (sp.bird ? 0.35 : 0.78)), cy: -3.5, rx: sp.bird ? 6 : 9, ry: sp.bird ? 3.5 : 5, fill: sp.bird ? '#ffa938' : sp.hoof || sp.limb || fur, ...ink });
   if (sp.bird) for (const s of [-1, 1]) E(sit, 'path', { d: `M${f1(s * W * 0.95)} ${f1(-H * 0.62)}c${s * 6} 4 ${s * 6} 14 0 20c${s * -4} -6 ${s * -4} -14 0 -20z`, fill: far, ...ink });
-  const sitPaws = [-1, 1].map((s) => ({ s, t: tube(sit, legW, limb, line), paw: E(sit, 'ellipse', { rx: 6.2, ry: 4.4, fill: sp.hoof || (sp.limb ? sp.limb : sp.patch), ...ink }) }));
+  const sitPaws = [-1, 1].map((s) => ({ s, t: tube(sit, legW, limb, line), paw: E(sit, 'ellipse', { rx: 6.2, ry: 4.4, fill: sp.hoof || (sp.limb ? sp.limb : sp.patch), ...ink }), beans: sp.hoof || sp.bird ? null : E(sit, 'g', { fill: '#ffb3c6' }) }));
+  for (const pw of sitPaws) if (pw.beans) { for (const [bx, by, r] of [[-3, -0.6, 1.1], [0, -1.6, 1.1], [3, -0.6, 1.1], [0, 1.4, 1.7]]) E(pw.beans, 'circle', { cx: bx, cy: by, r }); }
   if (sp.bird) for (const p of sitPaws) { p.t.g.setAttribute('display', 'none'); p.paw.setAttribute('display', 'none'); }
 
   // ---- sleeping (curled up loaf)
@@ -345,6 +362,7 @@ export function createPet(species) {
         if (pw.s > 0 && lick > 0) { x1 = 7 - lick * 4; y1 = -5 - lick * (H * 0.62); }
         pw.t.set(`M${f1(x0)} ${f1(y0)}L${f1(x1)} ${f1(y1)}`);
         pw.paw.setAttribute('cx', f1(x1)); pw.paw.setAttribute('cy', f1(y1 + 0.5));
+        if (pw.beans) pw.beans.setAttribute('transform', `translate(${f1(x1)} ${f1(y1 + 0.5)})`);
       }
       if (sitTail) {
         const w = Math.sin(tp) * 6;

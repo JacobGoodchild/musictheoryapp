@@ -9,7 +9,7 @@ test('supermarket: everything is cheap, in an aisle, and has a picture', () => {
   const ids = new Set();
   for (const m of MARKET) {
     assert.ok(!ids.has(m.id), `duplicate ${m.id}`); ids.add(m.id);
-    assert.ok(m.price >= 1 && m.price <= 12, `${m.id} price ${m.price}`);
+    if (m.kind !== 'wear') assert.ok(m.price >= 1 && m.price <= 12, `${m.id} price ${m.price}`);
     assert.ok(AISLES.some((a) => a.id === m.aisle), m.id);
     if (m.kind === 'food') assert.ok(FOOD[m.id], `food art for ${m.id}`);
     if (m.kind === 'toy') assert.ok(TOYS[m.id], `toy art for ${m.id}`);

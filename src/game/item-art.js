@@ -2,6 +2,7 @@
 // ../art/food.js, plus pet food, toys and decorations drawn here.
 import { FOOD, GRADIENTS, face } from '../art/food.js';
 import * as P from './props.js';
+import { itemById as wearById } from '../art/avatar.js';
 
 const OL = '#4f3747';
 const o = (w = 3) => `stroke="${OL}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
@@ -51,6 +52,17 @@ const DECOR = {
   'decor-poster': () => `<g transform="translate(60 60) scale(1.05)">${P.poster()}</g>`,
 };
 
+// Clothes from the avatar shop, as simple garment pictures.
+function wearArt(it) {
+  const c = it.colour || it.cape || '#ff8fb8';
+  if (it.slot === 'outfit' && (it.dress || it.onesie)) return `<path d="M44 14h32l6 16 20 72H18l20-72z" fill="${c}" ${o()}/><path d="M44 14q16 12 32 0" fill="none" ${o(2.5)}/>${it.dots ? '<circle cx="50" cy="60" r="4" fill="#fff"/><circle cx="70" cy="76" r="4" fill="#fff"/><circle cx="58" cy="90" r="4" fill="#fff"/>' : ''}${it.ears ? `<path d="M46 14l-6-12 12 6zM74 14l6-12-12 6z" fill="${c}" ${o(2)}/>` : ''}`;
+  if (it.slot === 'outfit') return `<path d="M40 16l-26 18 12 18 12-8v60h44V44l12 8 12-18-26-18q-10 10-20 10t-20-10z" fill="${c}" ${o()}/>${it.stripes ? '<path d="M38 60h44M38 76h44" stroke="#fff" stroke-width="5"/>' : ''}`;
+  if (it.slot === 'bottoms') return it.kind === 'trousers' ? `<path d="M34 16h52l6 92H66l-6-60-6 60H28z" fill="${c}" ${o()}/>` : it.kind === 'shorts' ? `<path d="M30 30h60l8 50H66l-6-26-6 26H22z" fill="${c}" ${o()}/>` : `<path d="M38 24h44l24 70q-46 16-92 0z" fill="${c}" ${o()}/>`;
+  if (it.slot === 'shoes') return `<path d="M14 80q0-26 22-26 10 18 30 18 28 0 40 10v14H14z" fill="${c}" ${o()}/><path d="M14 92h92" stroke="${it.sole || '#c9c3d6'}" stroke-width="6"/>`;
+  if (it.slot === 'hat') return `<path d="M24 80q0-50 36-50t36 50z" fill="${c}" ${o()}/><path d="M12 80h96" stroke="${c}" stroke-width="10" stroke-linecap="round"/>`;
+  return `<path d="M60 60c-20-24-44-8-30 8 10 10 30 0 30-8zM60 60c20-24 44-8 30 8-10 10-30 0-30-8z" fill="${c}" ${o()}/><circle cx="60" cy="60" r="8" fill="${c}" ${o(2.5)}/>`;
+}
+
 /** SVG markup (no outer <svg>) for an item, in a 120×120 box. */
 export function itemArt(id) {
   const uid = `ia${++n}`;
@@ -61,6 +73,7 @@ export function itemArt(id) {
   else if (DECOR[id]) s = DECOR[id]();
   else if (MY_TOYS[id]) s = MY_TOYS[id]();
   else if (id.startsWith('book-')) s = bookCover(id);
+  else if (wearById(id)) s = wearArt(wearById(id));
   else s = `<circle cx="60" cy="60" r="30" fill="#ddd"/>`;
   return s.replace(/§/g, uid);
 }

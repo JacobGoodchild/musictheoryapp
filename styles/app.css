@@ -656,3 +656,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .pet-meter .need-meters { grid-column: 1 / -1; }
 .set-tabs { gap: 6px; }
 .album-cell.ultra:not(.locked) { background: linear-gradient(135deg, #ffe3f6, #e3f6ff, #fff8d6, #efe3ff); }
+.dept-map { gap: 6px; }
+.market-svg .shelf-item { cursor: pointer; }
+.market-svg .shelf-item:hover > g { filter: drop-shadow(0 0 3px #ffd36e); }
+.market-svg .shelf-item.owned { cursor: default; opacity: .55; }
+.market-svg:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+.market-layout { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); }
