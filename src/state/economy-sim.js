@@ -50,8 +50,8 @@ export function simulate({ days = 70, seed = 1, sessionsPerWeek = 6 } = {}) {
     let bought = true;
     while (bought) {
       bought = false;
-      const missing = STICKERS.filter((s) => !st.owned[s.id]);
-      const swappable = missing.find((s) => RARITIES.find((x) => x.id === s.rarity).swapCost <= notes);
+      const missing = STICKERS.filter((s) => !st.owned[s.id] && s.rarity !== 'ultra'); // Ultra Mythics are a lucky bonus, not a goal
+      const swappable = missing.find((s) => { const c = RARITIES.find((x) => x.id === s.rarity).swapCost; return c !== null && c <= notes; });
       if (swappable) { notes -= RARITIES.find((x) => x.id === swappable.rarity).swapCost; st.owned[swappable.id] = 1; bought = true; purchases++; continue; }
       const preferBag = purchases % 2 === 1 || !avatarLeft.length;
       const B = ECONOMY.bagBundle;
@@ -61,7 +61,7 @@ export function simulate({ days = 70, seed = 1, sessionsPerWeek = 6 } = {}) {
       else if (missing.length && coins >= ECONOMY.bagCost) { coins -= ECONOMY.bagCost; notes += openBag(st).notes; bought = true; purchases++; }
       if (bought && firstPurchaseDay === null) firstPurchaseDay = day;
     }
-    const stickersLeft = STICKERS.filter((s) => !st.owned[s.id]).length;
+    const stickersLeft = STICKERS.filter((s) => !st.owned[s.id] && s.rarity !== 'ultra').length;
     timeline.push({ day, coins, avatarLeft: avatarLeft.length, stickersLeft, purchases });
     if (allDoneDay === null && !avatarLeft.length && !stickersLeft) allDoneDay = day;
   }

@@ -7,7 +7,7 @@ import { icon, coinIcon, noteIcon } from '../ui/icons.js';
 import { FOOD } from '../art/food.js';
 import { avatarSVG, ITEMS, SLOTS, DEFAULT_EQUIPPED, itemById, FREE_ITEMS } from '../art/avatar.js';
 import { stickerSVG } from '../art/stickers.js';
-import { STICKERS, RARITIES, PITY, openBag, collectionStats, rarityById } from '../state/stickers.js';
+import { STICKERS, RARITIES, PITY, openBag, collectionStats, rarityById, SETS, setProgress } from '../state/stickers.js';
 import { ECONOMY, spendCoins } from '../state/rewards.js';
 import { sfx } from '../audio/synth.js';
 import { confetti } from '../ui/confetti.js';
@@ -133,7 +133,7 @@ function bagsTab() {
     });
     stage.append(cards, h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn', onclick: () => refresh() }, 'Done'), h('button', { class: 'btn primary', disabled: getState().coins < ECONOMY.bagCost, onclick: () => showBag() }, 'Open more')));
     sfx('reveal');
-    if (results.some((res) => ['legendary', 'mythic'].includes(res.rarity))) confetti();
+    if (results.some((res) => ['legendary', 'mythic', 'ultra'].includes(res.rarity))) confetti();
   };
   showBag();
   const since = s.stickers.sinceEpic;
@@ -156,23 +156,36 @@ function bagArt() {
 }
 
 // ---------------------------------------------------------------- Album
+let albumSet = 'food';
 function albumTab() {
   const s = getState();
   const stats = collectionStats(s.stickers.owned);
+  const claimed = s.stickers.sets || [];
+  const setBar = h('div', { class: 'row wrap set-tabs' }, SETS.map((st) => {
+    const pr = setProgress(s.stickers.owned, st.id);
+    return h('button', { class: `btn small${albumSet === st.id ? ' primary' : ''}`, 'data-set': st.id, onclick: () => { albumSet = st.id; refresh(); } }, `${st.name} ${pr.have}/${pr.total}`, pr.have === pr.total ? ' ★' : '');
+  }));
+  const cur = SETS.find((x) => x.id === albumSet) || SETS[0];
+  const pr = setProgress(s.stickers.owned, cur.id);
+  const bonus = pr.have === pr.total
+    ? (claimed.includes(cur.id) ? h('span', { class: 'chip good' }, icon('check', 'coin-icon'), `Set complete! Bonus collected`)
+      : h('button', { class: 'btn primary', 'data-action': 'claim-set', onclick: () => { update((x) => { x.stickers.sets = [...(x.stickers.sets || []), cur.id]; x.coins += cur.bonus; }); sfx('reveal'); confetti(); toast(`Set complete! +${cur.bonus} coins`); refresh(); } }, coinIcon(), `Claim ${cur.bonus} coin set bonus!`))
+    : h('span', { class: 'small muted' }, `Complete the set for a ${cur.bonus} coin bonus.`);
   const grid = h('div', { class: 'album-grid' });
-  for (const st of STICKERS) {
+  for (const st of STICKERS.filter((x) => x.set === cur.id)) {
     const have = s.stickers.owned[st.id] || 0;
     const ra = rarityById(st.rarity);
-    const cell = h('div', { class: `album-cell${have ? '' : ' locked'}` },
+    const cell = h('div', { class: `album-cell${have ? '' : ' locked'}${st.rarity === 'ultra' ? ' ultra' : ''}` },
       svgFromString(stickerSVG(st, { locked: !have, size: 104 })),
       h('div', { class: 'album-name' }, have ? st.name : '???'),
       h('span', { class: 'rarity-pill small', style: { background: ra.colour } }, ra.name),
       have > 1 ? h('span', { class: 'tiny muted' }, `×${have}`) : null,
-      !have ? h('button', { class: 'btn small', disabled: s.dupeNotes < ra.swapCost, onclick: () => swap(st) }, noteIcon(), `${ra.swapCost}`) : null);
+      !have ? (ra.swapCost ? h('button', { class: 'btn small', disabled: s.dupeNotes < ra.swapCost, onclick: () => swap(st) }, noteIcon(), `${ra.swapCost}`) : h('span', { class: 'tiny muted' }, 'Bags only!')) : null);
     grid.append(cell);
   }
   async function swap(st) {
     const ra = rarityById(st.rarity);
+    if (!ra.swapCost) return;
     const ok = await confirmDialog('Swap notes for this sticker?', `Spend ${ra.swapCost} notes on a ${ra.name} sticker (${st.name}).`, { ok: 'Swap' });
     if (!ok) return;
     update((x) => { if (x.dupeNotes >= ra.swapCost && !x.stickers.owned[st.id]) { x.dupeNotes -= ra.swapCost; x.stickers.owned[st.id] = 1; } });
@@ -183,6 +196,7 @@ function albumTab() {
       h('div', { class: 'row between' }, h('h3', { style: { margin: 0 } }, `${stats.have} / ${stats.total} stickers`), h('span', { class: 'small muted' }, `${s.stickers.bagsOpened} bags opened`)),
       h('div', { class: 'progress', style: { margin: '10px 0' } }, h('span', { style: { width: `${(stats.have / stats.total) * 100}%` } })),
       h('div', { class: 'row' }, stats.byRarity.map((r) => h('span', { class: 'chip' }, h('span', { class: 'rarity-dot', style: { background: r.colour } }), `${r.name} ${r.have}/${r.total}`)))),
+    h('div', { class: 'card stack' }, setBar, h('div', { class: 'row between wrap' }, h('h3', { style: { margin: 0 } }, `${cur.name}: ${pr.have} / ${pr.total}`), bonus)),
     grid);
 }
 

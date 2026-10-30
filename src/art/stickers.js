@@ -3,6 +3,7 @@
 // glow for the rarer stickers, and a padlocked silhouette when not collected.
 import { rarityById } from '../state/stickers.js';
 import { FOOD, GRADIENTS } from './food.js';
+import { COLLECT } from './collect.js';
 
 let count = 0;
 
@@ -11,9 +12,9 @@ export function stickerSVG(s, { locked = false, size = 120 } = {}) {
   const uid = `st${++count}`;
   const rar = rarityById(s.rarity);
   // Drawn at 82% so the white die-cut edge and glow never run off the sticker.
-  const art = `<g transform="translate(60 60) scale(.82) translate(-60 -60)">${(FOOD[s.art] || FOOD.cookie)().replace(/§/g, uid)}</g>`;
+  const art = `<g transform="translate(60 60) scale(.82) translate(-60 -60)">${(FOOD[s.art] || COLLECT[s.art] || FOOD.cookie)().replace(/§/g, uid)}</g>`;
   const defs = Object.values(GRADIENTS).join('').replace(/§/g, uid);
-  const special = ['legendary', 'mythic'].includes(s.rarity);
+  const special = ['legendary', 'mythic', 'ultra'].includes(s.rarity);
   const filters = `
     <filter id="${uid}-cut" x="-25%" y="-25%" width="150%" height="150%">
       <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="fat"/>

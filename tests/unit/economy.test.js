@@ -11,7 +11,7 @@ test('collecting everything (100 stickers, ~120 avatar items) takes roughly 4–
   const days = runs.map((r) => r.allDoneDay);
   assert.ok(days.every((d) => d !== null), 'every simulated student finishes within 120 days');
   const m = median(days);
-  assert.ok(m >= 28 && m <= 44, `median ${m} days`);
+  assert.ok(m >= 42 && m <= 58, `median ${m} days`);
   assert.ok(Math.min(...days) >= 21, `fastest ${Math.min(...days)} days`);
 });
 

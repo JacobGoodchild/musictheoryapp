@@ -71,3 +71,9 @@ Over 30 simulated students (different random seeds):
 - Pet care earns no coins (it is a reward, not a way to farm coins), so the
   simulation above is unchanged by it. Needs (tummy, fun, energy) fall gently
   while you are away and never drop below 10%, so nobody comes back to a sad pet.
+
+## Stickers: 200 and Ultra Mythics (30 Oct)
+
+- About 100 new stickers in eight sets (animals, sea, space, garden, music, spooky, treasure, vehicles): 199 in total. Completing a set pays a one-off coin bonus (80–500).
+- New **Ultra Mythic** rarity (5 holographic stickers, 0.3%, Common is now 54.7%). They count for the pity rule but can never be swapped for notes, and the simulation does not need them to "finish".
+- With the bigger album the simulated regular student collects everything else in **45–53 days, median about 50 (~7 weeks)**; the test now expects a median of 42–58 days.

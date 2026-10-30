@@ -3,12 +3,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STICKERS, RARITIES, PITY, openBag, collectionStats } from '../../src/state/stickers.js';
 
-test('about 100 stickers, unique ids, every rarity present, shown odds add to 100', () => {
-  assert.ok(STICKERS.length >= 90 && STICKERS.length <= 120);
+test('about 200 stickers, unique ids, every rarity present, shown odds add to 100', () => {
+  assert.ok(STICKERS.length >= 190 && STICKERS.length <= 230);
   assert.equal(new Set(STICKERS.map((s) => s.id)).size, STICKERS.length);
   for (const r of RARITIES) assert.ok(STICKERS.some((s) => s.rarity === r.id), r.id);
-  assert.equal(RARITIES.reduce((a, r) => a + r.odds, 0), 100);
-  assert.equal(STICKERS.filter((s) => s.rarity === 'mythic').length, 5);
+  assert.ok(Math.abs(RARITIES.reduce((a, r) => a + r.odds, 0) - 100) < 1e-9);
+  assert.equal(STICKERS.filter((s) => s.rarity === 'mythic').length, 7);
+  assert.equal(STICKERS.filter((s) => s.rarity === 'ultra').length, 5);
+  assert.ok(RARITIES.find((r) => r.id === 'ultra').swapCost === null, 'Ultra Mythics cannot be bought with notes');
   assert.equal(STICKERS.find((s) => s.id === 'golden-teapot').rarity, 'mythic');
 });
 
@@ -20,14 +22,14 @@ test('real odds over many openings match the shown odds (pity included)', () => 
   for (let i = 0; i < N; i++) {
     const res = openBag(st);
     counts[res.rarity]++;
-    gap = ['epic', 'legendary', 'mythic'].includes(res.rarity) ? 0 : gap + 1;
+    gap = ['epic', 'legendary', 'mythic', 'ultra'].includes(res.rarity) ? 0 : gap + 1;
     maxGap = Math.max(maxGap, gap);
   }
   assert.ok(maxGap <= PITY - 1, `went ${maxGap} bags without Epic+`);
   // Pity nudges Epic+ up slightly; everything stays within 2 percentage points of the shown odds.
   for (const r of RARITIES) {
     const pct = (counts[r.id] / N) * 100;
-    assert.ok(Math.abs(pct - r.odds) < 2, `${r.id}: ${pct.toFixed(2)}% vs ${r.odds}%`);
+    assert.ok(Math.abs(pct - r.odds) < (r.odds < 1 ? 0.25 : 2), `${r.id}: ${pct.toFixed(2)}% vs ${r.odds}%`);
   }
 });
 

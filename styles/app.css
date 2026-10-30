@@ -654,3 +654,5 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
 .pet-meters { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; margin-top: 8px; }
 .pet-meter { display: grid; grid-template-columns: 34px 1fr; gap: 4px 8px; align-items: center; }
 .pet-meter .need-meters { grid-column: 1 / -1; }
+.set-tabs { gap: 6px; }
+.album-cell.ultra:not(.locked) { background: linear-gradient(135deg, #ffe3f6, #e3f6ff, #fff8d6, #efe3ff); }

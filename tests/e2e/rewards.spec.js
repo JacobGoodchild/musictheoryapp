@@ -11,13 +11,16 @@ test('buy an avatar item, open a blind bag, see the sticker in the album', async
   await page.locator('.modal button', { hasText: 'Buy it' }).click();
   await expect(page.locator('.chip.coin-chip').first()).not.toContainText('500');
   await page.goto('/index.html#/rewards/bags');
-  await expect(page.locator('.odds-list')).toContainText('55%');
+  await expect(page.locator('.odds-list')).toContainText('54.7%');
+  await expect(page.locator('.odds-list')).toContainText('Ultra Mythic');
   await expect(page.locator('.odds-list')).toContainText('1%');
   await page.locator('button', { hasText: 'Open a bag' }).click();
   await expect(page.locator('.reveal h2')).toBeVisible({ timeout: 5000 });
   const name = await page.locator('.reveal h2').innerText();
   await page.goto('/index.html#/rewards/album');
   await expect(page.locator('.album-stats h3')).toContainText(`1 / ${await page.evaluate(async () => (await import('/src/state/stickers.js')).STICKERS.length)}`);
+  const set = await page.evaluate(async (n) => (await import('/src/state/stickers.js')).STICKERS.find((x) => x.name === n).set, name);
+  await page.locator(`[data-set="${set}"]`).click();
   await expect(page.locator('.album-cell:not(.locked)')).toContainText(name);
   expect(errors).toEqual([]);
 });
@@ -39,12 +42,14 @@ test('every sticker has its own drawing, and it draws inside the sticker', async
   const problems = await page.evaluate(async () => {
     const { STICKERS } = await import('/src/state/stickers.js');
     const { FOOD } = await import('/src/art/food.js');
+    const { COLLECT } = await import('/src/art/collect.js');
     const { stickerSVG } = await import('/src/art/stickers.js');
     const out = [];
     const seen = new Set();
     for (const s of STICKERS) {
-      if (!FOOD[s.art]) { out.push(`${s.id}: no drawing`); continue; }
-      const art = FOOD[s.art]();
+      const fn = FOOD[s.art] || COLLECT[s.art];
+      if (!fn) { out.push(`${s.id}: no drawing`); continue; }
+      const art = fn();
       if (seen.has(art)) out.push(`${s.id}: same drawing as another sticker`);
       seen.add(art);
       const host = document.createElement('div');
